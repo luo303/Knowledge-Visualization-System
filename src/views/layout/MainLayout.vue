@@ -15,7 +15,7 @@
   </div>
 </template>
 
-<script setup>
+<script lang="ts" setup>
 import SystemTop from '../SystemTop.vue'
 import SystemBottom from '../SystemBottom.vue'
 import NavBar from '../NavBar.vue'
