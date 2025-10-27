@@ -9,4 +9,4 @@
 import AiTalk from './AiTalk.vue'
 </script>
 
-<style scoped></style>
+<style lang="scss" scoped></style>

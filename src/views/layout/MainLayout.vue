@@ -21,4 +21,4 @@ import SystemBottom from '../SystemBottom.vue'
 import NavBar from '../NavBar.vue'
 </script>
 
-<style scoped></style>
+<style lang="scss" scoped></style>
