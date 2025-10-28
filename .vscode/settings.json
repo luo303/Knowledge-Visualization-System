@@ -13,11 +13,11 @@
   // 关闭 ESLint 自动修复格式相关问题（格式交给 Prettier）
   "editor.codeActionsOnSave": {
     "source.fixAll.eslint": "never",
-    // 仅保留 ESLint 对代码质量问题的自动修复（可选，按需开启）
+    // 关闭 ESLint 对代码质量问题的自动修复
     "source.fixAll": "never"
   },
 
-  // 2. Prettier 配置（仅负责格式化，完全接管格式）
+  // Prettier 配置（仅负责格式化，完全接管格式）
   "prettier.requireConfig": true, // 强制使用项目内 .prettierrc 配置
   "prettier.path": "./node_modules/prettier", // 锁定项目内 Prettier 版本
   // 全局开启保存时格式化（由 Prettier 执行）
