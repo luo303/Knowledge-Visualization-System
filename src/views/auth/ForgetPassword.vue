@@ -12,17 +12,17 @@
           label-position="right"
           label-width="auto"
         >
-          <el-form-item prop="phone" label="手机号/邮箱:">
+          <el-form-item prop="account" label="手机号/邮箱:">
             <el-input
               type="text"
-              v-model="formdata.phone"
+              v-model="formdata.account"
               placeholder="请输入手机号或邮箱"
             ></el-input>
           </el-form-item>
-          <el-form-item prop="test" label="验证码:" class="parent">
+          <el-form-item prop="code" label="验证码:" class="parent">
             <el-input
               type="text"
-              v-model="formdata.test"
+              v-model="formdata.code"
               placeholder="请输入验证码"
             ></el-input>
             <el-button
@@ -31,7 +31,7 @@
               type="primary"
               text
               class="mix"
-              @click="gettest"
+              @click="getcode"
               >获取验证码</el-button
             >
             <el-button
@@ -40,24 +40,24 @@
               text
               class="mix"
               size="large"
-              @click="gettest"
+              @click="getcode"
               disabled
               >{{ countdown }}s</el-button
             >
           </el-form-item>
-          <el-form-item prop="password" label="新密码:">
-            <el-input
-              type="repassword"
-              show-password
-              v-model="formdata.password"
-              placeholder="请输入新的密码"
-            ></el-input>
-          </el-form-item>
-          <el-form-item prop="repassword" label="确认密码:">
+          <el-form-item prop="new_password" label="新密码:">
             <el-input
               type="password"
               show-password
-              v-model="formdata.repassword"
+              v-model="formdata.new_password"
+              placeholder="请输入新的密码"
+            ></el-input>
+          </el-form-item>
+          <el-form-item prop="confirm_password" label="确认密码:">
+            <el-input
+              type="password"
+              show-password
+              v-model="formdata.confirm_password"
               placeholder="再次确认新密码"
             ></el-input>
           </el-form-item>
@@ -157,24 +157,30 @@
 <script lang="ts" setup>
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
+import { Forgetpwd, Getcode } from '@/api/user'
 const router = useRouter()
 const formdata = ref({
-  repassword: '',
-  password: '',
-  phone: '',
-  email: '',
-  test: ''
+  confirm_password: '',
+  new_password: '',
+  account: '',
+  account_type: '',
+  code: ''
+})
+const Code = ref({
+  account: formdata.value.account,
+  account_type: formdata.value.account_type,
+  purpose: 'reset_password'
 })
 const phoneReg = /^1[3-9]\d{9}$/
 const emailReg =
   /^[a-zA-Z0-9_-]+(?:\.[a-zA-Z0-9_-]+)*@(?:[a-zA-Z0-9](?:[a-zA-Z0-9-]*[a-zA-Z0-9])?\.)+[a-zA-Z0-9](?:[a-zA-Z0-9-]*[a-zA-Z0-9])?$/
 const formRef = ref()
 const rules = ref({
-  repassword: [
+  confirm_password: [
     { required: true, message: '请输入密码', trigger: 'blur' },
     {
       validator: (rule: any, value: any, cb: any) => {
-        if (value !== formdata.value.password) {
+        if (value !== formdata.value.new_password) {
           cb('两次密码不一致')
         } else {
           cb()
@@ -183,16 +189,19 @@ const rules = ref({
       trigger: 'blur'
     }
   ],
-  password: [
+  new_password: [
     { required: true, message: '请输入密码', trigger: 'blur' },
     { min: 6, max: 10, message: '密码必须为6到10位', trigger: 'blur' }
   ],
-  phone: [
+  account: [
     { required: true, message: '请输入正确的电话号码或邮箱', trigger: 'blur' },
     {
       validator: (rule: any, value: any, cb: any) => {
-        if (phoneReg.test(value) || emailReg.test(value)) {
+        if (phoneReg.test(value)) {
+          formRef.value.account_type = 'phone'
           cb()
+        } else if (emailReg.test(value)) {
+          formRef.value.account_type = 'email'
         } else {
           cb('请输入正确的电话号码或邮箱')
         }
@@ -200,27 +209,16 @@ const rules = ref({
       trigger: 'blur'
     }
   ],
-  test: [
-    { required: true, message: '请输入验证码', trigger: 'blur' },
-    {
-      validator: (rule: any, value: any, cb: any) => {
-        if (phoneReg.test(value) || emailReg.test(value)) {
-          cb()
-        } else {
-          cb('请输入正确的电话号码或邮箱')
-        }
-      },
-      trigger: 'blur'
-    }
-  ]
+  code: [{ required: true, message: '请输入验证码', trigger: 'blur' }]
 })
 //获取验证码
 const countdown = ref(60)
 const show = ref(true)
 let timer: any = null
-const gettest = () => {
-  console.log(11)
-
+const getcode = async () => {
+  const res = await Getcode(Code.value)
+  console.log(res)
+  //接口有问题，等修改
   clearInterval(timer)
   countdown.value = 60
   show.value = !show.value
@@ -239,8 +237,11 @@ const back = () => {
   router.push('/login')
 }
 //确认按钮
-const confirm = () => {
-  console.log(1)
+const confirm = async () => {
+  await formRef.value.validate()
+  const res = Forgetpwd(formdata.value)
+  console.log(res)
+  //等完整接口再继续开发
 }
 </script>
 
