@@ -29,10 +29,12 @@
           <el-form-item>
             <el-button type="primary" @click="onSubmit">登录</el-button>
           </el-form-item>
-          <el-link type="primary" class="register">一键注册新账号</el-link>
-          <!-- @click="register" -->
-          <el-link type="primary" class="reset-password">忘记密码？</el-link>
-          <!-- @click="resetPassword" -->
+          <el-link type="primary" class="register" @click="register"
+            >一键注册新账号</el-link
+          >
+          <el-link type="primary" class="reset-password" @click="resetPassword"
+            >忘记密码？</el-link
+          >
 
           <div class="third-party-login">
             <!-- 标题与分割线 -->
@@ -81,6 +83,7 @@ import { ref } from 'vue'
 import { ElMessage } from 'element-plus'
 import type { FormRules, FormInstance } from 'element-plus'
 import { Message, Lock } from '@element-plus/icons-vue'
+import { useRouter } from 'vue-router'
 
 // 表单数据类型
 interface RuleForm {
@@ -102,6 +105,7 @@ const phoneReg = /^1[3-9]\d{9}$/
 const emailReg =
   /^[a-zA-Z0-9_-]+(?:\.[a-zA-Z0-9_-]+)*@(?:[a-zA-Z0-9](?:[a-zA-Z0-9-]*[a-zA-Z0-9])?\.)+[a-zA-Z0-9](?:[a-zA-Z0-9-]*[a-zA-Z0-9])?$/
 const formRef = ref<FormInstance>()
+const router = useRouter()
 
 // 表单验证规则
 const rules = ref<FormRules>({
@@ -138,10 +142,21 @@ const onSubmit = async () => {
   await formRef.value.validate(valid => {
     if (valid) {
       ElMessage.success('登录成功')
+      router.push('/layout') // 登录成功后跳转到首页
     } else {
       ElMessage.error('请正确填写表单')
     }
   })
+}
+
+// 注册跳转
+const register = () => {
+  router.push('/register')
+}
+
+// 忘记密码跳转
+const resetPassword = () => {
+  router.push('/forgetpwd')
 }
 </script>
 
