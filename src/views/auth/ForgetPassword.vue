@@ -287,7 +287,7 @@ const confirm = () => {
       .image {
         height: 70%;
         width: 90%;
-        background-image: url('@/assets/logo.png');
+        background-image: url('@/assets/images/TitleBcakground.png');
         background-size: cover;
         background-position: center;
         border: none;
