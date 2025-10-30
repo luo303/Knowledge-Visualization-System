@@ -8,9 +8,10 @@
           style="max-width: 600px"
           size="large"
           :rules="rules"
+          ref="formRef"
         >
           <!-- 邮箱输入框 -->
-          <el-form-item prop="email" class="input">
+          <el-form-item prop="email">
             <el-input v-model="formdata.email" placeholder="请输入电话/邮箱">
               <template #prefix>
                 <el-icon><Message /></el-icon>
@@ -18,7 +19,7 @@
             </el-input>
           </el-form-item>
           <!-- 密码输入框 -->
-          <el-form-item prop="password" class="input">
+          <el-form-item prop="password">
             <el-input v-model="formdata.password" placeholder="请输入密码">
               <template #prefix>
                 <el-icon><Lock /></el-icon>
@@ -51,7 +52,7 @@
 
               <!-- github登录图标 -->
               <div class="icon-item">
-                <!-- @click="handleLogin('qq')" -->
+                <!-- @click="handleLogin('github')" -->
                 <img
                   src="@/assets/github-fill.png"
                   class="icon"
@@ -78,22 +79,70 @@
 <script lang="ts" setup>
 import { ref } from 'vue'
 import { ElMessage } from 'element-plus'
+import type { FormRules, FormInstance } from 'element-plus'
 import { Message, Lock } from '@element-plus/icons-vue'
 
+// 表单数据类型
+interface RuleForm {
+  password: string
+  phone: string
+  email: string
+  test: string
+}
+
 // 表单响应式数据
-const formdata = ref({
+const formdata = ref<RuleForm>({
   password: '',
   phone: '',
   email: '',
   test: ''
 })
 
-// 登录事件处理
-const onSubmit = () => {
-  ElMessage.success('登录成功')
-}
+const phoneReg = /^1[3-9]\d{9}$/
+const emailReg =
+  /^[a-zA-Z0-9_-]+(?:\.[a-zA-Z0-9_-]+)*@(?:[a-zA-Z0-9](?:[a-zA-Z0-9-]*[a-zA-Z0-9])?\.)+[a-zA-Z0-9](?:[a-zA-Z0-9-]*[a-zA-Z0-9])?$/
+const formRef = ref<FormInstance>()
+
 // 表单验证规则
-const rules = ref()
+const rules = ref<FormRules>({
+  email: [
+    { required: true, message: '请输入电话号码或邮箱地址', trigger: 'blur' },
+    {
+      validator: (
+        rule: any,
+        value: any,
+        cb: (error?: string | Error) => void
+      ) => {
+        // 检查是否是有效的电话号码或邮箱
+        const isValidPhone = phoneReg.test(value)
+        const isValidEmail = emailReg.test(value)
+
+        if (isValidPhone || isValidEmail) {
+          cb()
+        } else {
+          cb(new Error('请输入正确的电话号码或邮箱地址'))
+        }
+      },
+      trigger: 'blur'
+    }
+  ],
+  password: [
+    { required: true, message: '密码不能为空', trigger: 'blur' },
+    { min: 6, max: 10, message: '密码必须为6到10位', trigger: 'blur' }
+  ]
+})
+
+// 登录事件处理
+const onSubmit = async () => {
+  if (!formRef.value) return
+  await formRef.value.validate(valid => {
+    if (valid) {
+      ElMessage.success('登录成功')
+    } else {
+      ElMessage.error('请正确填写表单')
+    }
+  })
+}
 </script>
 
 <style lang="scss" scoped>
@@ -145,6 +194,7 @@ const rules = ref()
         margin: 0 0 24px;
         color: black;
         font-weight: 600;
+        letter-spacing: 3px;
         background-image: url('@/assets/TitleBcakground.png');
         background-repeat: no-repeat;
         background-size: contain;
