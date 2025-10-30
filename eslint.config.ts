@@ -30,7 +30,6 @@ export default defineConfigWithVueTs(
       quotes: ['warn', 'single'],
       semi: ['warn', 'never'],
       'no-undef': 2,
-      '@typescript-eslint/no-explicit-any': 'off',
       // 强制使用 === 而非 ==（避免类型隐式转换）
       eqeqeq: [2, 'always']
     }
