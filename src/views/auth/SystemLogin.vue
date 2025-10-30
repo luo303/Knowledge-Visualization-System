@@ -10,7 +10,7 @@
           :rules="rules"
         >
           <!-- 邮箱输入框 -->
-          <el-form-item name="email" class="input">
+          <el-form-item prop="email" class="input">
             <el-input v-model="formdata.email" placeholder="请输入电话/邮箱">
               <template #prefix>
                 <el-icon><Message /></el-icon>
@@ -18,7 +18,7 @@
             </el-input>
           </el-form-item>
           <!-- 密码输入框 -->
-          <el-form-item name="password" class="input">
+          <el-form-item prop="password" class="input">
             <el-input v-model="formdata.password" placeholder="请输入密码">
               <template #prefix>
                 <el-icon><Lock /></el-icon>
@@ -78,7 +78,6 @@
 <script lang="ts" setup>
 import { ref } from 'vue'
 import { ElMessage } from 'element-plus'
-
 import { Message, Lock } from '@element-plus/icons-vue'
 
 // 表单响应式数据
