@@ -12,17 +12,17 @@
           label-position="right"
           label-width="auto"
         >
-          <el-form-item prop="username" label="用户名:">
+          <el-form-item prop="user_name" label="用户名:">
             <el-input
               type="text"
-              v-model="formdata.username"
+              v-model="formdata.user_name"
               placeholder="请设置用户名"
             ></el-input>
           </el-form-item>
-          <el-form-item prop="phone" label="手机号/邮箱:">
+          <el-form-item prop="account" label="手机号/邮箱:">
             <el-input
               type="text"
-              v-model="formdata.phone"
+              v-model="formdata.account"
               placeholder="可用于登录或找回密码"
             ></el-input>
           </el-form-item>
@@ -34,10 +34,10 @@
               placeholder="请设置登录密码"
             ></el-input>
           </el-form-item>
-          <el-form-item prop="test" label="验证码:" class="parent">
+          <el-form-item prop="code" label="验证码:" class="parent">
             <el-input
               type="text"
-              v-model="formdata.test"
+              v-model="formdata.code"
               placeholder="请输入验证码"
             ></el-input>
             <el-button
@@ -155,20 +155,21 @@
 <script lang="ts" setup>
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
+import { Register } from '@/api/user'
 const router = useRouter()
 const formdata = ref({
-  username: '',
+  user_name: '',
   password: '',
-  phone: '',
-  email: '',
-  test: ''
+  account: '',
+  code: '',
+  account_type: ''
 })
 const phoneReg = /^1[3-9]\d{9}$/
 const emailReg =
   /^[a-zA-Z0-9_-]+(?:\.[a-zA-Z0-9_-]+)*@(?:[a-zA-Z0-9](?:[a-zA-Z0-9-]*[a-zA-Z0-9])?\.)+[a-zA-Z0-9](?:[a-zA-Z0-9-]*[a-zA-Z0-9])?$/
 const formRef = ref()
 const rules = ref({
-  username: [
+  user_name: [
     { required: true, message: '请输入用户名', trigger: 'blur' },
     { min: 3, max: 10, message: '用户名必须为3到10个字符', trigger: 'blur' }
   ],
@@ -176,11 +177,15 @@ const rules = ref({
     { required: true, message: '请输入密码', trigger: 'blur' },
     { min: 6, max: 10, message: '密码必须为6到10位', trigger: 'blur' }
   ],
-  phone: [
+  account: [
     { required: true, message: '请输入正确的电话号码或邮箱', trigger: 'blur' },
     {
       validator: (rule: any, value: any, cb: any) => {
-        if (phoneReg.test(value) || emailReg.test(value)) {
+        if (phoneReg.test(value)) {
+          formdata.value.account_type = 'phone'
+          cb()
+        } else if (emailReg.test(value)) {
+          formdata.value.account_type = 'eamil'
           cb()
         } else {
           cb('请输入正确的电话号码或邮箱')
@@ -189,19 +194,7 @@ const rules = ref({
       trigger: 'blur'
     }
   ],
-  test: [
-    { required: true, message: '请输入验证码', trigger: 'blur' },
-    {
-      validator: (rule: any, value: any, cb: any) => {
-        if (phoneReg.test(value) || emailReg.test(value)) {
-          cb()
-        } else {
-          cb('请输入正确的电话号码或邮箱')
-        }
-      },
-      trigger: 'blur'
-    }
-  ]
+  code: [{ required: true, message: '请输入验证码', trigger: 'blur' }]
 })
 //获取验证码
 const countdown = ref(60)
@@ -228,7 +221,12 @@ const back = () => {
   router.push('/login')
 }
 //注册
-const register = () => {}
+const register = async () => {
+  await formRef.value.validate()
+  const res = await Register(formdata.value)
+  console.log(res)
+  //等接口改好了再写
+}
 </script>
 
 <style lang="scss" scoped>

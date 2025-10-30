@@ -1,1 +1,8 @@
 //用于放置接口
+import request from '@/utils/request'
+
+import type { registerData } from './type'
+
+//注册
+export const Register = (data: registerData) =>
+  request.post(' /api/biz/v1/user/register', data)
