@@ -13,3 +13,11 @@ export interface forgetpwd {
   account_type: string
   code: string
 }
+//注册
+export interface registerData {
+  user_name: string
+  password: string
+  account: string
+  code: string
+  account_type: string
+}
