@@ -26,17 +26,8 @@ request.interceptors.response.use(
     let msg = ''
     const status = error.response.status
     switch (status) {
-      case 401:
+      case -2:
         msg = 'token过期'
-        break
-      case 403:
-        msg = '无权访问'
-        break
-      case 404:
-        msg = '请求地址错误'
-        break
-      case 500:
-        msg = '图片文件过大'
         break
       default:
         msg = '无网络'
@@ -45,9 +36,7 @@ request.interceptors.response.use(
       type: 'error',
       message: msg
     })
-    if (status !== 500) {
-      router.push('/login')
-    }
+    router.push('/login')
     return Promise.reject(error)
   }
 )
