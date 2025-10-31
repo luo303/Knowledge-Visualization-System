@@ -87,10 +87,10 @@ import { useRouter } from 'vue-router'
 
 // 表单数据类型
 interface RuleForm {
-  password: string
-  phone: string
-  email: string
-  test: string
+  password: ''
+  phone: ''
+  email: ''
+  test: ''
 }
 
 // 表单响应式数据
