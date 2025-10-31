@@ -84,6 +84,7 @@ import { ElMessage } from 'element-plus'
 import type { FormRules, FormInstance } from 'element-plus'
 import { Message, Lock } from '@element-plus/icons-vue'
 import { useRouter } from 'vue-router'
+// import request from '@/utils/request' // 引入请求工具
 
 // 表单数据类型
 interface RuleForm {
@@ -141,7 +142,7 @@ const onSubmit = async () => {
   if (!formRef.value) return
   await formRef.value.validate(valid => {
     if (valid) {
-      ElMessage.success('登录成功')
+      ElMessage.success('登陆成功')
       router.push('/layout') // 登录成功后跳转到首页
     } else {
       ElMessage.error('请正确填写表单')
