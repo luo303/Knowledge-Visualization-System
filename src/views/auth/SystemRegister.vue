@@ -207,7 +207,9 @@ const show = ref(true)
 let timer: any = null
 const getcode = async () => {
   const res = await Getcode(Code.value)
-  console.log(res)
+  if ((res as any).code === 200) {
+  } else {
+  }
   clearInterval(timer)
   countdown.value = 60
   show.value = !show.value
@@ -229,7 +231,9 @@ const back = () => {
 const register = async () => {
   await formRef.value.validate()
   const res = await Register(formdata.value)
-  console.log(res)
+  if ((res as any).code === 200) {
+  } else {
+  }
   //等接口改好了再写
 }
 </script>
