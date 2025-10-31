@@ -1,11 +1,16 @@
 import { createRouter, createWebHashHistory } from 'vue-router'
+import AuthPage from '@/views/auth/SystemLogin.vue'
 
 const router = createRouter({
   history: createWebHashHistory(import.meta.env.BASE_URL),
   routes: [
     {
+      path: '/auth',
+      component: AuthPage
+    },
+    {
       path: '/',
-      redirect: '/layout/createmind',
+      redirect: '/login',
       children: [
         {
           path: 'layout',
