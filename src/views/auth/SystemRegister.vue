@@ -206,6 +206,7 @@ const countdown = ref(60)
 const show = ref(true)
 let timer: any = null
 const getcode = async () => {
+  await formRef.value.validateField(['account'])
   const res = await Getcode(Code.value)
   if ((res as any).code === 200) {
   } else {
