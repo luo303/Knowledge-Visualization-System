@@ -46,7 +46,7 @@
               type="primary"
               text
               class="mix"
-              @click="gettest"
+              @click="getcode"
               >获取验证码</el-button
             >
             <el-button
@@ -55,7 +55,7 @@
               text
               class="mix"
               size="large"
-              @click="gettest"
+              @click="getcode"
               disabled
               >{{ countdown }}s</el-button
             >
@@ -155,7 +155,7 @@
 <script lang="ts" setup>
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
-import { Register } from '@/api/user'
+import { Register, Getcode } from '@/api/user'
 const router = useRouter()
 const formdata = ref({
   user_name: '',
@@ -163,6 +163,11 @@ const formdata = ref({
   account: '',
   code: '',
   account_type: ''
+})
+const Code = ref({
+  account: formdata.value.account,
+  account_type: formdata.value.account_type,
+  purpose: 'register'
 })
 const phoneReg = /^1[3-9]\d{9}$/
 const emailReg =
@@ -200,9 +205,9 @@ const rules = ref({
 const countdown = ref(60)
 const show = ref(true)
 let timer: any = null
-const gettest = () => {
-  console.log(11)
-
+const getcode = async () => {
+  const res = await Getcode(Code.value)
+  console.log(res)
   clearInterval(timer)
   countdown.value = 60
   show.value = !show.value
