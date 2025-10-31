@@ -66,12 +66,81 @@
         </el-form>
       </div>
       <div class="content-right">
+        <div class="image"></div>
         <h1>知识可视化系统</h1>
         <ul class="feature-list">
-          <li>支持上传多种文件格式</li>
-          <li>AI问答及自动逻辑优化</li>
-          <li>一键保存及导出</li>
-          <li>通过对话修改导图内容及结构</li>
+          <li>
+            <svg
+              t="1761804560082"
+              class="icon"
+              viewBox="0 0 1024 1024"
+              version="1.1"
+              xmlns="http://www.w3.org/2000/svg"
+              p-id="6367"
+              width="30"
+              height="30"
+            >
+              <path
+                d="M480 480m-160 0a2.5 2.5 0 1 0 320 0 2.5 2.5 0 1 0-320 0Z"
+                p-id="6368"
+                fill="#1296db"
+              ></path></svg
+            >支持上传多种文件格式
+          </li>
+          <li>
+            <svg
+              t="1761804560082"
+              class="icon"
+              viewBox="0 0 1024 1024"
+              version="1.1"
+              xmlns="http://www.w3.org/2000/svg"
+              p-id="6367"
+              width="30"
+              height="30"
+            >
+              <path
+                d="M480 480m-160 0a2.5 2.5 0 1 0 320 0 2.5 2.5 0 1 0-320 0Z"
+                p-id="6368"
+                fill="#1296db"
+              ></path></svg
+            >AI问答及自动逻辑优化
+          </li>
+          <li>
+            <svg
+              t="1761804560082"
+              class="icon"
+              viewBox="0 0 1024 1024"
+              version="1.1"
+              xmlns="http://www.w3.org/2000/svg"
+              p-id="6367"
+              width="30"
+              height="30"
+            >
+              <path
+                d="M480 480m-160 0a2.5 2.5 0 1 0 320 0 2.5 2.5 0 1 0-320 0Z"
+                p-id="6368"
+                fill="#1296db"
+              ></path></svg
+            >一键保存及导出
+          </li>
+          <li>
+            <svg
+              t="1761804560082"
+              class="icon"
+              viewBox="0 0 1024 1024"
+              version="1.1"
+              xmlns="http://www.w3.org/2000/svg"
+              p-id="6367"
+              width="30"
+              height="30"
+            >
+              <path
+                d="M480 480m-160 0a2.5 2.5 0 1 0 320 0 2.5 2.5 0 1 0-320 0Z"
+                p-id="6368"
+                fill="#1296db"
+              ></path></svg
+            >通过对话修改导图内容及结构
+          </li>
         </ul>
       </div>
     </div>
@@ -172,8 +241,8 @@ const resetPassword = () => {
   align-items: center;
 
   .content {
-    width: 800px;
-    height: 400px;
+    width: 916.8px;
+    height: 479.95px;
     border-radius: 40px;
     background-color: white;
     padding: 20px;
@@ -199,53 +268,41 @@ const resetPassword = () => {
 
     .content-right {
       flex: 1;
-      padding: 40px;
-      width: 50%;
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-
-      h1 {
-        font-size: 40px;
-        margin: 0 0 24px;
-        color: black;
-        font-weight: 600;
-        letter-spacing: 3px;
-        background-image: url('@/assets/TitleBcakground.png');
-        background-repeat: no-repeat;
-        background-size: contain;
+      position: relative;
+      .image {
+        height: 70%;
+        width: 90%;
+        background-image: url('@/assets/images/logo.png');
+        background-size: cover;
         background-position: center;
-        padding: 5px;
-        min-height: 200px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        position: relative;
+        border: none;
       }
-
-      /* 列表样式 */
-      .feature-list {
-        list-style: none;
-        padding: 0;
-        margin: 0;
-        color: #645e5ef6;
-
+      h1 {
+        position: absolute;
+        display: inline-block;
+        top: 30%;
+        width: 90%;
+        font-family: 'Microsoft YaHei';
+        text-align: center;
+        white-space: nowrap;
+        font-weight: 600;
+        letter-spacing: 1vw;
+        color: #333;
+        text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+        font-size: 1.7vw;
+      }
+      ul {
+        position: absolute;
+        display: flex;
+        top: 50%;
+        left: 10%;
+        height: 30%;
+        color: gray;
+        flex-direction: column;
+        justify-content: space-between;
         li {
-          font-size: 16px;
-          margin-bottom: 16px;
-          padding-left: 24px;
-          position: relative;
-
-          &::before {
-            content: '';
-            position: absolute;
-            left: 0;
-            top: 4px;
-            width: 12px;
-            height: 12px;
-            border-radius: 50%;
-            background: #3b4680;
-          }
+          display: flex;
+          align-items: center;
         }
       }
     }
