@@ -217,7 +217,9 @@ const show = ref(true)
 let timer: any = null
 const getcode = async () => {
   const res = await Getcode(Code.value)
-  console.log(res)
+  if ((res as any).code === 200) {
+  } else {
+  }
   //接口有问题，等修改
   clearInterval(timer)
   countdown.value = 60
@@ -240,7 +242,9 @@ const back = () => {
 const confirm = async () => {
   await formRef.value.validate()
   const res = Forgetpwd(formdata.value)
-  console.log(res)
+  if ((res as any).code === 200) {
+  } else {
+  }
   //等完整接口再继续开发
 }
 </script>
