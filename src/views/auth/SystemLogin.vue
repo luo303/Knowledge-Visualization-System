@@ -12,7 +12,7 @@
         >
           <!-- 邮箱输入框 -->
           <el-form-item prop="email">
-            <el-input v-model="formdata.email" placeholder="请输入电话/邮箱">
+            <el-input v-model="formdata.account" placeholder="请输入电话/邮箱">
               <template #prefix>
                 <el-icon><Message /></el-icon>
               </template>
@@ -159,21 +159,23 @@ import type { FormRules, FormInstance } from 'element-plus'
 import { Message, Lock } from '@element-plus/icons-vue'
 import { useRouter } from 'vue-router'
 // import request from '@/utils/request' // 引入请求工具
+import { Login } from '@/api/user/index'
+import type {
+  LoginParams,
+  LoginSuccessData,
+  ApiResponse
+} from '@/api/user/type'
 
 // 表单数据类型
 interface RuleForm {
   password: ''
-  phone: ''
-  email: ''
-  test: ''
+  account: ''
 }
 
 // 表单响应式数据
 const formdata = ref<RuleForm>({
   password: '',
-  phone: '',
-  email: '',
-  test: ''
+  account: ''
 })
 
 const phoneReg = /^1[3-9]\d{9}$/
@@ -184,7 +186,7 @@ const router = useRouter()
 
 // 表单验证规则
 const rules = ref<FormRules>({
-  email: [
+  account: [
     { required: true, message: '请输入电话号码或邮箱地址', trigger: 'blur' },
     {
       validator: (
@@ -211,17 +213,47 @@ const rules = ref<FormRules>({
   ]
 })
 
-// 登录事件处理
 const onSubmit = async () => {
   if (!formRef.value) return
-  await formRef.value.validate(valid => {
-    if (valid) {
-      ElMessage.success('登陆成功')
-      router.push('/layout') // 登录成功后跳转到首页
-    } else {
-      ElMessage.error('请正确填写表单')
+
+  // 表单验证
+  const valid = await formRef.value.validate().catch(() => false)
+  if (!valid) {
+    ElMessage.error('请正确填写表单')
+    return
+  }
+
+  try {
+    // 自动判断账号类型（phone/email）
+    const accountType = phoneReg.test(formdata.value.account)
+      ? 'phone'
+      : 'email'
+
+    // 构造请求参数
+    const params: LoginParams = {
+      account: formdata.value.account,
+      password: formdata.value.password,
+      account_type: accountType
     }
-  })
+
+    // 调用登录接口
+    const response: ApiResponse<LoginSuccessData> = await Login(params)
+
+    // 处理响应
+    if (response.Code === 200) {
+      ElMessage.success('登录成功！')
+      // 存储token和用户信息
+      localStorage.setItem('token', response.Data.token)
+      localStorage.setItem('userInfo', JSON.stringify(response.Data))
+      // 跳转首页
+      router.push('/layout')
+    } else {
+      ElMessage.error(response.Message || '登录失败，请重试')
+    }
+  } catch (error) {
+    console.error('登录请求失败：', error)
+    ElMessage.error('网络异常，请检查网络后重试')
+  }
 }
 
 // 注册跳转
