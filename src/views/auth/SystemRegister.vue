@@ -248,8 +248,8 @@ const register = async () => {
   align-items: center;
   background-image: $before_login_background;
   .content {
-    width: 60%;
-    height: 65vh;
+    width: 916.8px;
+    height: 479.95px;
     border-radius: 40px;
     background-color: white;
     padding: 0 20px;
