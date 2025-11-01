@@ -1,7 +1,173 @@
 <template>
-  <div>顶部栏目</div>
+  <div>
+    <div class="header">
+      <div class="box1">
+        <h1><span class="square"></span>知识可视化系统</h1>
+      </div>
+      <div class="box2">
+        <nav>
+          <div class="icon-container">
+            <router-link class="icon-item" active-class="active" to="/home">
+              <img
+                src="@/assets/images/notification.png"
+                class="icon"
+                alt="通知"
+              />
+            </router-link>
+            <router-link class="icon-item" active-class="active" to="/ask">
+              <img src="@/assets/images/search.png" class="icon" alt="搜索" />
+            </router-link>
+            <router-link
+              class="icon-item"
+              active-class="active"
+              to="/community"
+            >
+              <img src="@/assets/images/personal.png" class="icon" alt="个人" />
+            </router-link>
+          </div>
+        </nav>
+        <nav>
+          <router-link class="logout" active-class="active" to="/login">
+            <el-button type="primary" class="logout-text">退出登录</el-button>
+          </router-link>
+        </nav>
+      </div>
+    </div>
+    <div class="contents">
+      <div class="content">
+        <!--指定组件的位置-->
+        <router-view></router-view>
+      </div>
+    </div>
+  </div>
 </template>
 
 <script lang="ts" setup></script>
 
-<style lang="scss" scoped></style>
+<style lang="scss" scoped>
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 130px;
+  color: rgb(115, 114, 114);
+}
+
+.title {
+  font-size: 28px;
+}
+
+.square {
+  display: inline-block;
+  width: 30px; /* 正方形大小 */
+  height: 30px;
+  background: #608bd2;
+  border-radius: 30%;
+  margin-right: 8px; /* 与文字的间距 */
+}
+
+.box1 {
+  display: flex;
+  align-items: center;
+}
+h1 {
+  margin-left: 10px;
+  display: flex;
+  align-items: center;
+  font:
+    normal 28px Cookie,
+    Arial,
+    Helvetica,
+    sans-serif;
+  padding: 0px 20px;
+}
+
+.box2 {
+  display: flex;
+  align-items: center;
+  margin-right: 90px;
+}
+
+// 图标容器
+.icon-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 40px;
+}
+
+/* 图标样式 */
+.icon-item {
+  cursor: pointer;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: 1px solid rgb(134, 133, 133);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 0.2s;
+}
+
+.icon-item:hover {
+  background-color: #ebebeb; /*  hover 背景色 */
+}
+
+.icon {
+  width: 22px;
+  height: 22px;
+}
+
+nav {
+  display: flex;
+  align-items: center;
+  margin: 0px 30px;
+  font:
+    16px Arial,
+    Helvetica,
+    sans-serif;
+}
+nav a {
+  padding: 0 15px;
+  width: 32px;
+  text-decoration: none;
+  color: #ffffff;
+  font-size: 16px;
+  font-weight: normal;
+  opacity: 0.9;
+}
+
+nav a:hover {
+  opacity: 1;
+}
+
+.active {
+  color: #608bd2;
+  pointer-events: none;
+  opacity: 1;
+}
+
+.contents {
+  display: flex;
+  justify-content: center;
+}
+.content {
+  display: flex;
+  width: 1400px;
+  height: 1400px;
+  /*background-color: #f0f2f3;*/
+}
+.logout {
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 0.2s;
+}
+
+.logout-text {
+  height: 45px;
+  font-size: 20px;
+  border-radius: 10px;
+}
+</style>
