@@ -1,5 +1,5 @@
 <template>
-  <div>AI对话区</div>
+  <div class="talk">AI对话区</div>
 </template>
 
 <script lang="ts" setup></script>
