@@ -14,9 +14,6 @@
                 alt="通知"
               />
             </router-link>
-            <router-link class="icon-item" active-class="active" to="/ask">
-              <img src="@/assets/images/search.png" class="icon" alt="搜索" />
-            </router-link>
             <router-link
               class="icon-item"
               active-class="active"
@@ -121,7 +118,7 @@ h1 {
 nav {
   display: flex;
   align-items: center;
-  margin: 0px 30px;
+  margin: 0px 50px;
   font:
     16px Arial,
     Helvetica,
