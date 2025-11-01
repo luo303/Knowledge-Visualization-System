@@ -20,7 +20,12 @@
           </el-form-item>
           <!-- 密码输入框 -->
           <el-form-item prop="password">
-            <el-input v-model="formdata.password" placeholder="请输入密码">
+            <el-input
+              type="password"
+              show-password
+              v-model="formdata.password"
+              placeholder="请输入密码"
+            >
               <template #prefix>
                 <el-icon><Lock /></el-icon>
               </template>
