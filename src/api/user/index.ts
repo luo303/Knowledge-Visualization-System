@@ -1,7 +1,19 @@
 //用于放置接口
 import request from '@/utils/request'
+import type {
+  LoginParams,
+  forgetpwd,
+  code,
+  ApiResponse,
+  LoginSuccessData
+} from './type'
+import type { registerData } from './type'
 
-import type { forgetpwd, code, registerData } from './type'
+// 登录接口
+export const Login = (
+  data: LoginParams
+): Promise<ApiResponse<LoginSuccessData>> =>
+  request.post('/api/biz/v1/user/login', data)
 
 //注册
 export const Register = (data: registerData) =>
