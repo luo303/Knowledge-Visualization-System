@@ -232,12 +232,17 @@ const getcode = async () => {
       countdown.value--
     }
   }, 1000)
-  const res = await Getcode(Code.value)
-  if ((res as any).code === 200) {
-    const code: any = (res as any).data.code
-    ElMessage.success(`验证码为：${code}`)
-  } else {
-    ElMessage.error((res as any).Message || '获取验证码失败')
+  try {
+    const res = await Getcode(Code.value)
+    if ((res as any).code === 200) {
+      const code: any = (res as any).data.code
+      ElMessage.success(`验证码为：${code}`)
+    } else {
+      ElMessage.error((res as any).Message || '获取验证码失败')
+    }
+  } catch (error) {
+    console.log(error)
+    ElMessage.error('发送请求失败')
   }
 }
 //返回主页面
@@ -247,14 +252,19 @@ const back = () => {
 //确认按钮
 const confirm = async () => {
   await formRef.value.validate()
-  const res = Forgetpwd(formdata.value)
-  if ((res as any).code === 200) {
-    ElMessage.success('重置成功')
-    setTimeout(() => {
-      router.push('/login')
-    }, 1000)
-  } else {
-    ElMessage.error((res as any).Message || '重置失败')
+  try {
+    const res = await Forgetpwd(formdata.value)
+    if ((res as any).code === 200) {
+      ElMessage.success('重置成功')
+      setTimeout(() => {
+        router.push('/login')
+      }, 1000)
+    } else {
+      ElMessage.error((res as any).Message || '重置失败')
+    }
+  } catch (error) {
+    console.log(error)
+    ElMessage.error('发送请求失败')
   }
 }
 </script>
