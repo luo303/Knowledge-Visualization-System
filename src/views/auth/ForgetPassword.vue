@@ -158,6 +158,7 @@
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { Forgetpwd, Getcode } from '@/api/user'
+import { computed } from 'vue'
 const router = useRouter()
 const formdata = ref({
   confirm_password: '',
@@ -166,11 +167,11 @@ const formdata = ref({
   account_type: '',
   code: ''
 })
-const Code = ref({
+const Code = computed(() => ({
   account: formdata.value.account,
   account_type: formdata.value.account_type,
   purpose: 'reset_password'
-})
+}))
 const phoneReg = /^1[3-9]\d{9}$/
 const emailReg =
   /^[a-zA-Z0-9_-]+(?:\.[a-zA-Z0-9_-]+)*@(?:[a-zA-Z0-9](?:[a-zA-Z0-9-]*[a-zA-Z0-9])?\.)+[a-zA-Z0-9](?:[a-zA-Z0-9-]*[a-zA-Z0-9])?$/
@@ -198,10 +199,11 @@ const rules = ref({
     {
       validator: (rule: any, value: any, cb: any) => {
         if (phoneReg.test(value)) {
-          formRef.value.account_type = 'phone'
+          formdata.value.account_type = 'phone'
           cb()
         } else if (emailReg.test(value)) {
-          formRef.value.account_type = 'email'
+          formdata.value.account_type = 'email'
+          cb()
         } else {
           cb('请输入正确的电话号码或邮箱')
         }
@@ -216,12 +218,7 @@ const countdown = ref(60)
 const show = ref(true)
 let timer: any = null
 const getcode = async () => {
-  await formRef.value.validateField('account')
-  const res = await Getcode(Code.value)
-  if ((res as any).code === 200) {
-  } else {
-  }
-  //接口有问题，等修改
+  await formRef.value.validateField(['account'])
   clearInterval(timer)
   countdown.value = 60
   show.value = !show.value
@@ -234,6 +231,11 @@ const getcode = async () => {
       countdown.value--
     }
   }, 1000)
+  const res = await Getcode(Code.value)
+  if ((res as any).code === 200) {
+  } else {
+  }
+  //接口有问题，等修改
 }
 //返回主页面
 const back = () => {

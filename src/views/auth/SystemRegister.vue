@@ -156,6 +156,7 @@
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { Register, Getcode } from '@/api/user'
+import { computed } from 'vue'
 const router = useRouter()
 const formdata = ref({
   user_name: '',
@@ -164,11 +165,11 @@ const formdata = ref({
   code: '',
   account_type: ''
 })
-const Code = ref({
+const Code = computed(() => ({
   account: formdata.value.account,
   account_type: formdata.value.account_type,
   purpose: 'register'
-})
+}))
 const phoneReg = /^1[3-9]\d{9}$/
 const emailReg =
   /^[a-zA-Z0-9_-]+(?:\.[a-zA-Z0-9_-]+)*@(?:[a-zA-Z0-9](?:[a-zA-Z0-9-]*[a-zA-Z0-9])?\.)+[a-zA-Z0-9](?:[a-zA-Z0-9-]*[a-zA-Z0-9])?$/
@@ -207,10 +208,6 @@ const show = ref(true)
 let timer: any = null
 const getcode = async () => {
   await formRef.value.validateField(['account'])
-  const res = await Getcode(Code.value)
-  if ((res as any).code === 200) {
-  } else {
-  }
   clearInterval(timer)
   countdown.value = 60
   show.value = !show.value
@@ -223,6 +220,10 @@ const getcode = async () => {
       countdown.value--
     }
   }, 1000)
+  const res = await Getcode(Code.value)
+  if ((res as any).code === 200) {
+  } else {
+  }
 }
 //返回主页面
 const back = () => {

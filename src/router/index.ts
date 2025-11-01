@@ -16,6 +16,7 @@ const router = createRouter({
           path: 'layout',
           component: () => import('@/views/layout/MainLayout.vue'),
           name: 'layout',
+          redirect: 'layout/createmind',
           children: [
             {
               path: 'mymind',
