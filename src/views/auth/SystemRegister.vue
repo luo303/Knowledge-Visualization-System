@@ -157,6 +157,7 @@ import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { Register, Getcode } from '@/api/user'
 import { computed } from 'vue'
+import { ElMessage } from 'element-plus'
 const router = useRouter()
 const formdata = ref({
   user_name: '',
@@ -222,7 +223,10 @@ const getcode = async () => {
   }, 1000)
   const res = await Getcode(Code.value)
   if ((res as any).code === 200) {
+    const code: any = (res as any).data.code
+    ElMessage.success(`验证码为：${code}`)
   } else {
+    ElMessage.error((res as any).Message || '获取验证码失败')
   }
 }
 //返回主页面
@@ -234,9 +238,13 @@ const register = async () => {
   await formRef.value.validate()
   const res = await Register(formdata.value)
   if ((res as any).code === 200) {
+    ElMessage.success('注册成功')
+    setTimeout(() => {
+      router.push('/login')
+    }, 1000)
   } else {
+    ElMessage.error((res as any).Message || '注册失败')
   }
-  //等接口改好了再写
 }
 </script>
 

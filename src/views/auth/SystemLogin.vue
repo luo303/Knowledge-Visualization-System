@@ -165,6 +165,7 @@ import type {
   LoginSuccessData,
   ApiResponse
 } from '@/api/user/type'
+import { useUserStore } from '@/stores/modules/user' // 导入用户仓库
 
 // 表单数据类型
 interface RuleForm {
@@ -183,6 +184,7 @@ const emailReg =
   /^[a-zA-Z0-9_-]+(?:\.[a-zA-Z0-9_-]+)*@(?:[a-zA-Z0-9](?:[a-zA-Z0-9-]*[a-zA-Z0-9])?\.)+[a-zA-Z0-9](?:[a-zA-Z0-9-]*[a-zA-Z0-9])?$/
 const formRef = ref<FormInstance>()
 const router = useRouter()
+const isLoading = ref(false) // 防止重复提交
 
 // 表单验证规则
 const rules = ref<FormRules>({
@@ -223,6 +225,8 @@ const onSubmit = async () => {
     return
   }
 
+  isLoading.value = true
+
   try {
     // 自动判断账号类型（phone/email）
     const accountType = phoneReg.test(formdata.value.account)
@@ -240,19 +244,21 @@ const onSubmit = async () => {
     const response: ApiResponse<LoginSuccessData> = await Login(params)
 
     // 处理响应
-    if (response.Code === 200) {
-      ElMessage.success('登录成功！')
-      // 存储token和用户信息
-      localStorage.setItem('token', response.Data.token)
-      localStorage.setItem('userInfo', JSON.stringify(response.Data))
+    if (response.Code === 200 && response.success) {
+      ElMessage.success('登录成功,正在跳转')
+      // 存储用户信息到user仓库
+      const userStore = useUserStore()
+      userStore.setUserInfo(response.Data)
       // 跳转首页
       router.push('/layout')
     } else {
-      ElMessage.error(response.Message || '登录失败，请重试')
+      ElMessage.error(response.Message || '登录失败，请重试') // 错误信息优先使用后端返回的Message
     }
   } catch (error) {
     console.error('登录请求失败：', error)
     ElMessage.error('网络异常，请检查网络后重试')
+  } finally {
+    isLoading.value = false
   }
 }
 

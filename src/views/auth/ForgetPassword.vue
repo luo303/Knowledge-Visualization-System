@@ -159,6 +159,7 @@ import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { Forgetpwd, Getcode } from '@/api/user'
 import { computed } from 'vue'
+import { ElMessage } from 'element-plus'
 const router = useRouter()
 const formdata = ref({
   confirm_password: '',
@@ -233,9 +234,11 @@ const getcode = async () => {
   }, 1000)
   const res = await Getcode(Code.value)
   if ((res as any).code === 200) {
+    const code: any = (res as any).data.code
+    ElMessage.success(`验证码为：${code}`)
   } else {
+    ElMessage.error((res as any).Message || '获取验证码失败')
   }
-  //接口有问题，等修改
 }
 //返回主页面
 const back = () => {
@@ -246,9 +249,13 @@ const confirm = async () => {
   await formRef.value.validate()
   const res = Forgetpwd(formdata.value)
   if ((res as any).code === 200) {
+    ElMessage.success('重置成功')
+    setTimeout(() => {
+      router.push('/login')
+    }, 1000)
   } else {
+    ElMessage.error((res as any).Message || '重置失败')
   }
-  //等完整接口再继续开发
 }
 </script>
 
