@@ -30,12 +30,6 @@
         </nav>
       </div>
     </div>
-    <div class="contents">
-      <div class="content">
-        <!--指定组件的位置-->
-        <router-view></router-view>
-      </div>
-    </div>
   </div>
 </template>
 

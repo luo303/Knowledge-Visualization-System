@@ -48,7 +48,8 @@ import { onMounted } from 'vue'
 
 const LayoutStore = useLayoutStore()
 onMounted(() => {
-  // LayoutStore.isCollapse = true
+  //默认保持折叠
+  LayoutStore.isCollapse = true
 })
 </script>
 
