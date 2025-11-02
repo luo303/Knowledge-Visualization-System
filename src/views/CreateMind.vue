@@ -85,6 +85,7 @@
 import { ref, onMounted, onUnmounted } from 'vue'
 import AiTalk from './AiTalk.vue'
 import { useLayoutStore } from '@/stores/modules/layout'
+import { useRouter } from 'vue-router'
 
 const uploadedFileName = ref('') // 存储上传的文件名
 const LayoutStore = useLayoutStore()
@@ -93,6 +94,7 @@ const uploadProgress = ref(0)
 const status = ref<
   'init' | 'uploading' | 'parsing' | 'success' | 'error' | 'view'
 >('init') // 文件状态
+const router = useRouter()
 
 // 处理文件上传
 const handleFileUpload = (e: Event) => {
@@ -131,6 +133,7 @@ const startParsing = () => {
 // 解析成功
 const viewMindmap = () => {
   status.value = 'view' // 解析完成→查看导图
+  router.push({ name: 'handedit' })
 }
 
 // 解析失败
