@@ -49,6 +49,7 @@
           placeholder="Please input"
         />
         <svg
+          @click="addson"
           t="1762055879046"
           class="icon"
           viewBox="0 0 1024 1024"
@@ -110,13 +111,14 @@
     </div>
     <div class="AiTalk">
       <AiTalk></AiTalk>
+      <button @click="save">保存</button>
     </div>
   </div>
 </template>
 
 <script lang="ts" setup>
 import AiTalk from './AiTalk.vue'
-import { onMounted, ref } from 'vue'
+import { onMounted, ref, shallowRef } from 'vue'
 import MindMap from 'simple-mind-map'
 import {
   Close,
@@ -128,47 +130,96 @@ import {
   Upload,
   QuestionFilled
 } from '@element-plus/icons-vue'
+import { useLayoutStore } from '@/stores'
+import { ElMessage } from 'element-plus'
 
-onMounted(() => {
-  const mindMap = new MindMap({
-    el: document.getElementById('mindMapContainer'),
-    data: {
+const LayoutStore = useLayoutStore()
+const baseMap = {
+  data: {
+    text: '根节点'
+  },
+  children: [
+    {
       data: {
-        text: '根节点'
-      },
-      children: []
+        text: '二级节点'
+      }
+    },
+    {
+      data: {
+        text: '二级节点'
+      }
     }
+  ]
+}
+let mindMap: any = null
+onMounted(() => {
+  mindMap = new MindMap({
+    el: document.getElementById('mindMapContainer'),
+    data: LayoutStore.data || baseMap
   } as any) //实在是配不出来ts类型呜呜呜
   //将背景色设置为白色
   mindMap.setThemeConfig({
     backgroundColor: 'white'
   })
+  // 监听节点激活事件
+  mindMap.on('node_active', (node: any, nodeList: any) => {
+    activeNodes.value = nodeList
+  })
+  //监听导图节点发生变化
+  mindMap.on('data_change', (data: any) => {
+    console.log(100)
+    let timer = null
+    if (timer) clearTimeout(timer)
+    timer = setTimeout(() => {
+      LayoutStore.data = data
+      ElMessage.success('已自动保存')
+    }, 3000)
+  })
 })
 const input = ref('')
+// 当前激活的节点列表
+const activeNodes = shallowRef([])
+//插入子节点
+const addson = () => {
+  if (!input.value.trim()) {
+    mindMap.execCommand('INSERT_CHILD_NODE')
+  } else {
+    mindMap.execCommand('INSERT_CHILD_NODE', true, [], {
+      text: input.value
+    })
+    input.value = ''
+  }
+}
+//手动保存
+const save = () => {
+  const data = mindMap.getData(false)
+  console.log(data)
+  LayoutStore.data = data
+  console.log(LayoutStore.data)
+}
+//自动保存
 </script>
 
 <style lang="scss" scoped>
 .content {
   flex: 1;
   height: 100%;
-  width: 100%;
   display: flex;
   gap: 10px;
   .Handedit {
+    flex: 1;
     height: 90%;
     padding: 10px;
     border-radius: 20px;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
     background-color: white;
-    flex: 1;
-    @import './simpleMindMap.esm.css';
-
+    display: flex;
+    flex-direction: column;
     #mindMapContainer {
       width: 100%;
       height: 90%;
       border-bottom: 1px solid rgb(191, 189, 189);
     }
-
     #mindMapContainer * {
       margin: 0;
       padding: 0;
@@ -183,7 +234,7 @@ const input = ref('')
         cursor: pointer;
       }
       .el-icon {
-        font-size: 1.5rem !important;
+        font-size: 25px !important;
         cursor: pointer;
       }
     }
