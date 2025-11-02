@@ -89,7 +89,28 @@
             p-id="4587"
           ></path>
         </svg>
-        <el-icon><DocumentCopy /></el-icon>
+        <el-dropdown @command="handleCommand">
+          <el-icon><DocumentCopy /></el-icon>
+          <template #dropdown>
+            <el-dropdown-menu>
+              <el-dropdown-item command="logicalStructure"
+                >逻辑结构图</el-dropdown-item
+              >
+              <el-dropdown-item command="mindMap">思维导图</el-dropdown-item>
+              <el-dropdown-item command="organizationStructure"
+                >组织结构图</el-dropdown-item
+              >
+              <el-dropdown-item command="catalogOrganization"
+                >目录组织图</el-dropdown-item
+              >
+              <el-dropdown-item command="fishbone">鱼骨图</el-dropdown-item>
+              <el-dropdown-item command="timeline">时间轴</el-dropdown-item>
+              <el-dropdown-item command="verticalTimeline"
+                >竖向时间轴</el-dropdown-item
+              >
+            </el-dropdown-menu>
+          </template></el-dropdown
+        >
         <svg
           @click="save"
           t="1762055830323"
@@ -234,6 +255,10 @@ const Del = () => {
     return
   }
   mindMap.execCommand('REMOVE_NODE')
+}
+//切换结构
+const handleCommand = (command: string | number | object) => {
+  mindMap.setLayout(command)
 }
 //居中按钮
 const center = () => {}
