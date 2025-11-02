@@ -56,7 +56,7 @@ onMounted(() => {
 <style lang="scss" scoped>
 .nav {
   padding-top: 20px;
-  height: 80%;
+  height: 90%;
   border-radius: 20px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
   background-color: white;
