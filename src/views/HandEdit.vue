@@ -153,7 +153,7 @@ const input = ref('')
   height: 100%;
   width: 100%;
   display: flex;
-
+  gap: 10px;
   .Handedit {
     height: 90%;
     padding: 10px;
