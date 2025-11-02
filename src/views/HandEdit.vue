@@ -166,9 +166,9 @@ onMounted(() => {
     activeNodes.value = nodeList
   })
   //监听导图节点发生变化
+  let timer: any = null
   mindMap.on('data_change', (data: any) => {
     console.log(100)
-    let timer = null
     if (timer) clearTimeout(timer)
     timer = setTimeout(() => {
       LayoutStore.data = data
