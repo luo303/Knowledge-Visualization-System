@@ -26,12 +26,13 @@ onUnmounted(() => {
 <style lang="scss" scoped>
 .content {
   flex: 1;
+  height: 100%;
   display: flex;
   .createmind {
     flex: 1;
   }
   .AiTalk {
-    width: 220px;
+    width: 25%;
   }
 }
 </style>

@@ -14,11 +14,7 @@
                 alt="通知"
               />
             </router-link>
-            <router-link
-              class="icon-item"
-              active-class="active"
-              to="/community"
-            >
+            <router-link class="icon-item" active-class="active" to="/personal">
               <img src="@/assets/images/personal.png" class="icon" alt="个人" />
             </router-link>
           </div>
@@ -28,12 +24,6 @@
             <el-button type="primary" class="logout-text">退出登录</el-button>
           </router-link>
         </nav>
-      </div>
-    </div>
-    <div class="contents">
-      <div class="content">
-        <!--指定组件的位置-->
-        <router-view></router-view>
       </div>
     </div>
   </div>
@@ -46,7 +36,7 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  height: 130px;
+  height: 115px;
   color: rgb(115, 114, 114);
 }
 
@@ -81,7 +71,6 @@ h1 {
 
 .box2 {
   display: flex;
-  align-items: center;
   margin-right: 90px;
 }
 
@@ -107,7 +96,8 @@ h1 {
 }
 
 .icon-item:hover {
-  background-color: #ebebeb; /*  hover 背景色 */
+  background-color: #dce7f7;
+  box-shadow: 0 2px 1px rgb(115, 114, 114);
 }
 
 .icon {
@@ -166,5 +156,9 @@ nav a:hover {
   height: 45px;
   font-size: 20px;
   border-radius: 10px;
+}
+
+.logout-text:hover {
+  box-shadow: 0 2px 1px rgb(175, 173, 173);
 }
 </style>
