@@ -3,8 +3,8 @@
     <div class="Handedit">
       <div id="mindMapContainer"></div>
       <div class="bottom">
-        <el-icon><Close /></el-icon>
-        <el-icon><RefreshLeft /></el-icon>
+        <el-icon @click="back"><Close /></el-icon>
+        <el-icon @click="forward"><RefreshLeft /></el-icon>
         <svg
           t="1762055745625"
           class="icon"
@@ -72,7 +72,7 @@
             p-id="11338"
           ></path>
         </svg>
-        <el-icon><Delete /></el-icon>
+        <el-icon @click="Del"><Delete /></el-icon>
         <svg
           t="1762055609616"
           class="icon"
@@ -135,27 +135,31 @@ import { ElMessage } from 'element-plus'
 
 const LayoutStore = useLayoutStore()
 const baseMap = {
-  data: {
-    text: '根节点'
-  },
-  children: [
-    {
-      data: {
-        text: '二级节点'
-      }
+  layout: 'logicalStructure',
+  root: {
+    data: {
+      text: '根节点'
     },
-    {
-      data: {
-        text: '二级节点'
+    children: [
+      {
+        data: {
+          text: '二级节点'
+        },
+        children: []
       }
-    }
-  ]
+    ]
+  }
 }
+const Map = LayoutStore.data || baseMap
 let mindMap: any = null
+const isStart = ref(true)
+const isEnd = ref(true)
+let timer: any = null
 onMounted(() => {
   mindMap = new MindMap({
     el: document.getElementById('mindMapContainer'),
-    data: LayoutStore.data || baseMap
+    data: Map.root,
+    layout: Map.layout
   } as any) //实在是配不出来ts类型呜呜呜
   //将背景色设置为白色
   mindMap.setThemeConfig({
@@ -165,15 +169,19 @@ onMounted(() => {
   mindMap.on('node_active', (node: any, nodeList: any) => {
     activeNodes.value = nodeList
   })
-  //监听导图节点发生变化
-  let timer: any = null
-  mindMap.on('data_change', (data: any) => {
-    console.log(100)
+  //监听导图节点发生变化(自动保存)
+  mindMap.on('data_change', () => {
     if (timer) clearTimeout(timer)
     timer = setTimeout(() => {
+      const data = mindMap.getData(true)
       LayoutStore.data = data
       ElMessage.success('已自动保存')
     }, 3000)
+  })
+  //监听操作历史记录来决定撤销和回退撤销
+  mindMap.on('back_forward', (index: number, len: number) => {
+    isStart.value = index <= 0
+    isEnd.value = index >= len - 1
   })
 })
 const input = ref('')
@@ -181,6 +189,10 @@ const input = ref('')
 const activeNodes = shallowRef([])
 //插入子节点
 const addson = () => {
+  if (activeNodes.value.length === 0) {
+    ElMessage.warning('请选择要操作节点')
+    return
+  }
   if (!input.value.trim()) {
     mindMap.execCommand('INSERT_CHILD_NODE')
   } else {
@@ -192,12 +204,29 @@ const addson = () => {
 }
 //手动保存
 const save = () => {
-  const data = mindMap.getData(false)
-  console.log(data)
+  const data = mindMap.getData(true)
   LayoutStore.data = data
-  console.log(LayoutStore.data)
 }
-//自动保存
+//回退
+const back = () => {
+  if (isStart.value) {
+    ElMessage.error('当前已无可回退记录')
+    return
+  }
+  mindMap.execCommand('BACK')
+}
+//撤销回退
+const forward = () => {
+  if (isEnd.value) {
+    ElMessage.error('当前已无可撤销回退记录')
+    return
+  }
+  mindMap.execCommand('FORWARD')
+}
+//删除节点按钮
+const Del = () => {
+  mindMap.execCommand('REMOVE_NODE')
+}
 </script>
 
 <style lang="scss" scoped>
