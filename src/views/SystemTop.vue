@@ -71,7 +71,7 @@ h1 {
 
 .box2 {
   display: flex;
-  margin-right: 90px;
+  margin-right: 2%;
 }
 
 // 图标容器
@@ -79,7 +79,7 @@ h1 {
   display: flex;
   justify-content: center;
   align-items: center;
-  gap: 40px;
+  gap: 20px;
 }
 
 /* 图标样式 */
