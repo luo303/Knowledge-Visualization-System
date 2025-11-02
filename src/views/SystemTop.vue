@@ -96,7 +96,7 @@ h1 {
 }
 
 .icon-item:hover {
-  background-color: #dce7f7;
+  background-color: #fff;
   box-shadow: 0 2px 1px rgb(115, 114, 114);
 }
 
