@@ -6,6 +6,7 @@
         <el-icon @click="back"><Close /></el-icon>
         <el-icon @click="forward"><RefreshLeft /></el-icon>
         <svg
+          @click="center"
           t="1762055745625"
           class="icon"
           viewBox="0 0 1024 1024"
@@ -90,6 +91,7 @@
         </svg>
         <el-icon><DocumentCopy /></el-icon>
         <svg
+          @click="save"
           t="1762055830323"
           class="icon"
           viewBox="0 0 1024 1024"
@@ -111,7 +113,6 @@
     </div>
     <div class="AiTalk">
       <AiTalk></AiTalk>
-      <button @click="save">保存</button>
     </div>
   </div>
 </template>
@@ -163,7 +164,8 @@ onMounted(() => {
   } as any) //实在是配不出来ts类型呜呜呜
   //将背景色设置为白色
   mindMap.setThemeConfig({
-    backgroundColor: 'white'
+    backgroundColor: 'white',
+    lineStyle: 'curve'
   })
   // 监听节点激活事件
   mindMap.on('node_active', (node: any, nodeList: any) => {
@@ -206,6 +208,8 @@ const addson = () => {
 const save = () => {
   const data = mindMap.getData(true)
   LayoutStore.data = data
+  ElMessage.success('保存成功')
+  clearTimeout(timer)
 }
 //回退
 const back = () => {
@@ -225,8 +229,14 @@ const forward = () => {
 }
 //删除节点按钮
 const Del = () => {
+  if (activeNodes.value.length === 0) {
+    ElMessage.warning('请选择要操作节点')
+    return
+  }
   mindMap.execCommand('REMOVE_NODE')
 }
+//居中按钮
+const center = () => {}
 </script>
 
 <style lang="scss" scoped>
