@@ -22,7 +22,9 @@ declare module 'vue' {
     ElLink: typeof import('element-plus/es')['ElLink']
     ElMenu: typeof import('element-plus/es')['ElMenu']
     ElMenuItem: typeof import('element-plus/es')['ElMenuItem']
+    ElRate: typeof import('element-plus/es')['ElRate']
     ElSubMenu: typeof import('element-plus/es')['ElSubMenu']
+    ElTransfer: typeof import('element-plus/es')['ElTransfer']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
   }
