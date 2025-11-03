@@ -170,8 +170,7 @@ const formdata = ref({
 })
 const Code = computed(() => ({
   account: formdata.value.account,
-  account_type: formdata.value.account_type,
-  purpose: 'reset_password'
+  account_type: formdata.value.account_type
 }))
 const phoneReg = /^1[3-9]\d{9}$/
 const emailReg =

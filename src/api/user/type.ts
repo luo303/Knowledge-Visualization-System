@@ -29,7 +29,6 @@ export interface LoginSuccessData {
 export interface code {
   account: string
   account_type: string
-  purpose: string
 }
 //忘记密码
 export interface forgetpwd {
