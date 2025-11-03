@@ -42,8 +42,8 @@
             p-id="9300"
           ></path>
         </svg>
-        <el-icon><ZoomIn /></el-icon>
-        <el-icon><ZoomOut /></el-icon>
+        <el-icon @click="bigger"><ZoomIn /></el-icon>
+        <el-icon @click="smaller"><ZoomOut /></el-icon>
         <el-input
           v-model="input"
           style="width: 240px"
@@ -181,7 +181,19 @@ onMounted(() => {
   mindMap = new MindMap({
     el: document.getElementById('mindMapContainer'),
     data: Map.root,
-    layout: Map.layout
+    layout: Map.layout,
+    mousewheelAction: 'zoom', // zoom（放大缩小）、move（上下移动）
+    // 当mousewheelAction设为move时，可以通过该属性控制鼠标滚动一下视图移动的步长，单位px
+    mousewheelMoveStep: 100,
+    // 鼠标缩放是否以鼠标当前位置为中心点，否则以画布中心点
+    mouseScaleCenterUseMousePosition: true,
+    // 当mousewheelAction设为zoom时，或者按住Ctrl键时，默认向前滚动是缩小，向后滚动是放大，如果该属性设为true，那么会反过来
+    mousewheelZoomActionReverse: true,
+    // 禁止鼠标滚轮缩放，你仍旧可以使用api进行缩放
+    disableMouseWheelZoom: false,
+    fit: true,
+    maxZoomRatio: 150,
+    minZoomRatio: 50
   } as any) //实在是配不出来ts类型呜呜呜
   //将背景色设置为白色
   mindMap.setThemeConfig({
@@ -200,6 +212,22 @@ onMounted(() => {
       LayoutStore.data = data
       ElMessage.success('已自动保存')
     }, 3000)
+  })
+  //监听视图变化
+
+  let watch = true
+  mindMap.on('view_data_change', (data: any) => {
+    if (data.state.scale >= 1.5 && watch) {
+      watch = false
+      ElMessage.warning('已不可再放大')
+      return
+    } else if (data.state.scale <= 0.5 && watch) {
+      watch = false
+      ElMessage.warning('已不可再缩小')
+      return
+    } else {
+    }
+    if (data.state.scale < 1.5 && data.state.scale > 0.5) watch = true
   })
   //监听操作历史记录来决定撤销和回退撤销
   mindMap.on('back_forward', (index: number, len: number) => {
@@ -261,7 +289,17 @@ const handleCommand = (command: string | number | object) => {
   mindMap.setLayout(command)
 }
 //居中按钮
-const center = () => {}
+const center = () => {
+  mindMap.view.fit()
+}
+//放大
+const bigger = () => {
+  mindMap.view.enlarge()
+}
+//缩小
+const smaller = () => {
+  mindMap.view.narrow()
+}
 </script>
 
 <style lang="scss" scoped>
