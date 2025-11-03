@@ -191,14 +191,19 @@ onMounted(() => {
     mousewheelZoomActionReverse: true,
     // 禁止鼠标滚轮缩放，你仍旧可以使用api进行缩放
     disableMouseWheelZoom: false,
-    fit: true,
-    maxZoomRatio: 150,
-    minZoomRatio: 50
+    initRootNodePosition: ['center', 'center'],
+    maxZoomRatio: 150, //最大缩放倍数
+    minZoomRatio: 50 //最小缩放倍数
   } as any) //实在是配不出来ts类型呜呜呜
   //将背景色设置为白色
   mindMap.setThemeConfig({
-    backgroundColor: 'white',
-    lineStyle: 'curve'
+    backgroundColor: 'rgb(255, 255, 255)',
+    lineStyle: 'curve',
+    paddingX: 4,
+    paddingY: 4,
+    second: {
+      fillColor: 'rgb(255, 255, 255)'
+    }
   })
   // 监听节点激活事件
   mindMap.on('node_active', (node: any, nodeList: any) => {
@@ -290,6 +295,20 @@ const handleCommand = (command: string | number | object) => {
 }
 //居中按钮
 const center = () => {
+  // const layout = mindMap.getLayout()
+
+  // if (
+  //   layout === 'organizationStructure' ||
+  //   layout === 'catalogOrganization' ||
+  //   layout === 'verticalTimeline'
+  // ) {
+  //   mindMap.view.reset()//先移回原位
+  //   mindMap.view.translateXTo(0)
+  //   mindMap.view.translateYTo(-180)
+  //   mindMap.view.fit()
+  // } else {
+  //   mindMap.view.fit()
+  // }
   mindMap.view.fit()
 }
 //放大
