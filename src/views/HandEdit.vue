@@ -135,6 +135,24 @@
     <div class="AiTalk">
       <AiTalk></AiTalk>
     </div>
+    <!-- 右键菜单（绝对定位，基于鼠标位置显示） -->
+    <div
+      class="context-menu"
+      v-show="show"
+      :style="{ left: `${left}px`, top: `${top}px` }"
+      @click.stop
+    >
+      <!-- 节点右键菜单（当 type 为 'node' 时显示） -->
+      <div v-if="type === 'node'">
+        <div class="menu-item" @click="addNode()">添加子节点</div>
+        <div class="menu-item" @click="pasteNode()">粘贴节点</div>
+        <div class="menu-item" @click="delNode()">删除节点</div>
+        <div class="menu-item" @click="copyNode()">复制节点</div>
+        <div class="menu-item" @click="cutNode()">剪切节点</div>
+      </div>
+
+      <!-- 其他类型菜单（如空白处右键，可扩展） -->
+    </div>
     <el-dialog v-model="dialogFormVisible" title="导出" width="500">
       <el-form :model="form" :rules="rules" ref="formRef">
         <el-form-item
@@ -225,6 +243,22 @@ let mindMap: any = null
 const isStart = ref(true)
 const isEnd = ref(true)
 let timer: any = null
+// 当前右键点击的类型
+const type = ref('')
+// 如果点击的节点，那么代表被点击的节点
+const currentNode = shallowRef(null)
+// 菜单显示的位置
+const left = ref(0)
+const top = ref(0)
+// 是否显示菜单
+const show = ref(false)
+const hide = () => {
+  show.value = false
+  left.value = 0
+  top.value = 0
+  type.value = ''
+}
+
 onMounted(() => {
   mindMap = new MindMap({
     el: document.getElementById('mindMapContainer'),
@@ -243,6 +277,16 @@ onMounted(() => {
     maxZoomRatio: 150, //最大缩放倍数
     minZoomRatio: 20 //最小缩放倍数
   } as any) //实在是配不出来ts类型呜呜呜
+  mindMap.on('node_click', hide)
+  mindMap.on('draw_click', hide)
+  mindMap.on('expand_btn_click', hide)
+  mindMap.on('node_contextmenu', (e: any, node: any) => {
+    type.value = 'node'
+    left.value = e.clientX + 10
+    top.value = e.clientY + 10
+    show.value = true
+    currentNode.value = node
+  })
   //将背景色设置为白色
   mindMap.setThemeConfig({
     backgroundColor: 'rgb(255, 255, 255)',
@@ -335,6 +379,10 @@ const Del = () => {
     ElMessage.warning('请选择要操作节点')
     return
   }
+  if ((activeNodes as any)._rawValue[0].isRoot) {
+    ElMessage.error('根节点无法删除')
+    return
+  }
   mindMap.execCommand('REMOVE_NODE')
 }
 //切换结构
@@ -343,20 +391,6 @@ const handleCommand = (command: string | number | object) => {
 }
 //居中按钮
 const center = () => {
-  // const layout = mindMap.getLayout()
-
-  // if (
-  //   layout === 'organizationStructure' ||
-  //   layout === 'catalogOrganization' ||
-  //   layout === 'verticalTimeline'
-  // ) {
-  //   mindMap.view.reset()//先移回原位
-  //   mindMap.view.translateXTo(0)
-  //   mindMap.view.translateYTo(-180)
-  //   mindMap.view.fit()
-  // } else {
-  //   mindMap.view.fit()
-  // }
   mindMap.view.fit()
 }
 //放大
@@ -393,6 +427,35 @@ const Export = async () => {
   }
   dialogFormVisible.value = false
   formRef.value.resetFields()
+}
+const cutNode = () => {
+  mindMap.renderer.cut()
+  show.value = false
+  ElMessage.success('剪切成功')
+}
+const copyNode = () => {
+  mindMap.renderer.copy()
+  show.value = false
+  ElMessage.success('复制成功')
+}
+const delNode = () => {
+  if ((activeNodes as any)._rawValue[0].isRoot) {
+    ElMessage.error('根节点无法删除')
+    return
+  }
+  mindMap.execCommand('REMOVE_NODE')
+  show.value = false
+  ElMessage.success('删除成功')
+}
+const addNode = () => {
+  mindMap.execCommand('INSERT_CHILD_NODE')
+  show.value = false
+  ElMessage.success('添加节点成功')
+}
+const pasteNode = () => {
+  mindMap.renderer.paste()
+  show.value = false
+  ElMessage.success('粘贴成功')
 }
 </script>
 
@@ -438,5 +501,31 @@ const Export = async () => {
   .AiTalk {
     width: 25%;
   }
+}
+.context-menu {
+  position: fixed; /* 基于浏览器窗口定位，避免被父容器滚动影响 */
+  background: #fff;
+  border-radius: 4px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.15);
+  padding: 5px 0;
+  z-index: 9999; /* 确保菜单在最上层 */
+  min-width: 120px;
+}
+
+.menu-item {
+  padding: 8px 16px;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.menu-item:hover {
+  background: #f5f5f5; /*  hover 效果 */
+}
+
+/* 可选：添加分隔线区分不同功能的菜单项 */
+.menu-divider {
+  height: 1px;
+  background: #eee;
+  margin: 5px 0;
 }
 </style>
