@@ -128,13 +128,41 @@
             p-id="10352"
           ></path>
         </svg>
-        <el-icon><Upload /></el-icon>
+        <el-icon @click="ToExport"><Upload /></el-icon>
         <el-icon><QuestionFilled /></el-icon>
       </div>
     </div>
     <div class="AiTalk">
       <AiTalk></AiTalk>
     </div>
+    <el-dialog v-model="dialogFormVisible" title="导出" width="500">
+      <el-form :model="form" :rules="rules" ref="formRef">
+        <el-form-item
+          prop="name"
+          label="导出文件名"
+          :label-width="formLabelWidth"
+        >
+          <el-input v-model="form.name" autocomplete="off" />
+        </el-form-item>
+        <el-form-item
+          prop="type"
+          label="导出文件类型"
+          :label-width="formLabelWidth"
+        >
+          <el-select v-model="form.type" placeholder="选择格式">
+            <el-option label="png格式" value="png" />
+            <el-option label="pdf格式" value="pdf" />
+            <el-option label="xmind格式" value="xmind" />
+          </el-select>
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <div class="dialog-footer">
+          <el-button @click="cancel">取消</el-button>
+          <el-button type="primary" @click="Export">确认</el-button>
+        </div>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
@@ -154,7 +182,27 @@ import {
 } from '@element-plus/icons-vue'
 import { useLayoutStore } from '@/stores'
 import { ElMessage } from 'element-plus'
-
+//异步导入插件
+import('simple-mind-map/src/plugins/Export.js' as any).then(res => {
+  mindMap.addPlugin(res.default)
+})
+import('simple-mind-map/src/plugins/ExportPDF.js' as any).then(res => {
+  mindMap.addPlugin(res.default)
+})
+import('simple-mind-map/src/plugins/ExportXMind.js' as any).then(res => {
+  mindMap.addPlugin(res.default)
+})
+const dialogFormVisible = ref(false)
+const formLabelWidth = '140px'
+const form = ref({
+  name: '',
+  type: ''
+})
+const formRef = ref()
+const rules = ref({
+  name: [{ required: true, message: '导出名不能为空', trigger: 'blur' }],
+  type: [{ required: true, message: '请选择导出类型', trigger: 'blur' }]
+})
 const LayoutStore = useLayoutStore()
 const baseMap = {
   layout: 'logicalStructure',
@@ -191,9 +239,9 @@ onMounted(() => {
     mousewheelZoomActionReverse: true,
     // 禁止鼠标滚轮缩放，你仍旧可以使用api进行缩放
     disableMouseWheelZoom: false,
-    initRootNodePosition: ['center', 'center'],
+    fit: true, //一开始大小自适应
     maxZoomRatio: 150, //最大缩放倍数
-    minZoomRatio: 50 //最小缩放倍数
+    minZoomRatio: 20 //最小缩放倍数
   } as any) //实在是配不出来ts类型呜呜呜
   //将背景色设置为白色
   mindMap.setThemeConfig({
@@ -226,13 +274,13 @@ onMounted(() => {
       watch = false
       ElMessage.warning('已不可再放大')
       return
-    } else if (data.state.scale <= 0.5 && watch) {
+    } else if (data.state.scale <= 0.2 && watch) {
       watch = false
       ElMessage.warning('已不可再缩小')
       return
     } else {
     }
-    if (data.state.scale < 1.5 && data.state.scale > 0.5) watch = true
+    if (data.state.scale < 1.5 && data.state.scale > 0.2) watch = true
   })
   //监听操作历史记录来决定撤销和回退撤销
   mindMap.on('back_forward', (index: number, len: number) => {
@@ -318,6 +366,33 @@ const bigger = () => {
 //缩小
 const smaller = () => {
   mindMap.view.narrow()
+}
+//导出按钮
+const ToExport = () => {
+  dialogFormVisible.value = true
+}
+//取消按钮
+const cancel = () => {
+  formRef.value.resetFields()
+  dialogFormVisible.value = false
+}
+const Export = async () => {
+  await formRef.value.validate()
+  switch (form.value.type) {
+    case 'png':
+      mindMap.export('png', true, form.value.name)
+      break
+    case 'pdf':
+      mindMap.export('pdf', true, form.value.name)
+      break
+    case 'xmind':
+      mindMap.export('xmind', form.value.name)
+      break
+    default:
+      ElMessage.error('出错啦')
+  }
+  dialogFormVisible.value = false
+  formRef.value.resetFields()
 }
 </script>
 
