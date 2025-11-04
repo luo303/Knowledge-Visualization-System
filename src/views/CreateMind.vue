@@ -175,6 +175,7 @@ onUnmounted(() => {
     display: flex;
     flex-direction: column;
     gap: 10px;
+    position: relative;
 
     .createmind-title {
       font-size: 20px;
@@ -198,11 +199,14 @@ onUnmounted(() => {
 
       .upload-btn {
         display: inline-flex;
+        position: absolute;
+        top: 10%;
+        left: 10%;
         align-items: center;
         justify-content: center;
         gap: 10px;
         width: 80%;
-        height: 80px;
+        height: 15%;
         background-color: #f0f2f5;
         border: 2px #c9cdd4;
         border-radius: 15px;
@@ -234,6 +238,9 @@ onUnmounted(() => {
         color: #999;
         margin-left: 1%;
         margin-bottom: 10px;
+        position: absolute;
+        top: 26%;
+        z-index: 2;
       }
     }
 
@@ -377,8 +384,16 @@ onUnmounted(() => {
       border-radius: 12px;
       background-color: #ebeff8;
       width: 80%;
+      height: 66%;
+      display: flex;
       margin: 0 auto;
-      overflow: auto;
+      justify-content: center;
+      align-items: center;
+      box-sizing: border-box;
+      max-height: 80%;
+      top: 30%;
+      left: 10%;
+      position: absolute;
 
       .uploading-text {
         font-size: 18px;
@@ -389,6 +404,7 @@ onUnmounted(() => {
       .example-mindmap {
         display: flex;
         width: 80%;
+        height: 100%;
         margin: 0 auto;
         border-radius: 10px;
       }
