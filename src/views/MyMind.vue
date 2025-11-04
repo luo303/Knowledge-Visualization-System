@@ -1,84 +1,91 @@
 <template>
-  <div class="search-container">
-    <!-- 搜索框区域 -->
-    <div class="search-box">
-      <div class="search-input-group">
-        <img src="@/assets/images/search.png" class="search-icon" alt="搜索" />
-        <input
-          v-model="searchQuery"
-          type="text"
-          placeholder="搜索导图名称或来源文件..."
-          @input="handleInput"
-          @keydown.enter="handleSearch"
-          ref="searchInput"
-        />
-        <button class="search-btn" @click="handleSearch">搜索</button>
-      </div>
+  <div class="header-constrols">
+    <div class="search-container">
+      <!-- 搜索框区域 -->
+      <div class="search-box">
+        <div class="search-input-group">
+          <img
+            src="@/assets/images/search.png"
+            class="search-icon"
+            alt="搜索"
+          />
+          <input
+            v-model="searchQuery"
+            type="text"
+            placeholder="搜索导图名称或来源文件..."
+            @input="handleInput"
+            @keydown.enter="handleSearch"
+            ref="searchInput"
+          />
+          <button class="search-btn" @click="handleSearch">搜索</button>
+        </div>
 
-      <!-- 智能联想下拉框 -->
-      <div
-        class="suggestions-box"
-        v-if="showSuggestions && suggestions.length > 0"
-      >
-        <ul>
-          <li
-            v-for="(item, index) in suggestions"
-            :key="index"
-            @click="selectSuggestion(item)"
-          >
-            {{ item }}
-          </li>
-        </ul>
+        <!-- 智能联想下拉框 -->
+        <div
+          class="suggestions-box"
+          v-if="showSuggestions && suggestions.length > 0"
+        >
+          <ul>
+            <li
+              v-for="(item, index) in suggestions"
+              :key="index"
+              @click="selectSuggestion(item)"
+            >
+              {{ item }}
+            </li>
+          </ul>
+        </div>
       </div>
-
       <!-- 无结果提示 -->
       <div class="no-result" v-if="showNoResult">
         未找到相关导图，请检查关键词或筛选条件
       </div>
     </div>
-  </div>
 
-  <div class="sort-container">
-    <div class="sort-selector" @click="toggleDropdown1">
-      <!-- 显示当前选中的排序方式 -->
-      <span class="sort-text">{{ currentSortText }}</span>
-      <i class="sort-arrow" :class="{ rotate: isDropdownOpen1 }">▼</i>
+    <div class="filters-group">
+      <div class="sort-container">
+        <div class="sort-selector" @click="toggleDropdown1">
+          <!-- 显示当前选中的排序方式 -->
+          <span class="sort-text">{{ currentSortText }}</span>
+          <i class="sort-arrow" :class="{ rotate: isDropdownOpen1 }">▼</i>
 
-      <!-- 下拉选项列表（条件渲染） -->
-      <div class="dropdown-options" v-if="isDropdownOpen1">
-        <div
-          class="option-item"
-          v-for="option in sortOptions"
-          :key="option.value"
-          @click="handleSelect1(option)"
-          :class="{ active: option.value === currentSort }"
-        >
-          {{ option.text }}
+          <!-- 下拉选项列表（条件渲染） -->
+          <div class="dropdown-options" v-if="isDropdownOpen1">
+            <div
+              class="option-item"
+              v-for="option in sortOptions"
+              :key="option.value"
+              @click="handleSelect1(option)"
+              :class="{ active: option.value === currentSort }"
+            >
+              {{ option.text }}
+            </div>
+          </div>
         </div>
       </div>
-    </div>
-  </div>
 
-  <div class="filter-container">
-    <div class="filter-selector" @click="toggleDropdown2">
-      <!-- 显示当前选中的类型 -->
-      <span class="filter-text">导图类型：{{ currentTypeText }}</span>
-      <!-- 下拉箭头（复用旋转动画） -->
-      <i class="filter-arrow" :class="{ rotate: isDropdownOpen2 }">▼</i>
+      <div class="filter-container">
+        <div class="filter-selector" @click="toggleDropdown2">
+          <!-- 显示当前选中的类型 -->
+          <span class="filter-text">导图类型：{{ currentTypeText }}</span>
+          <!-- 下拉箭头（复用旋转动画） -->
+          <i class="filter-arrow" :class="{ rotate: isDropdownOpen2 }">▼</i>
 
-      <!-- 下拉选项列表 -->
-      <div class="dropdown-options" v-if="isDropdownOpen2">
-        <div
-          class="option-item"
-          v-for="option in typeOptions"
-          :key="option.value"
-          @click="handleSelect2(option)"
-          :class="{ active: option.value === currentType }"
-        >
-          {{ option.text }}
+          <!-- 下拉选项列表 -->
+          <div class="dropdown-options" v-if="isDropdownOpen2">
+            <div
+              class="option-item"
+              v-for="option in typeOptions"
+              :key="option.value"
+              @click="handleSelect2(option)"
+              :class="{ active: option.value === currentType }"
+            >
+              {{ option.text }}
+            </div>
+            <!-- 清除筛选按钮 -->
+            <div class="clear-btn" @click="clearFilter">清除筛选</div>
+          </div>
         </div>
-        <!-- 清除筛选按钮 -->
-        <div class="clear-btn" @click="clearFilter">清除筛选</div>
       </div>
     </div>
   </div>
@@ -260,11 +267,19 @@ onUnmounted(() => {
 </script>
 
 <style lang="scss" scoped>
+.header-constrols {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0px 10px;
+  width: 100%;
+  box-sizing: border-box;
+}
 .search-container {
   display: flex;
+  flex-direction: column;
   left: 8%;
   margin-left: 20px;
-  position: absolute;
   padding: 0px;
   box-sizing: border-box;
 }
@@ -281,7 +296,9 @@ onUnmounted(() => {
   border: 1px solid #ddd;
   border-radius: 4px;
   padding: 0 12px;
+  padding-right: 70px; // 输入框右边留出空间，用于放置搜索按钮
   background: #fff;
+  position: relative;
 
   &:focus-within {
     border-color: #409eff;
@@ -358,18 +375,20 @@ input {
 .no-result {
   color: #f56c6c;
   font-size: 14px;
-  margin-top: 8px;
   padding: 8px 16px;
+}
+
+.filters-group {
+  display: flex;
+  align-items: center;
+  gap: 15px;
 }
 
 // "生成时间" 容器
 .sort-container {
   display: flex;
-  position: absolute;
   justify-content: center;
   align-items: center;
-  right: 20%;
-  margin-right: 20px;
   gap: 10px;
 }
 
@@ -451,8 +470,6 @@ input {
   display: flex;
   justify-content: center;
   align-items: center;
-  position: absolute;
-  right: 5%;
   gap: 10px;
   height: 35px;
 }
