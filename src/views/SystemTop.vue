@@ -98,6 +98,7 @@ h1 {
 .icon-item:hover {
   background-color: #fff;
   box-shadow: 0 2px 1px rgb(115, 114, 114);
+  transform: translateY(-2px);
 }
 
 .icon {
@@ -160,5 +161,6 @@ nav a:hover {
 
 .logout-text:hover {
   box-shadow: 0 2px 1px rgb(175, 173, 173);
+  transform: translateY(-2px);
 }
 </style>

@@ -89,10 +89,61 @@
       </div>
     </div>
   </div>
+
+  <!-- 导图预览模块 -->
+  <div class="mindmap-preview-container">
+    <!-- 导图卡片模块 -->
+    <div
+      class="mindmap-card"
+      v-for="(map, index) in mindmaps"
+      :key="index"
+      @click="handleCardClick(map, $event)"
+    >
+      <!-- 勾选框 -->
+      <div class="batch-checkbox">
+        <input
+          type="checkbox"
+          v-model="map.selected"
+          :id="`map-${index}`"
+          @click="handleSelect3(map)"
+        />
+        <label :for="`map-${index}`"></label>
+      </div>
+
+      <!-- 导图缩略图 -->
+      <div class="map-thumbnail">
+        <img
+          src="@/assets/images/example-mindmap.jpg"
+          :alt="map.name"
+          class="map-preview-img"
+        />
+      </div>
+
+      <!-- 导图信息 -->
+      <div class="map-info">
+        <h3 class="map-name">{{ map.name }}</h3>
+        <div class="map-meta">
+          <span class="map-type">{{ map.type }}</span>
+          <span class="map-time">{{ formatTime(map.createTime) }}</span>
+        </div>
+      </div>
+    </div>
+    <!-- 空状态 (无导图时显示) -->
+    <div class="empty-state" v-if="mindmaps.length === 0">
+      <img
+        src="@/assets/images/empty-state.png"
+        alt="暂无导图"
+        class="empty-img"
+      />
+      <p class="empty-text">暂无生成的导图，快去创建吧~</p>
+      <button class="create-btn" @click="handleCreateNew">+ 创建导图</button>
+    </div>
+  </div>
 </template>
 
 <script lang="ts" setup>
 import { ref, onMounted, onUnmounted } from 'vue'
+import { useRouter } from 'vue-router'
 
 // 搜索相关状态
 const searchQuery = ref('')
@@ -264,6 +315,131 @@ document.addEventListener('click', handleClickOutside2)
 onUnmounted(() => {
   document.removeEventListener('click', handleClickOutside2)
 })
+
+// 导图预览 模块：
+interface MindMap {
+  id: number
+  name: string
+  type: '树形图' | '辐射图' | '逻辑图'
+  thumbnail: string
+  selected: boolean
+  createTime: string
+}
+
+// 初始化数据：
+const mindmaps = ref<MindMap[]>([
+  {
+    id: 1,
+    name: '产品需求分析',
+    type: '树形图',
+    createTime: '2025-11-04-11:42',
+    thumbnail: '@/assets/images/example-mindmap.jpg',
+    selected: false
+  },
+  {
+    id: 2,
+    name: '年度工作计划',
+    type: '辐射图',
+    createTime: '2025-11-04-11:42',
+    thumbnail: '@/assets/images/example-mindmap.jpg',
+    selected: false
+  },
+  {
+    id: 3,
+    name: '产品需求分析',
+    type: '树形图',
+    createTime: '2025-11-04-11:42',
+    thumbnail: '@/assets/images/example-mindmap.jpg',
+    selected: false
+  },
+  {
+    id: 4,
+    name: '产品需求分析',
+    type: '树形图',
+    createTime: '2025-11-04-11:42',
+    thumbnail: '@/assets/images/example-mindmap.jpg',
+    selected: false
+  },
+  {
+    id: 5,
+    name: '产品需求分析',
+    type: '树形图',
+    createTime: '2025-11-04-11:42',
+    thumbnail: '@/assets/images/example-mindmap.jpg',
+    selected: false
+  },
+  {
+    id: 6,
+    name: '产品需求分析',
+    type: '树形图',
+    createTime: '2025-11-04-11:42',
+    thumbnail: '@/assets/images/example-mindmap.jpg',
+    selected: false
+  },
+  {
+    id: 7,
+    name: '产品需求分析',
+    type: '树形图',
+    createTime: '2025-11-04-11:42',
+    thumbnail: '@/assets/images/example-mindmap.jpg',
+    selected: false
+  },
+  {
+    id: 8,
+    name: '产品需求分析',
+    type: '树形图',
+    createTime: '2025-11-04-11:42',
+    thumbnail: '@/assets/images/example-mindmap.jpg',
+    selected: false
+  },
+  {
+    id: 9,
+    name: '产品需求分析',
+    type: '树形图',
+    createTime: '2025-11-04-11:42',
+    thumbnail: '@/assets/images/example-mindmap.jpg',
+    selected: false
+  },
+  {
+    id: 10,
+    name: '产品需求分析',
+    type: '树形图',
+    createTime: '2025-11-04-11:42',
+    thumbnail: '@/assets/images/example-mindmap.jpg',
+    selected: false
+  },
+  {
+    id: 11,
+    name: '产品需求分析',
+    type: '树形图',
+    createTime: '2025-11-04-11:42',
+    thumbnail: '@/assets/images/example-mindmap.jpg',
+    selected: false
+  }
+])
+
+// 方法：
+const router = useRouter()
+
+const formatTime = (time: string): string => {
+  const [date = ' ', hour] = time.split(' ')
+  return `${hour}/${date.slice(5)}`
+}
+
+const handleCardClick = (map: MindMap, e: MouseEvent): void => {
+  const target = e.target as HTMLElement
+  if (!target.closest('.batch-checkbox') && !target.closest('.map-actions')) {
+    router.push(`/edit/${map.id}`)
+  }
+}
+
+const handleSelect3 = (map: MindMap): void => {
+  map.selected = !map.selected
+}
+
+const handleCreateNew = (): void => {
+  router.push({ name: 'handedit' })
+}
 </script>
 
 <style lang="scss" scoped>
@@ -274,6 +450,7 @@ onUnmounted(() => {
   padding: 0px 10px;
   width: 100%;
   box-sizing: border-box;
+  z-index: 2;
 }
 .search-container {
   display: flex;
@@ -326,7 +503,7 @@ input {
   background: #409eff;
   color: white;
   border: none;
-  border-radius: 4px;
+  border-radius: 0 4px 4px 0;
   padding: 6px 16px;
   display: flex;
   position: absolute;
@@ -520,6 +697,132 @@ input {
   &:hover {
     color: #f56c6c;
     background-color: #fff5f5;
+  }
+}
+
+// "导图预览" 模块：
+.mindmap-preview-container {
+  padding: 20px;
+  box-sizing: border-box;
+}
+
+// 导图卡片：
+.mindmap-card {
+  border: 1px solid rgb(199, 198, 198);
+  width: 20%;
+  border-radius: 8px;
+  overflow: hidden;
+  transition: all 0.2s;
+  display: inline-block;
+  cursor: pointer;
+  position: relative;
+  margin: 20px;
+
+  &:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    transform: translateY(-2px);
+  }
+}
+
+// 批量选择区：
+.batch-checkbox {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  z-index: 10;
+  width: 18px;
+  height: 18px;
+  border: solid 1px #409eff;
+  border-radius: 2px;
+  transition: opacity 0.2s;
+}
+
+.mindmap-card:hover .batch-checkbox,
+.batch-checkbox input:checked ~ label {
+  opacity: 1;
+}
+
+.batch-checkbox input {
+  position: absolute;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.batch-checkbox input:checked ~ label::after {
+  content: '✓';
+  background-color: #409eff;
+  color: #fff;
+  font-size: 12px;
+  line-height: 18px;
+  text-align: center;
+  display: block;
+}
+
+.map-thumbnail {
+  height: 180px;
+  position: relative;
+  background-color: #f9f9f9;
+  overflow: hidden;
+}
+
+.map-preview-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.2s;
+}
+
+// 导图信息：
+.map-info {
+  padding: 10px;
+}
+
+.map-name {
+  font-size: 14px;
+  font-weight: bold;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin: 0 0 5px 0;
+}
+
+.map-meta {
+  display: flex;
+  justify-content: space-between;
+  font-size: 12px;
+  color: #999;
+}
+
+// 空状态：
+.empty-state {
+  grid-column: 1 / -1;
+  text-align: center;
+  padding: 60px 0;
+  color: #999;
+}
+
+.empty-img {
+  width: 120px;
+  height: 120px;
+  margin-bottom: 20px;
+}
+
+.empty-text {
+  margin-bottom: 24px;
+}
+
+.create-btn {
+  padding: 8px 16px;
+  background-color: #409eff;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 16px;
+  transition: background 0.2s;
+
+  &:hover {
+    background-color: #66b1ff;
   }
 }
 </style>
