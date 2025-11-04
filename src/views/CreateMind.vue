@@ -23,7 +23,13 @@
           <p class="upload-desc" v-else>支持 TXT、DOCX、PDF 格式文件</p>
         </div>
 
-        <div class="mindmap-container"></div>
+        <div class="mindmap-container">
+          <img
+            src="@/assets/images/example-mindmap.jpg"
+            alt="example-mindmap"
+            class="example-mindmap"
+          />
+        </div>
       </div>
 
       <div v-else-if="status === 'uploading'" class="processing-area">
@@ -378,6 +384,13 @@ onUnmounted(() => {
         font-size: 18px;
         color: #666;
         font-weight: 500;
+      }
+
+      .example-mindmap {
+        display: flex;
+        width: 80%;
+        margin: 0 auto;
+        border-radius: 10px;
       }
     }
   }
