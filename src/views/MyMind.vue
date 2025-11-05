@@ -117,7 +117,7 @@
       <div class="map-info">
         <h3 class="map-name">{{ map.title }}</h3>
         <div class="map-meta">
-          <span class="map-type">{{ getTypeName(map.type) }}</span>
+          <span class="map-type">{{ getTypeName(map.layout) }}</span>
           <span class="map-time">{{ formatTime(map.createTime) }}</span>
         </div>
       </div>
