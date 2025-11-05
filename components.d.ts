@@ -36,6 +36,7 @@ declare module 'vue' {
     ElTransfer: typeof import('element-plus/es')['ElTransfer']
     Help: typeof import('./src/components/help.vue')['default']
     HelpPage: typeof import('./src/components/helpPage.vue')['default']
+    PreviewPage: typeof import('./src/components/PreviewPage.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
   }
