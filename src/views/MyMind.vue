@@ -321,13 +321,26 @@ onUnmounted(() => {
 // 导图数据：
 const mindmaps = ref<MindMapOptions[]>([])
 
-// 筛选：
+// 筛选并排序后的导图列表：
 const filteredMindMaps = computed(() => {
-  if (currentType.value === 'all') {
-    return mindmaps.value
-  } else {
-    return mindmaps.value.filter(map => map.layout === currentType.value)
+  // 时间排序：
+  let sortedResult = [...mindmaps.value].sort((a, b) => {
+    // 切换时间戳比较：
+    const timeA = new Date(a.createTime).getTime()
+    const timeB = new Date(b.createTime).getTime()
+    if (currentSort.value === 'latest') {
+      return timeB - timeA
+    } else {
+      return timeA - timeB
+    }
+  })
+
+  // 根据类型筛选：
+  if (currentType.value !== 'all') {
+    sortedResult = sortedResult.filter(map => map.layout === currentType.value)
   }
+
+  return sortedResult
 })
 
 // 页面加载时获取导图数据：
