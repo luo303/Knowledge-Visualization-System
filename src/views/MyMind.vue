@@ -95,8 +95,8 @@
     <!-- 导图卡片模块 -->
     <div
       class="mindmap-card"
-      v-for="(map, index) in mindmaps"
-      :key="index"
+      v-for="(map, index) in filteredMindMaps"
+      :key="map.mapId"
       @click="handleCardClick(map, $event)"
     >
       <!-- 勾选框 -->
@@ -104,26 +104,20 @@
         <input
           type="checkbox"
           v-model="map.selected"
-          :id="`map-${index}`"
-          @click="handleSelect3(map)"
+          :id="`map-${map.mapId}`"
+          @click.stop="handleSelect3(map)"
         />
         <label :for="`map-${index}`"></label>
       </div>
 
       <!-- 导图缩略图 -->
-      <div class="map-thumbnail">
-        <img
-          src="@/assets/images/example-mindmap.jpg"
-          :alt="map.name"
-          class="map-preview-img"
-        />
-      </div>
+      <div class="map-thumbnail"><PreviewPage :Map="map" /></div>
 
       <!-- 导图信息 -->
       <div class="map-info">
-        <h3 class="map-name">{{ map.name }}</h3>
+        <h3 class="map-name">{{ map.title }}</h3>
         <div class="map-meta">
-          <span class="map-type">{{ map.type }}</span>
+          <span class="map-type">{{ getTypeName(map.type) }}</span>
           <span class="map-time">{{ formatTime(map.createTime) }}</span>
         </div>
       </div>
@@ -142,8 +136,11 @@
 </template>
 
 <script lang="ts" setup>
-import { ref, onMounted, onUnmounted } from 'vue'
+import { ref, onMounted, onUnmounted, computed } from 'vue'
 import { useRouter } from 'vue-router'
+import PreviewPage from '@/components/PreviewPage.vue'
+import type { MindMapOptions } from '@/utils/type'
+// import axios from 'axios'
 
 // 搜索相关状态
 const searchQuery = ref('')
@@ -269,9 +266,14 @@ const emit = defineEmits<{
 // "导图类型" 模块：
 const typeOptions = [
   { value: 'all', text: '全部' },
-  { value: 'tree', text: '树形图' },
-  { value: 'radial', text: '放射图' },
-  { value: 'logic', text: '逻辑图' }
+  { value: 'logicalStructure', text: '逻辑结构图' },
+  { value: 'mindMap', text: '思维导图' },
+  { value: 'organizationStructure', text: '组织结构图' },
+  { value: 'catalogOrganization', text: '目录组织图' },
+  { value: 'timeline', text: '时间轴' },
+  { value: 'fishbone', text: '鱼骨图' },
+  { value: '时间轴2', text: 'timeline2' },
+  { value: 'verticalTimeline', text: 'v0.6.6+竖向时间轴' }
 ]
 
 // 响应体状态：
@@ -316,129 +318,220 @@ onUnmounted(() => {
   document.removeEventListener('click', handleClickOutside2)
 })
 
-// 导图预览 模块：
-interface MindMap {
-  id: number
-  name: string
-  type: '树形图' | '辐射图' | '逻辑图'
-  thumbnail: string
-  selected: boolean
-  createTime: string
-}
+// 导图数据：
+const mindmaps = ref<MindMapOptions[]>([])
 
-// 初始化数据：
-const mindmaps = ref<MindMap[]>([
-  {
-    id: 1,
-    name: '产品需求分析',
-    type: '树形图',
-    createTime: '2025-11-04-11:42',
-    thumbnail: '@/assets/images/example-mindmap.jpg',
-    selected: false
-  },
-  {
-    id: 2,
-    name: '年度工作计划',
-    type: '辐射图',
-    createTime: '2025-11-04-11:42',
-    thumbnail: '@/assets/images/example-mindmap.jpg',
-    selected: false
-  },
-  {
-    id: 3,
-    name: '产品需求分析',
-    type: '树形图',
-    createTime: '2025-11-04-11:42',
-    thumbnail: '@/assets/images/example-mindmap.jpg',
-    selected: false
-  },
-  {
-    id: 4,
-    name: '产品需求分析',
-    type: '树形图',
-    createTime: '2025-11-04-11:42',
-    thumbnail: '@/assets/images/example-mindmap.jpg',
-    selected: false
-  },
-  {
-    id: 5,
-    name: '产品需求分析',
-    type: '树形图',
-    createTime: '2025-11-04-11:42',
-    thumbnail: '@/assets/images/example-mindmap.jpg',
-    selected: false
-  },
-  {
-    id: 6,
-    name: '产品需求分析',
-    type: '树形图',
-    createTime: '2025-11-04-11:42',
-    thumbnail: '@/assets/images/example-mindmap.jpg',
-    selected: false
-  },
-  {
-    id: 7,
-    name: '产品需求分析',
-    type: '树形图',
-    createTime: '2025-11-04-11:42',
-    thumbnail: '@/assets/images/example-mindmap.jpg',
-    selected: false
-  },
-  {
-    id: 8,
-    name: '产品需求分析',
-    type: '树形图',
-    createTime: '2025-11-04-11:42',
-    thumbnail: '@/assets/images/example-mindmap.jpg',
-    selected: false
-  },
-  {
-    id: 9,
-    name: '产品需求分析',
-    type: '树形图',
-    createTime: '2025-11-04-11:42',
-    thumbnail: '@/assets/images/example-mindmap.jpg',
-    selected: false
-  },
-  {
-    id: 10,
-    name: '产品需求分析',
-    type: '树形图',
-    createTime: '2025-11-04-11:42',
-    thumbnail: '@/assets/images/example-mindmap.jpg',
-    selected: false
-  },
-  {
-    id: 11,
-    name: '产品需求分析',
-    type: '树形图',
-    createTime: '2025-11-04-11:42',
-    thumbnail: '@/assets/images/example-mindmap.jpg',
-    selected: false
+// 筛选：
+const filteredMindMaps = computed(() => {
+  if (currentType.value === 'all') {
+    return mindmaps.value
+  } else {
+    return mindmaps.value.filter(map => map.layout === currentType.value)
   }
-])
+})
+
+// 页面加载时获取导图数据：
+onMounted(() => {
+  // 接口请求：
+  // fetchMyMindMaps()
+
+  // 模拟数据：
+  mindmaps.value = [
+    {
+      mapId: 'test01',
+      userId: 'user01',
+      title: '测试导图01',
+      desc: '这是一条测试数据',
+      layout: 'mindMap',
+      root: {
+        data: { text: '根节点', uid: 'root01' },
+        children: [
+          { text: '子节点1', uid: 'c1' },
+          { text: '子节点2', uid: 'c2' }
+        ]
+      },
+      createTime: '2024-06-01 10:00:00',
+      selected: false
+    },
+    {
+      mapId: 'test02',
+      userId: 'user02',
+      title: '测试导图02',
+      desc: '这是另一条测试数据',
+      layout: 'logicalStructure',
+      root: {
+        data: { text: '根节点', uid: 'root02' },
+        children: [
+          { text: '子节点A', uid: 'cA' },
+          { text: '子节点B', uid: 'cB' }
+        ]
+      },
+      createTime: '2024-06-02 14:30:00',
+      selected: false
+    },
+    {
+      mapId: 'test03',
+      userId: 'user03',
+      title: '测试导图03',
+      desc: '这是第三条测试数据',
+      layout: 'timeline',
+      root: {
+        data: { text: '根节点', uid: 'root03' },
+        children: [
+          { text: '事件一', uid: 'e1' },
+          { text: '事件二', uid: 'e2' }
+        ]
+      },
+      createTime: '2024-06-03 09:15:00',
+      selected: false
+    },
+    {
+      mapId: 'test04',
+      userId: 'user04',
+      title: '测试导图04',
+      desc: '这是第四条测试数据',
+      layout: 'organizationStructure',
+      root: {
+        data: { text: '根节点', uid: 'root04' },
+        children: [
+          { text: '部门A', uid: 'dA' },
+          { text: '部门B', uid: 'dB' }
+        ]
+      },
+      createTime: '2024-06-04 12:00:00',
+      selected: false
+    },
+    {
+      mapId: 'test05',
+      userId: 'user05',
+      title: '测试导图05',
+      desc: '这是第五条测试数据',
+      layout: 'catalogOrganization',
+      root: {
+        data: { text: '根节点', uid: 'root05' },
+        children: [
+          { text: '章节一', uid: 'ch1' },
+          { text: '章节二', uid: 'ch2' }
+        ]
+      },
+      createTime: '2024-06-05 15:30:00',
+      selected: false
+    },
+    {
+      mapId: 'test06',
+      userId: 'user06',
+      title: '测试导图06',
+      desc: '这是第六条测试数据',
+      layout: 'fishbone',
+      root: {
+        data: { text: '根节点', uid: 'root06' },
+        children: [
+          { text: '主题一', uid: 't1' },
+          { text: '主题二', uid: 't2' }
+        ]
+      },
+      createTime: '2024-06-06 10:00:00',
+      selected: false
+    },
+    {
+      mapId: 'test07',
+      userId: 'user07',
+      title: '测试导图07',
+      desc: '这是第七条测试数据',
+      layout: '时间轴2',
+      root: {
+        data: { text: '根节点', uid: 'root07' },
+        children: [
+          { text: '事件三', uid: 'e3' },
+          { text: '事件四', uid: 'e4' }
+        ]
+      },
+      createTime: '2024-06-07 13:30:00',
+      selected: false
+    },
+    {
+      mapId: 'test08',
+      userId: 'user08',
+      title: '测试导图08',
+      desc: '这是第八条测试数据',
+      layout: 'verticalTimeline',
+      root: {
+        data: { text: '根节点', uid: 'root08' },
+        children: [
+          { text: '事件五', uid: 'e5' },
+          { text: '事件六', uid: 'e6' }
+        ]
+      },
+      createTime: '2024-06-08 08:00:00',
+      selected: false
+    },
+    {
+      mapId: 'test09',
+      userId: 'user09',
+      title: '测试导图09',
+      desc: '这是第九条测试数据',
+      layout: 'logicalStructure',
+      root: {
+        data: { text: '根节点', uid: 'root09' },
+        children: [
+          { text: '子节点3', uid: 'c3' },
+          { text: '子节点4', uid: 'c4' }
+        ]
+      },
+      createTime: '2024-06-09 11:30:00',
+      selected: false
+    }
+  ]
+})
+
+// 获取数据：
+// const fetchMyMindMaps = async () => {
+//   try {
+//     console.log('开始请求导图数据')
+//     const response = await axios.get('/api/mymindmaps') // 先写个 "/api/mymindmaps" 等待接口地址
+//     console.log('接口返回数据: ', response.data)
+//     const mapsWithSelected = response.data.map((map: MindMapOptions) => ({
+//       ...map,
+//       selected: false
+//     }))
+//     mindmaps.value = mapsWithSelected
+//     console.log('处理后的数据： ', mindmaps.value)
+//   } catch (error) {
+//     console.log('获取导图数据失败: ', error)
+//   }
+// }
 
 // 方法：
 const router = useRouter()
 
+// 时间格式化：
 const formatTime = (time: string): string => {
   const [date = ' ', hour] = time.split(' ')
   return `${hour}/${date.slice(5)}`
 }
 
-const handleCardClick = (map: MindMap, e: MouseEvent): void => {
+// 卡片点击事件：
+const handleCardClick = (map: MindMapOptions, e: MouseEvent): void => {
   const target = e.target as HTMLElement
   if (!target.closest('.batch-checkbox') && !target.closest('.map-actions')) {
-    router.push(`/edit/${map.id}`)
+    router.push(`/edit/${map.Id}`)
   }
 }
 
-const handleSelect3 = (map: MindMap): void => {
+// 勾选框处理事件：
+const handleSelect3 = (map: MindMapOptions): void => {
   map.selected = !map.selected
 }
 
+// 新建导图：
 const handleCreateNew = (): void => {
   router.push({ name: 'handedit' })
+}
+
+// 根据布局类型layout获取对应中文名称：
+const getTypeName = (layout: string): string => {
+  const option = typeOptions.find(item => item.value === layout)
+  return option ? option.text : '未知类型'
 }
 </script>
 
