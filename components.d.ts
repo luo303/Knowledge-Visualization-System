@@ -34,6 +34,7 @@ declare module 'vue' {
     ElTag: typeof import('element-plus/es')['ElTag']
     ElTooltip: typeof import('element-plus/es')['ElTooltip']
     ElTransfer: typeof import('element-plus/es')['ElTransfer']
+    ExportPage: typeof import('./src/components/ExportPage.vue')['default']
     Help: typeof import('./src/components/help.vue')['default']
     HelpPage: typeof import('./src/components/helpPage.vue')['default']
     PreviewPage: typeof import('./src/components/PreviewPage.vue')['default']

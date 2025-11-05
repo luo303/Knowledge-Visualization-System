@@ -1,9 +1,9 @@
 <template>
-  <div id="mindMapContainer"></div>
+  <div ref="mind" class="Mind"></div>
 </template>
 
 <script setup lang="ts">
-import { onMounted } from 'vue'
+import { onMounted, ref } from 'vue'
 import MindMap from 'simple-mind-map'
 import type { MindMapOptions } from '@/utils/type'
 const baseMap = {
@@ -18,13 +18,12 @@ const baseMap = {
 const props = defineProps<{
   Map: MindMapOptions
 }>()
-
-console.log(props.Map)
-
+//避开使用id绑定容器，否则无法实现同一个组件多次渲染
+const mind = ref()
 let mindMap: any = null
 onMounted(() => {
   mindMap = new MindMap({
-    el: document.getElementById('mindMapContainer'),
+    el: mind.value,
     data: props.Map.root || baseMap.root,
     layout: props.Map.layout,
     fit: true,
@@ -50,11 +49,11 @@ onMounted(() => {
 </script>
 
 <style lang="scss" scoped>
-#mindMapContainer {
-  width: 100%;
-  height: 100%;
+.Mind {
+  width: 265px;
+  height: 180px;
 }
-#mindMapContainer * {
+.Mind * {
   margin: 0;
   padding: 0;
 }
