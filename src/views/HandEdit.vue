@@ -384,6 +384,7 @@ onMounted(() => {
   })
   //监听导图节点发生变化(自动保存)
   mindMap.on('data_change', () => {
+    status.value = '未保存'
     if (timer) clearTimeout(timer)
     timer = setTimeout(() => {
       const data = mindMap.getData(true)

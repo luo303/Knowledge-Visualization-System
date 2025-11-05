@@ -344,10 +344,16 @@ onMounted(() => {
       desc: '这是一条测试数据',
       layout: 'mindMap',
       root: {
-        data: { text: '根节点', uid: 'root01' },
+        data: {
+          text: '根节点'
+        },
         children: [
-          { text: '子节点1', uid: 'c1' },
-          { text: '子节点2', uid: 'c2' }
+          {
+            data: {
+              text: '二级节点'
+            },
+            children: []
+          }
         ]
       },
       createTime: '2024-06-01 10:00:00',
@@ -362,8 +368,8 @@ onMounted(() => {
       root: {
         data: { text: '根节点', uid: 'root02' },
         children: [
-          { text: '子节点A', uid: 'cA' },
-          { text: '子节点B', uid: 'cB' }
+          { data: { text: '子节点A', uid: 'cA' }, children: [] },
+          { data: { text: '子节点A', uid: 'cA' }, children: [] }
         ]
       },
       createTime: '2024-06-02 14:30:00',
@@ -378,8 +384,8 @@ onMounted(() => {
       root: {
         data: { text: '根节点', uid: 'root03' },
         children: [
-          { text: '事件一', uid: 'e1' },
-          { text: '事件二', uid: 'e2' }
+          { data: { text: '子节点A', uid: 'cA' }, children: [] },
+          { data: { text: '子节点A', uid: 'cA' }, children: [] }
         ]
       },
       createTime: '2024-06-03 09:15:00',
@@ -394,8 +400,8 @@ onMounted(() => {
       root: {
         data: { text: '根节点', uid: 'root04' },
         children: [
-          { text: '部门A', uid: 'dA' },
-          { text: '部门B', uid: 'dB' }
+          { data: { text: '子节点A', uid: 'cA' }, children: [] },
+          { data: { text: '子节点A', uid: 'cA' }, children: [] }
         ]
       },
       createTime: '2024-06-04 12:00:00',
@@ -410,8 +416,8 @@ onMounted(() => {
       root: {
         data: { text: '根节点', uid: 'root05' },
         children: [
-          { text: '章节一', uid: 'ch1' },
-          { text: '章节二', uid: 'ch2' }
+          { data: { text: '子节点A', uid: 'cA' }, children: [] },
+          { data: { text: '子节点A', uid: 'cA' }, children: [] }
         ]
       },
       createTime: '2024-06-05 15:30:00',
@@ -426,8 +432,8 @@ onMounted(() => {
       root: {
         data: { text: '根节点', uid: 'root06' },
         children: [
-          { text: '主题一', uid: 't1' },
-          { text: '主题二', uid: 't2' }
+          { data: { text: '子节点A', uid: 'cA' }, children: [] },
+          { data: { text: '子节点A', uid: 'cA' }, children: [] }
         ]
       },
       createTime: '2024-06-06 10:00:00',
@@ -442,8 +448,8 @@ onMounted(() => {
       root: {
         data: { text: '根节点', uid: 'root07' },
         children: [
-          { text: '事件三', uid: 'e3' },
-          { text: '事件四', uid: 'e4' }
+          { data: { text: '子节点A', uid: 'cA' }, children: [] },
+          { data: { text: '子节点A', uid: 'cA' }, children: [] }
         ]
       },
       createTime: '2024-06-07 13:30:00',
@@ -458,8 +464,8 @@ onMounted(() => {
       root: {
         data: { text: '根节点', uid: 'root08' },
         children: [
-          { text: '事件五', uid: 'e5' },
-          { text: '事件六', uid: 'e6' }
+          { data: { text: '子节点A', uid: 'cA' }, children: [] },
+          { data: { text: '子节点A', uid: 'cA' }, children: [] }
         ]
       },
       createTime: '2024-06-08 08:00:00',
@@ -474,8 +480,8 @@ onMounted(() => {
       root: {
         data: { text: '根节点', uid: 'root09' },
         children: [
-          { text: '子节点3', uid: 'c3' },
-          { text: '子节点4', uid: 'c4' }
+          { data: { text: '子节点A', uid: 'cA' }, children: [] },
+          { data: { text: '子节点A', uid: 'cA' }, children: [] }
         ]
       },
       createTime: '2024-06-09 11:30:00',
