@@ -3,92 +3,110 @@
     <div class="Handedit">
       <div id="mindMapContainer"></div>
       <div class="bottom">
-        <el-icon @click="back"><Close /></el-icon>
-        <el-icon @click="forward"><RefreshLeft /></el-icon>
-        <svg
-          @click="center"
-          t="1762055745625"
-          class="icon"
-          viewBox="0 0 1024 1024"
-          version="1.1"
-          xmlns="http://www.w3.org/2000/svg"
-          p-id="9295"
-          width="1.5rem"
-          height="1.5rem"
-        >
-          <path
-            d="M128.064 560m0-48l0 0q0-48 48-48l672 0q48 0 48 48l0 0q0 48-48 48l-672 0q-48 0-48-48Z"
-            fill="#2c2c2c"
-            p-id="9296"
-          ></path>
-          <path
-            d="M461.824 31.232m48 0l0 0q48 0 48 48l0 160q0 48-48 48l0 0q-48 0-48-48l0-160q0-48 48-48Z"
-            fill="#2c2c2c"
-            p-id="9297"
-          ></path>
-          <path
-            d="M461.824 736.768m48 0l0 0q48 0 48 48l0 160q0 48-48 48l0 0q-48 0-48-48l0-160q0-48 48-48Z"
-            fill="#2c2c2c"
-            p-id="9298"
-          ></path>
-          <path
-            d="M693.568 275.072l-164.288 179.84a25.6 25.6 0 0 1-38.848 0l-164.224-179.84a30.528 30.528 0 0 1 19.2-51.2l328.384 0a30.528 30.528 0 0 1 19.584 51.2z"
-            fill="#2c2c2c"
-            p-id="9299"
-          ></path>
-          <path
-            d="M693.504 748.672l-164.48-179.904a25.6 25.6 0 0 0-38.848 0l-164.032 179.904a30.528 30.528 0 0 0 19.2 51.2l328.64 0a30.528 30.528 0 0 0 19.584-51.2z"
-            fill="#2c2c2c"
-            p-id="9300"
-          ></path>
-        </svg>
-        <el-icon @click="bigger"><ZoomIn /></el-icon>
-        <el-icon @click="smaller"><ZoomOut /></el-icon>
+        <el-tooltip effect="dark" content="回退" placement="top">
+          <el-icon @click="back"><Close /></el-icon>
+        </el-tooltip>
+        <el-tooltip effect="dark" content="撤销回退" placement="top">
+          <el-icon @click="forward"><RefreshLeft /></el-icon>
+        </el-tooltip>
+        <el-tooltip effect="dark" content="居中视图" placement="top">
+          <svg
+            @click="center"
+            t="1762055745625"
+            class="icon"
+            viewBox="0 0 1024 1024"
+            version="1.1"
+            xmlns="http://www.w3.org/2000/svg"
+            p-id="9295"
+            width="1.5rem"
+            height="1.5rem"
+          >
+            <path
+              d="M128.064 560m0-48l0 0q0-48 48-48l672 0q48 0 48 48l0 0q0 48-48 48l-672 0q-48 0-48-48Z"
+              fill="#2c2c2c"
+              p-id="9296"
+            ></path>
+            <path
+              d="M461.824 31.232m48 0l0 0q48 0 48 48l0 160q0 48-48 48l0 0q-48 0-48-48l0-160q0-48 48-48Z"
+              fill="#2c2c2c"
+              p-id="9297"
+            ></path>
+            <path
+              d="M461.824 736.768m48 0l0 0q48 0 48 48l0 160q0 48-48 48l0 0q-48 0-48-48l0-160q0-48 48-48Z"
+              fill="#2c2c2c"
+              p-id="9298"
+            ></path>
+            <path
+              d="M693.568 275.072l-164.288 179.84a25.6 25.6 0 0 1-38.848 0l-164.224-179.84a30.528 30.528 0 0 1 19.2-51.2l328.384 0a30.528 30.528 0 0 1 19.584 51.2z"
+              fill="#2c2c2c"
+              p-id="9299"
+            ></path>
+            <path
+              d="M693.504 748.672l-164.48-179.904a25.6 25.6 0 0 0-38.848 0l-164.032 179.904a30.528 30.528 0 0 0 19.2 51.2l328.64 0a30.528 30.528 0 0 0 19.584-51.2z"
+              fill="#2c2c2c"
+              p-id="9300"
+            ></path>
+          </svg>
+        </el-tooltip>
+        <el-tooltip effect="dark" content="放大" placement="top">
+          <el-icon @click="bigger"><ZoomIn /></el-icon>
+        </el-tooltip>
+        <el-tooltip effect="dark" content="缩小" placement="top">
+          <el-icon @click="smaller"><ZoomOut /></el-icon>
+        </el-tooltip>
+
         <el-input
           v-model="input"
           style="width: 240px"
           placeholder="Please input"
         />
-        <svg
-          @click="addson"
-          t="1762055879046"
-          class="icon"
-          viewBox="0 0 1024 1024"
-          version="1.1"
-          xmlns="http://www.w3.org/2000/svg"
-          p-id="11335"
-          width="1.5rem"
-          height="1.5rem"
-        >
-          <path
-            d="M512 118.31808c217.15456 0 393.68704 176.52736 393.68704 393.68192S729.15456 905.68704 512 905.68704 118.31808 729.15456 118.31808 512 294.84544 118.31808 512 118.31808M512 31.744C246.9632 31.744 31.744 246.9632 31.744 512s215.2192 480.256 480.256 480.256 480.256-215.2192 480.256-480.256S777.0368 31.744 512 31.744z"
-            p-id="11336"
-          ></path>
-          <path
-            d="M778.97216 555.04384H245.02784c-18.86208 0-33.85344-19.34336-33.85344-43.04384 0-23.69536 14.99136-43.04384 33.85344-43.04384h533.4528c18.8672 0 33.85344 19.34336 33.85344 43.04384 0.49152 24.18176-14.98624 43.04384-33.36192 43.04384z"
-            p-id="11337"
-          ></path>
-          <path
-            d="M468.95616 778.97216V245.02784c0-18.86208 19.34336-33.85344 43.04384-33.85344s43.04384 14.99136 43.04384 33.85344v533.4528c0 18.8672-19.34336 33.85344-43.04384 33.85344-24.18176 0.49152-43.04384-14.98624-43.04384-33.36192z"
-            p-id="11338"
-          ></path>
-        </svg>
-        <el-icon @click="Del"><Delete /></el-icon>
-        <svg
-          t="1762055609616"
-          class="icon"
-          viewBox="0 0 1024 1024"
-          version="1.1"
-          xmlns="http://www.w3.org/2000/svg"
-          p-id="4586"
-          width="1.5rem"
-          height="1.5rem"
-        >
-          <path
-            d="M992.33 416.37c17.66 0 31.98-14.32 31.98-31.98s-14.32-31.98-31.98-31.98h-63.98v-63.96h63.98c17.66 0 31.98-14.32 31.98-31.98s-14.32-31.98-31.98-31.98h-63.98v-95.94c0.01-8.48-3.36-16.62-9.35-22.62-6-6-14.14-9.37-22.62-9.36h-95.94V32.61c0-17.67-14.32-31.98-31.98-31.98-17.67 0-31.98 14.32-31.98 31.98v63.96h-63.96V32.61c0-17.67-14.32-31.98-31.98-31.98-17.67 0-31.98 14.32-31.98 31.98v63.96H544.6V32.61c0-17.67-14.32-31.98-31.98-31.98-17.67 0-31.98 14.32-31.98 31.98v63.96h-63.96V32.61c0-17.67-14.32-31.98-31.98-31.98s-31.98 14.32-31.98 31.98v63.96h-63.96V32.61c0-17.67-14.32-31.98-31.98-31.98S224.8 14.95 224.8 32.61v63.96h-95.94c-8.48 0-16.62 3.36-22.62 9.36s-9.36 14.14-9.36 22.62v95.94H32.92c-17.67 0-31.98 14.32-31.98 31.98s14.32 31.98 31.98 31.98h63.96v63.96H32.92c-17.67 0-31.98 14.32-31.98 31.98 0 17.67 14.32 31.98 31.98 31.98h63.96v63.97H32.92c-17.66 0-31.97 14.31-31.97 31.97 0 17.65 14.31 31.97 31.97 31.97h63.96v63.98H32.92c-17.66 0-31.97 14.31-31.97 31.97 0 17.66 14.31 31.97 31.97 31.97h63.96v63.98H32.92C15.26 736.18 0.95 750.5 0.95 768.15s14.31 31.97 31.97 31.97h63.96v95.95a31.944 31.944 0 0 0 9.36 22.62c6 5.99 14.14 9.36 22.62 9.35h95.94v63.98c0 17.66 14.32 31.98 31.98 31.98 17.67 0 31.98-14.32 31.98-31.98v-63.98h63.96v63.98c0 17.66 14.32 31.98 31.98 31.98 17.67 0 31.98-14.32 31.98-31.98v-63.98h63.96v63.98c0 17.66 14.32 31.98 31.98 31.98s31.98-14.32 31.98-31.98v-63.98h63.96v63.98c0 17.66 14.32 31.98 31.98 31.98s31.98-14.32 31.98-31.98v-63.98h63.96v63.98c0 17.66 14.32 31.98 31.98 31.98s31.98-14.32 31.98-31.98v-63.98h95.94c8.48 0.02 16.62-3.35 22.62-9.35s9.37-14.14 9.35-22.62v-95.95h63.98c17.65 0 31.97-14.31 31.97-31.97 0-17.66-14.31-31.97-31.97-31.97h-63.98V672.2h63.98c17.65 0 31.97-14.31 31.97-31.97 0-17.66-14.31-31.97-31.97-31.97h-63.98v-63.98h63.98c17.65 0 31.97-14.31 31.97-31.97 0-17.66-14.31-31.97-31.97-31.97h-63.98v-63.97h63.98zM864.41 864.1H160.84V160.53h703.57V864.1zM406.82 580.42h79.2l15.48 61.56h67.68l-83.16-267.84h-77.04l-83.16 267.84h65.52l15.48-61.56z m18-72.36c6.84-26.64 14.04-57.96 20.52-86.04h1.44c7.2 27.36 14.04 59.4 21.24 86.04l5.76 22.68h-54.72l5.76-22.68zM697.7 641.98h-64.44V374.14h64.44v267.84z"
-            p-id="4587"
-          ></path>
-        </svg>
+        <el-tooltip effect="dark" content="添加节点" placement="top">
+          <svg
+            @click="addson"
+            t="1762055879046"
+            class="icon"
+            viewBox="0 0 1024 1024"
+            version="1.1"
+            xmlns="http://www.w3.org/2000/svg"
+            p-id="11335"
+            width="1.5rem"
+            height="1.5rem"
+          >
+            <path
+              d="M512 118.31808c217.15456 0 393.68704 176.52736 393.68704 393.68192S729.15456 905.68704 512 905.68704 118.31808 729.15456 118.31808 512 294.84544 118.31808 512 118.31808M512 31.744C246.9632 31.744 31.744 246.9632 31.744 512s215.2192 480.256 480.256 480.256 480.256-215.2192 480.256-480.256S777.0368 31.744 512 31.744z"
+              p-id="11336"
+            ></path>
+            <path
+              d="M778.97216 555.04384H245.02784c-18.86208 0-33.85344-19.34336-33.85344-43.04384 0-23.69536 14.99136-43.04384 33.85344-43.04384h533.4528c18.8672 0 33.85344 19.34336 33.85344 43.04384 0.49152 24.18176-14.98624 43.04384-33.36192 43.04384z"
+              p-id="11337"
+            ></path>
+            <path
+              d="M468.95616 778.97216V245.02784c0-18.86208 19.34336-33.85344 43.04384-33.85344s43.04384 14.99136 43.04384 33.85344v533.4528c0 18.8672-19.34336 33.85344-43.04384 33.85344-24.18176 0.49152-43.04384-14.98624-43.04384-33.36192z"
+              p-id="11338"
+            ></path>
+          </svg>
+        </el-tooltip>
+        <el-tooltip effect="dark" content="删除节点" placement="top">
+          <el-icon @click="Del"><Delete /></el-icon>
+        </el-tooltip>
+        <el-tooltip effect="dark" content="AI自动优化" placement="top">
+          <svg
+            t="1762055609616"
+            class="icon"
+            viewBox="0 0 1024 1024"
+            version="1.1"
+            xmlns="http://www.w3.org/2000/svg"
+            p-id="4586"
+            width="1.5rem"
+            height="1.5rem"
+          >
+            <path
+              d="M992.33 416.37c17.66 0 31.98-14.32 31.98-31.98s-14.32-31.98-31.98-31.98h-63.98v-63.96h63.98c17.66 0 31.98-14.32 31.98-31.98s-14.32-31.98-31.98-31.98h-63.98v-95.94c0.01-8.48-3.36-16.62-9.35-22.62-6-6-14.14-9.37-22.62-9.36h-95.94V32.61c0-17.67-14.32-31.98-31.98-31.98-17.67 0-31.98 14.32-31.98 31.98v63.96h-63.96V32.61c0-17.67-14.32-31.98-31.98-31.98-17.67 0-31.98 14.32-31.98 31.98v63.96H544.6V32.61c0-17.67-14.32-31.98-31.98-31.98-17.67 0-31.98 14.32-31.98 31.98v63.96h-63.96V32.61c0-17.67-14.32-31.98-31.98-31.98s-31.98 14.32-31.98 31.98v63.96h-63.96V32.61c0-17.67-14.32-31.98-31.98-31.98S224.8 14.95 224.8 32.61v63.96h-95.94c-8.48 0-16.62 3.36-22.62 9.36s-9.36 14.14-9.36 22.62v95.94H32.92c-17.67 0-31.98 14.32-31.98 31.98s14.32 31.98 31.98 31.98h63.96v63.96H32.92c-17.67 0-31.98 14.32-31.98 31.98 0 17.67 14.32 31.98 31.98 31.98h63.96v63.97H32.92c-17.66 0-31.97 14.31-31.97 31.97 0 17.65 14.31 31.97 31.97 31.97h63.96v63.98H32.92c-17.66 0-31.97 14.31-31.97 31.97 0 17.66 14.31 31.97 31.97 31.97h63.96v63.98H32.92C15.26 736.18 0.95 750.5 0.95 768.15s14.31 31.97 31.97 31.97h63.96v95.95a31.944 31.944 0 0 0 9.36 22.62c6 5.99 14.14 9.36 22.62 9.35h95.94v63.98c0 17.66 14.32 31.98 31.98 31.98 17.67 0 31.98-14.32 31.98-31.98v-63.98h63.96v63.98c0 17.66 14.32 31.98 31.98 31.98 17.67 0 31.98-14.32 31.98-31.98v-63.98h63.96v63.98c0 17.66 14.32 31.98 31.98 31.98s31.98-14.32 31.98-31.98v-63.98h63.96v63.98c0 17.66 14.32 31.98 31.98 31.98s31.98-14.32 31.98-31.98v-63.98h63.96v63.98c0 17.66 14.32 31.98 31.98 31.98s31.98-14.32 31.98-31.98v-63.98h95.94c8.48 0.02 16.62-3.35 22.62-9.35s9.37-14.14 9.35-22.62v-95.95h63.98c17.65 0 31.97-14.31 31.97-31.97 0-17.66-14.31-31.97-31.97-31.97h-63.98V672.2h63.98c17.65 0 31.97-14.31 31.97-31.97 0-17.66-14.31-31.97-31.97-31.97h-63.98v-63.98h63.98c17.65 0 31.97-14.31 31.97-31.97 0-17.66-14.31-31.97-31.97-31.97h-63.98v-63.97h63.98zM864.41 864.1H160.84V160.53h703.57V864.1zM406.82 580.42h79.2l15.48 61.56h67.68l-83.16-267.84h-77.04l-83.16 267.84h65.52l15.48-61.56z m18-72.36c6.84-26.64 14.04-57.96 20.52-86.04h1.44c7.2 27.36 14.04 59.4 21.24 86.04l5.76 22.68h-54.72l5.76-22.68zM697.7 641.98h-64.44V374.14h64.44v267.84z"
+              p-id="4587"
+            ></path>
+          </svg>
+        </el-tooltip>
+
         <el-dropdown @command="handleCommand">
           <el-icon><DocumentCopy /></el-icon>
           <template #dropdown>
@@ -111,25 +129,31 @@
             </el-dropdown-menu>
           </template></el-dropdown
         >
-        <svg
-          @click="save"
-          t="1762055830323"
-          class="icon"
-          viewBox="0 0 1024 1024"
-          version="1.1"
-          xmlns="http://www.w3.org/2000/svg"
-          p-id="10351"
-          width="1.5rem"
-          height="1.5rem"
-        >
-          <path
-            d="M845.312 0.512H32.512v1022.976h958.976v-876.8L845.312 0.512z m-172.864 62.976v256H351.488v-256h320.96zM287.488 960.512V605.76l29.184-29.248h390.656l29.184 29.248v354.752H287.488z m640 0h-126.976V585.152L727.424 512H296.576L223.488 585.152v375.36H96.512V63.488h190.976v320.448h449.024V63.488h79.68l111.296 112.32v784.704z m-384-832h65.984v128H543.488v-128z"
-            fill="#040000"
-            p-id="10352"
-          ></path>
-        </svg>
-        <el-icon @click="ToExport"><Upload /></el-icon>
-        <el-icon><QuestionFilled /></el-icon>
+        <el-tooltip effect="dark" content="保存" placement="top">
+          <svg
+            @click="save"
+            t="1762055830323"
+            class="icon"
+            viewBox="0 0 1024 1024"
+            version="1.1"
+            xmlns="http://www.w3.org/2000/svg"
+            p-id="10351"
+            width="1.5rem"
+            height="1.5rem"
+          >
+            <path
+              d="M845.312 0.512H32.512v1022.976h958.976v-876.8L845.312 0.512z m-172.864 62.976v256H351.488v-256h320.96zM287.488 960.512V605.76l29.184-29.248h390.656l29.184 29.248v354.752H287.488z m640 0h-126.976V585.152L727.424 512H296.576L223.488 585.152v375.36H96.512V63.488h190.976v320.448h449.024V63.488h79.68l111.296 112.32v784.704z m-384-832h65.984v128H543.488v-128z"
+              fill="#040000"
+              p-id="10352"
+            ></path>
+          </svg>
+        </el-tooltip>
+        <el-tooltip effect="dark" content="导出" placement="top">
+          <el-icon @click="ToExport"><Upload /></el-icon>
+        </el-tooltip>
+        <el-tooltip effect="dark" content="帮助" placement="top">
+          <el-icon @click="drawer = true"><QuestionFilled /></el-icon>
+        </el-tooltip>
       </div>
     </div>
     <div class="AiTalk">
@@ -181,6 +205,34 @@
         </div>
       </template>
     </el-dialog>
+    <el-drawer
+      v-model="drawer"
+      direction="rtl"
+      size="40%"
+      title="使用方法"
+      resizable
+    >
+      <p>复制节点快捷键:Ctrl+C</p>
+      <el-divider>
+        <el-icon><star-filled /></el-icon>
+      </el-divider>
+      <p>剪切节点快捷键:Ctrl+X</p>
+      <el-divider>
+        <el-icon><star-filled /></el-icon>
+      </el-divider>
+      <p>删除节点快捷键:Backspace</p>
+      <el-divider>
+        <el-icon><star-filled /></el-icon>
+      </el-divider>
+      <p>添加节点快捷键:Tab</p>
+      <el-divider>
+        <el-icon><star-filled /></el-icon>
+      </el-divider>
+      <p>缩放思维导图:既可以通过底部按钮也可以鼠标滚轮</p>
+      <el-divider>
+        <el-icon><star-filled /></el-icon>
+      </el-divider>
+    </el-drawer>
   </div>
 </template>
 
@@ -196,7 +248,8 @@ import {
   Delete,
   DocumentCopy,
   Upload,
-  QuestionFilled
+  QuestionFilled,
+  StarFilled
 } from '@element-plus/icons-vue'
 import { useLayoutStore } from '@/stores'
 import { ElMessage } from 'element-plus'
@@ -210,6 +263,7 @@ import('simple-mind-map/src/plugins/ExportPDF.js' as any).then(res => {
 import('simple-mind-map/src/plugins/ExportXMind.js' as any).then(res => {
   mindMap.addPlugin(res.default)
 })
+const drawer = ref(false)
 const dialogFormVisible = ref(false)
 const formLabelWidth = '140px'
 const form = ref({
@@ -264,6 +318,14 @@ onMounted(() => {
     el: document.getElementById('mindMapContainer'),
     data: Map.root,
     layout: Map.layout,
+    textAutoWrapWidth: 200,
+    beforeShortcutRun: (key: any, activeNodes: any) => {
+      if (key === 'Backspace' && activeNodes[0].isRoot) {
+        ElMessage.error('根节点无法删除')
+        return true
+      }
+    }, //防止通过快捷键删除根节点
+    // selectTextOnEnterEditText:false,
     mousewheelAction: 'zoom', // zoom（放大缩小）、move（上下移动）
     // 当mousewheelAction设为move时，可以通过该属性控制鼠标滚动一下视图移动的步长，单位px
     mousewheelMoveStep: 100,
@@ -503,29 +565,61 @@ const pasteNode = () => {
   }
 }
 .context-menu {
-  position: fixed; /* 基于浏览器窗口定位，避免被父容器滚动影响 */
-  background: #fff;
-  border-radius: 4px;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.15);
-  padding: 5px 0;
-  z-index: 9999; /* 确保菜单在最上层 */
+  position: fixed;
+  background: linear-gradient(180deg, #ffffff 0%, #fafafa 100%);
+  border-radius: 8px;
+  box-shadow:
+    0 1px 2px rgba(0, 0, 0, 0.05),
+    0 3px 6px rgba(0, 0, 0, 0.08),
+    0 8px 16px rgba(0, 0, 0, 0.1);
+  padding: 6px 0;
+  z-index: 9999;
   min-width: 120px;
+  border: 1px solid rgba(0, 0, 0, 0.07);
+  backdrop-filter: blur(2px);
 }
 
 .menu-item {
-  padding: 8px 16px;
+  padding: 9px 18px;
   cursor: pointer;
   font-size: 14px;
+  color: #2d3748;
+  transition: all 0.15s ease;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  position: relative;
+  overflow: hidden;
+}
+
+/* hover时的背景光效 */
+.menu-item::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(59, 130, 246, 0.05);
+  transform: translateX(-100%);
+  transition: transform 0.2s ease;
 }
 
 .menu-item:hover {
-  background: #f5f5f5; /*  hover 效果 */
+  color: #2563eb;
+  background: rgba(59, 130, 246, 0.03);
 }
 
-/* 可选：添加分隔线区分不同功能的菜单项 */
-.menu-divider {
-  height: 1px;
-  background: #eee;
-  margin: 5px 0;
+.menu-item:hover::before {
+  transform: translateX(0);
+}
+.el-popper.is-customized {
+  /* Set padding to ensure the height is 32px */
+  padding: 6px 12px;
+  background: linear-gradient(90deg, rgb(159, 229, 151), rgb(204, 229, 129));
+}
+.el-popper.is-customized .el-popper__arrow::before {
+  background: linear-gradient(45deg, #b2e68d, #bce689);
+  right: 0;
 }
 </style>
