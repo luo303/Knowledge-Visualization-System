@@ -95,7 +95,7 @@
     <!-- 导图卡片模块 -->
     <div
       class="mindmap-card"
-      v-for="(map, index) in filteredMindMaps"
+      v-for="(map, index) in paginatedMindMaps"
       :key="map.mapId"
       @click="handleCardClick(map, $event)"
     >
@@ -131,6 +131,35 @@
       />
       <p class="empty-text">暂无生成的导图，快去创建吧~</p>
       <button class="create-btn" @click="handleCreateNew">+ 创建导图</button>
+    </div>
+  </div>
+
+  <!-- 分页 -->
+  <div class="pagination-wrapper">
+    <div class="pagination-container" v-if="totalPages > 1">
+      <button
+        class="page-btn prev-btn"
+        @click="changePage(currentPage - 1)"
+        :disabled="currentPage === 1"
+      >
+        &lt;
+      </button>
+      <div
+        class="page-number"
+        v-for="page in pageNumbers"
+        :key="page"
+        @click="changePage(page)"
+        :class="{ active: currentPage === page }"
+      >
+        {{ page }}
+      </div>
+      <button
+        class="page-btn next-btn"
+        @click="changePage(currentPage + 1)"
+        :disabled="currentPage == totalPages"
+      >
+        &gt;
+      </button>
     </div>
   </div>
 </template>
@@ -176,6 +205,7 @@ const handleSearch = () => {
   const query = searchQuery.value.trim()
   searchKeyword.value = query
   showSuggestions.value = false
+  resetPagination() // 搜索逻辑变化时重置分页
 }
 
 // 选择联想建议
@@ -221,6 +251,7 @@ const handleSelect1 = (option: { value: string; text: string }) => {
   isDropdownOpen1.value = false // 选中后关闭下拉框
   // 触发排序事件（父组件可监听此事件刷新列表）
   emit('sortChange', currentSort.value)
+  resetPagination() // 原有逻辑变化时重置分页
 }
 
 // 监听点击外部区域，关闭下拉框
@@ -273,6 +304,7 @@ const handleSelect2 = (option: { value: string; text: string }) => {
   currentTypeText.value = option.text // 更新显示文本
   isDropdownOpen2.value = false // 选中后关闭下拉框
   emit('typeChange', currentType.value) // 通知父组件筛选变化
+  resetPagination() // 原有逻辑变化时重置分页
 }
 
 // 清除筛选：
@@ -553,6 +585,55 @@ const getTypeName = (layout: string): string => {
   const option = typeOptions.find(item => item.value === layout)
   return option ? option.text : '未知类型'
 }
+
+// 分页：
+// 分页相关状态:
+const currentPage = ref(1)
+const pageSize = ref(8)
+
+// 计算总页数：
+const totalPages = computed(() => {
+  return Math.ceil(filteredMindMaps.value.length / pageSize.value)
+})
+
+// 计算当前可显示的数据：
+const paginatedMindMaps = computed(() => {
+  const startIndex = (currentPage.value - 1) * pageSize.value
+  const endIndex = startIndex + pageSize.value
+  return filteredMindMaps.value.slice(startIndex, endIndex)
+})
+
+// 计算需要显示的页码 (最多显示 5 个)
+const pageNumbers = computed(() => {
+  const pages = []
+  const total = totalPages.value
+  const current = currentPage.value
+  // 总页数小于等于5，显示所有页码
+  if (total <= 5) {
+    for (let i = 1; i <= total; i++) pages.push(i)
+    return pages
+  }
+  // 总页数大于5 ，显示当前页得前后两页
+  if (current <= 3) {
+    return [1, 2, 3, 4, 5]
+  } else if (current >= total - 2) {
+    return [total - 4, total - 3, total - 2, total - 1, total]
+  } else {
+    return [current - 2, current - 1, current, current + 1, current + 2]
+  }
+})
+
+// 切换页码：
+const changePage = (page: number) => {
+  if (page < 1 || page > totalPages.value) return
+  currentPage.value = page
+  window.scrollTo({ top: 0, behavior: 'smooth' })
+}
+
+// 重置分页：
+const resetPagination = () => {
+  currentPage.value = 1
+}
 </script>
 
 <style lang="scss" scoped>
@@ -753,6 +834,23 @@ input {
   .filter-container {
     right: 5%;
   }
+  .pagination-container {
+    gap: 4px;
+  }
+  .page-btn,
+  .page-number {
+    width: 30px;
+    height: 30px;
+    font-size: 12px;
+  }
+
+  .mindmap-preview-container {
+    width: 100%;
+    left: 1%;
+  }
+  .mindmap-card {
+    height: 200px;
+  }
 }
 
 // "导图类型" 容器：
@@ -815,22 +913,28 @@ input {
 
 // "导图预览" 模块：
 .mindmap-preview-container {
-  padding: 20px;
+  padding: 2%;
   box-sizing: border-box;
+  width: 100%;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 20px;
+  margin: 0 auto;
+  max-width: 1400px;
 }
 
 // 导图卡片：
 .mindmap-card {
-  border: 1px solid rgb(199, 198, 198);
-  width: 20%;
+  width: 83%;
+  border: 1px solid #eee;
   border-radius: 8px;
   overflow: hidden;
   transition: all 0.2s;
-  display: inline-block;
   cursor: pointer;
   position: relative;
-  margin: 20px;
-
+  display: flex;
+  flex-direction: column;
+  min-height: 230px;
   &:hover {
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
     transform: translateY(-2px);
@@ -888,6 +992,7 @@ input {
 // 导图信息：
 .map-info {
   padding: 10px;
+  background-color: #f4f7fa;
 }
 
 .map-name {
@@ -936,6 +1041,80 @@ input {
 
   &:hover {
     background-color: #66b1ff;
+  }
+}
+
+// 分页容器：
+// 分页外层容器：
+.pagination-wrapper {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 2px;
+  margin: 0 auto;
+  max-width: 1400px;
+}
+
+.pagination-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+// 分页按钮：
+.page-btn {
+  width: 36px;
+  height: 36px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  background: #fff;
+  cursor: pointer;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 14px;
+  transition: all 0.2s;
+
+  &:hover {
+    border-color: #409eff;
+    color: #409eff;
+  }
+
+  &:disabled {
+    cursor: not-allowed;
+    opacity: 0.6;
+    border-color: #ddd;
+    color: #999;
+    &:hover {
+      border-color: #ddd;
+      color: #999;
+    }
+  }
+}
+
+// 页码数字：
+.page-number {
+  width: 36px;
+  height: 36px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  background: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s;
+
+  &:hover {
+    border-color: #409eff;
+    color: #409eff;
+  }
+
+  &:active {
+    background-color: #409eff;
+    color: white;
+    font-weight: 500;
   }
 }
 </style>
