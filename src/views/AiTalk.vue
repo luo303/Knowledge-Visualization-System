@@ -5,26 +5,36 @@
       <div v-if="!isChatting" class="list_container">
         <div class="header">
           <span class="title">对话模式</span>
-          <button @click="createNewChat" class="NewBtn">+ 新对话</button>
+          <button @click="open(true)" class="NewBtn">+ 新对话</button>
         </div>
 
         <div class="chat_list">
-          <div
-            v-for="(chat, id) in chatList"
-            :key="id"
-            class="chat_item"
-            @click="enterChat(Number(id))"
-          >
-            <div class="chat_info">
-              <span class="chat_name">对话 {{ id + 1 }}</span>
-              <span class="last_msg">{{
-                chat.messages[chat.messages.length - 1]?.content || '无消息'
-              }}</span>
-            </div>
-            <div class="actions">
-              <button @click.stop="deleteChat(Number(id))">🗑️</button>
+          <div v-if="chatList.length !== 0">
+            <div
+              v-for="(chat, id) in chatList"
+              :key="id"
+              class="chat_item"
+              @click="enterChat(chat.conversation_id)"
+            >
+              <div class="chat_info">
+                <span class="chat_name"> {{ chat.title }}</span>
+                <span class="last_msg">{{
+                  chat.messages[chat.messages.length - 1]?.content || '无消息'
+                }}</span>
+              </div>
+              <div class="actions">
+                <button>
+                  <el-icon color="gray" @click.stop="edittitle(chat)"
+                    ><EditPen
+                  /></el-icon>
+                </button>
+                <button @click.stop="deleteChat(chat.conversation_id)">
+                  🗑️
+                </button>
+              </div>
             </div>
           </div>
+          <div v-else><el-empty description="新建一个对话吧" /></div>
         </div>
       </div>
 
@@ -53,7 +63,7 @@
               p-id="14695"
             ></path>
           </svg>
-          <span class="title">对话 {{ currentChatId + 1 }}</span>
+          <span class="title"> {{ currentChat.title }}</span>
         </div>
 
         <div class="talk_area" ref="messageArea">
@@ -63,7 +73,7 @@
           <div
             v-for="(msg, idx) in currentChat.messages"
             :key="idx"
-            :class="['msg', msg.isUser ? 'user-msg' : 'system_msg']"
+            :class="['msg', msg.role === 'user' ? 'user-msg' : 'system_msg']"
           >
             {{ msg.content }}
           </div>
@@ -81,24 +91,67 @@
       </div>
     </div>
   </div>
+  <el-dialog
+    @close="cancel"
+    v-model="dialogFormVisible"
+    :title="newtitle ? '新对话' : '修改标题'"
+    width="400"
+  >
+    <el-form :model="form" :rules="rules" ref="formRef">
+      <el-form-item label="标题名称" prop="name">
+        <el-input v-model="form.name" autocomplete="off" />
+      </el-form-item>
+    </el-form>
+
+    <template #footer>
+      <div class="dialog-footer">
+        <el-button @click="cancel">取消</el-button>
+        <el-button v-if="newtitle" type="primary" @click="createNewChat">
+          确认
+        </el-button>
+        <el-button v-else type="primary" @click="confirm"> 确认 </el-button>
+      </div>
+    </template>
+  </el-dialog>
 </template>
 
 <script lang="ts" setup>
 import { ElMessage } from 'element-plus'
 import { ref, reactive, computed, nextTick } from 'vue'
+import { EditPen } from '@element-plus/icons-vue'
 
 // 定义消息类型接口
 interface Message {
   content: string
-  isUser: boolean
+  role: string
+  timestamp: string
 }
 
 // 定义对话类型接口
 interface Chat {
+  title: string //本次对话标题
+  conversation_id: string //本次对话唯一标识id
   messages: Message[]
 }
-const messageArea = ref<HTMLDivElement | null>(null)
+const form = ref({
+  name: ''
+})
+const formRef = ref()
+//判断标题是否重复
+const detect = (rule: any, value: any, callback: any) => {
+  if (chatList.every(item => item.title !== value)) callback()
+  else callback('标题已使用')
+}
+const rules = ref({
+  name: [
+    { required: true, message: '标题不能为空', trigger: 'blur' },
+    { validator: detect, trigger: 'blur' }
+  ]
+})
 
+const dialogFormVisible = ref(false)
+const newtitle = ref(true) //判断是新建标题还剩修改标题
+const messageArea = ref<HTMLDivElement | null>(null)
 // 滚动到最底部
 const scrollToBottom = () => {
   nextTick(() => {
@@ -107,29 +160,53 @@ const scrollToBottom = () => {
     }
   })
 }
+//用时间戳代替id
+const createid = () => {
+  const timestamp = Date.now()
+  const id = timestamp.toString()
+  return id
+}
 // 控制当前显示视图：false=列表，true=聊天窗口
 const isChatting = ref<boolean>(false)
 
 // 当前选中的对话ID
-const currentChatId = ref<number>(0)
+const currentChatId = ref<string>(createid())
 
 // 输入框内容
 const inputContent = ref<string>('')
 
 // 所有对话数据（指定类型为Chat数组）
-const chatList = reactive<Chat[]>([
-  {
-    messages: []
-  }
-])
+const chatList = reactive<Chat[]>([])
 
 // 获取当前对话数据（添加返回值类型）
 const currentChat = computed<Chat>(() => {
-  return chatList[currentChatId.value]! //不能为空
+  return chatList.find(item => item.conversation_id === currentChatId.value)!
 })
-
+//编辑对话标题
+const edittitle = (item: Chat) => {
+  currentChatId.value = item.conversation_id
+  form.value.name = item.title
+  newtitle.value = false
+  dialogFormVisible.value = true
+}
+//+新对话
+const open = (item: boolean) => {
+  dialogFormVisible.value = true
+  newtitle.value = item
+}
+//取消
+const cancel = () => {
+  dialogFormVisible.value = false
+  formRef.value.resetFields()
+}
+//确认
+const confirm = async () => {
+  await formRef.value.validate()
+  currentChat.value.title = form.value.name
+  dialogFormVisible.value = false
+}
 // 进入聊天窗口（添加参数类型）
-const enterChat = (id: number): void => {
+const enterChat = (id: string): void => {
   currentChatId.value = id
   isChatting.value = true
   scrollToBottom()
@@ -147,7 +224,8 @@ const sendMsg = (): void => {
   // 添加用户消息
   currentChat.value.messages.push({
     content: inputContent.value,
-    isUser: true
+    role: 'user',
+    timestamp: createid()
   })
 
   // 清空输入框
@@ -157,29 +235,36 @@ const sendMsg = (): void => {
   setTimeout(() => {
     currentChat.value.messages.push({
       content: `已收到："${currentChat.value.messages[currentChat.value.messages.length - 1]?.content}"`,
-      isUser: false
+      role: 'system',
+      timestamp: createid()
     })
     scrollToBottom()
   }, 1000)
 }
 
 // 创建新对话
-const createNewChat = (): void => {
-  chatList.push({ messages: [] })
-  enterChat(chatList.length - 1)
+const createNewChat = async () => {
+  await formRef.value.validate()
+  const id = createid()
+  currentChatId.value = id
+  chatList.push({
+    title: form.value.name,
+    conversation_id: id,
+    messages: []
+  })
+  dialogFormVisible.value = false
+  formRef.value.resetFields()
+  enterChat(currentChatId.value)
 }
 
 // 删除对话
-const deleteChat = (id: number): void => {
+const deleteChat = (id: string): void => {
   if (chatList.length <= 1) {
     ElMessage.error('至少保留一个对话')
     return
   }
-  chatList.splice(id, 1)
-  // 如果删除的是当前对话，自动切换到第一个
-  if (currentChatId.value === id) {
-    currentChatId.value = 0
-  }
+  const index = chatList.findIndex(item => item.conversation_id === id)
+  chatList.splice(index, 1)
 }
 </script>
 
@@ -288,7 +373,11 @@ const deleteChat = (id: number): void => {
     margin-top: 4px;
     display: block;
   }
-
+  .actions {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
   .actions button {
     border: none;
     background: transparent;
