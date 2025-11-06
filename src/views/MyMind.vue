@@ -841,7 +841,7 @@ input {
   position: absolute;
   top: 12px;
   right: 12px;
-  z-index: 10;
+  z-index: 2;
   width: 18px;
   height: 18px;
   border: solid 1px #409eff;
