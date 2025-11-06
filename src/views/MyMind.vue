@@ -37,7 +37,7 @@
         </div>
       </div>
       <!-- 无结果提示 -->
-      <div class="no-result" v-if="showNoResult">
+      <div class="no-result" v-if="shouldShowNoResult">
         未找到相关导图，请检查关键词或筛选条件
       </div>
     </div>
@@ -148,18 +148,7 @@ const suggestions = ref<string[]>([])
 const showSuggestions = ref(false)
 const showNoResult = ref(false)
 const searchInput = ref<HTMLInputElement | null>(null)
-
-// 模拟所有导图数据（实际项目中从接口获取）
-const allMindMaps = ref([
-  '产品需求分析导图',
-  '年度工作计划',
-  '论文研究框架',
-  '市场调研结果',
-  '用户画像分析',
-  '项目进度管理',
-  '会议纪要汇总',
-  '财务预算规划'
-])
+const mindmaps = ref<MindMapOptions[]>([])
 
 // 处理输入事件 - 智能联想
 const handleInput = (e: Event) => {
@@ -168,9 +157,10 @@ const handleInput = (e: Event) => {
 
   if (value) {
     // 模糊匹配逻辑 - 包含关键词即显示
-    suggestions.value = allMindMaps.value.filter(item =>
-      item.toLowerCase().includes(value.toLowerCase())
-    )
+    suggestions.value = mindmaps.value
+      .map(map => map.title)
+      .filter(title => title.toLowerCase().includes(value.toLowerCase()))
+      .filter((title, index, self) => self.indexOf(title) === index)
     showSuggestions.value = true
   } else {
     suggestions.value = []
@@ -178,30 +168,21 @@ const handleInput = (e: Event) => {
   }
 }
 
+// 搜素哦关键词的响应式变量：
+const searchKeyword = ref('')
+
 // 处理搜索
 const handleSearch = () => {
   const query = searchQuery.value.trim()
-  if (!query) return
-
-  // 执行搜索逻辑
-  const results = allMindMaps.value.filter(item =>
-    // 支持多关键词搜索（空格分隔）
-    query
-      .split(' ')
-      .every(keyword => item.toLowerCase().includes(keyword.toLowerCase()))
-  )
-
+  searchKeyword.value = query
   showSuggestions.value = false
-  showNoResult.value = results.length === 0
-
-  console.log('搜索结果:', results)
 }
 
 // 选择联想建议
 const selectSuggestion = (item: string) => {
   searchQuery.value = item
   showSuggestions.value = false
-  // 选中后自动搜索
+  searchKeyword.value = item // 同步到关键词
   handleSearch()
 }
 
@@ -319,7 +300,6 @@ onUnmounted(() => {
 })
 
 // 导图数据：
-const mindmaps = ref<MindMapOptions[]>([])
 
 // 筛选并排序后的导图列表：
 const filteredMindMaps = computed(() => {
@@ -340,7 +320,28 @@ const filteredMindMaps = computed(() => {
     sortedResult = sortedResult.filter(map => map.layout === currentType.value)
   }
 
+  // 根据搜素关键词筛选：
+  if (searchKeyword.value.trim()) {
+    const keywords = searchKeyword.value
+      .trim()
+      .split(' ')
+      .filter(k => k)
+    sortedResult = sortedResult.filter(map => {
+      return keywords.every(keyword =>
+        map.title.toLowerCase().includes(keyword.toLowerCase())
+      )
+    })
+  }
+
   return sortedResult
+})
+
+// 搜素无结果处理：
+const shouldShowNoResult = computed(() => {
+  return (
+    filteredMindMaps.value.length === 0 &&
+    (currentType.value !== 'all' || Boolean(searchKeyword.value.trim()))
+  )
 })
 
 // 页面加载时获取导图数据：
