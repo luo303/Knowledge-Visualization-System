@@ -1,5 +1,5 @@
 <template>
-  <div class="header-constrols">
+  <header class="header-constrols">
     <div class="search-container">
       <!-- 搜索框区域 -->
       <div class="search-box">
@@ -88,80 +88,84 @@
         </div>
       </div>
     </div>
-  </div>
+  </header>
 
   <!-- 导图预览模块 -->
-  <div class="mindmap-preview-container">
-    <!-- 导图卡片模块 -->
-    <div
-      class="mindmap-card"
-      v-for="(map, index) in paginatedMindMaps"
-      :key="map.mapId"
-      @click="handleCardClick(map, $event)"
-    >
-      <!-- 勾选框 -->
-      <div class="batch-checkbox">
-        <input
-          type="checkbox"
-          v-model="map.selected"
-          :id="`map-${map.mapId}`"
-          @click.stop="handleSelect3(map)"
-        />
-        <label :for="`map-${index}`"></label>
-      </div>
+  <main class="page-main" ref="mainContent">
+    <div class="mindmap-preview-container">
+      <!-- 导图卡片模块 -->
+      <div
+        class="mindmap-card"
+        v-for="(map, index) in paginatedMindMaps"
+        :key="map.mapId"
+        @click="handleCardClick(map, $event)"
+      >
+        <!-- 勾选框 -->
+        <div class="batch-checkbox">
+          <input
+            type="checkbox"
+            v-model="map.selected"
+            :id="`map-${map.mapId}`"
+            @click.stop="handleSelect3(map)"
+          />
+          <label :for="`map-${index}`"></label>
+        </div>
 
-      <!-- 导图缩略图 -->
-      <div class="map-thumbnail"><PreviewPage :Map="map" /></div>
+        <!-- 导图缩略图 -->
+        <div class="map-thumbnail"><PreviewPage :Map="map" /></div>
 
-      <!-- 导图信息 -->
-      <div class="map-info">
-        <h3 class="map-name">{{ map.title }}</h3>
-        <div class="map-meta">
-          <span class="map-type">{{ getTypeName(map.layout) }}</span>
-          <span class="map-time">{{ formatTime(map.createTime) }}</span>
+        <!-- 导图信息 -->
+        <div class="map-info">
+          <h3 class="map-name">{{ map.title }}</h3>
+          <div class="map-meta">
+            <span class="map-type">{{ getTypeName(map.layout) }}</span>
+            <span class="map-time">{{ formatTime(map.createTime) }}</span>
+          </div>
         </div>
       </div>
+      <!-- 空状态 (无导图时显示) -->
+      <div class="empty-state" v-if="mindmaps.length === 0">
+        <img
+          src="@/assets/images/empty-state.png"
+          alt="暂无导图"
+          class="empty-img"
+        />
+        <p class="empty-text">暂无生成的导图，快去创建吧~</p>
+        <button class="create-btn" @click="handleCreateNew">+ 创建导图</button>
+      </div>
     </div>
-    <!-- 空状态 (无导图时显示) -->
-    <div class="empty-state" v-if="mindmaps.length === 0">
-      <img
-        src="@/assets/images/empty-state.png"
-        alt="暂无导图"
-        class="empty-img"
-      />
-      <p class="empty-text">暂无生成的导图，快去创建吧~</p>
-      <button class="create-btn" @click="handleCreateNew">+ 创建导图</button>
-    </div>
-  </div>
+  </main>
 
   <!-- 分页 -->
-  <div class="pagination-wrapper">
-    <div class="pagination-container" v-if="totalPages > 1">
-      <button
-        class="page-btn prev-btn"
-        @click="changePage(currentPage - 1)"
-        :disabled="currentPage === 1"
-      >
-        &lt;
-      </button>
-      <div
-        class="page-number"
-        v-for="page in pageNumbers"
-        :key="page"
-        @click="changePage(page)"
-        :class="{ active: currentPage === page }"
-      >
-        {{ page }}
+  <footer class="page-footer">
+    <div class="pagination-wrapper">
+      <div class="pagination-container" v-if="totalPages > 1">
+        <button
+          class="page-btn prev-btn"
+          @click="changePage(currentPage - 1)"
+          :disabled="currentPage === 1"
+        >
+          &lt;
+        </button>
+        <div
+          class="page-number"
+          v-for="page in pageNumbers"
+          :key="page"
+          @click="changePage(page)"
+          :class="{ active: currentPage === page }"
+        >
+          {{ page }}
+        </div>
+        <button
+          class="page-btn next-btn"
+          @click="changePage(currentPage + 1)"
+          :disabled="currentPage == totalPages"
+        >
+          &gt;
+        </button>
       </div>
-      <button
-        class="page-btn next-btn"
-        @click="changePage(currentPage + 1)"
-        :disabled="currentPage == totalPages"
-      >
-        &gt;
-      </button>
     </div>
-  </div>
+  </footer>
 </template>
 
 <script lang="ts" setup>
@@ -646,6 +650,7 @@ const resetPagination = () => {
   box-sizing: border-box;
   z-index: 2;
 }
+
 .search-container {
   display: flex;
   flex-direction: column;
@@ -846,10 +851,23 @@ input {
 
   .mindmap-preview-container {
     width: 100%;
+    height: 70%;
     left: 1%;
   }
   .mindmap-card {
-    height: 200px;
+    height: 70%;
+  }
+}
+
+@media (max-width: 900px) {
+  .page-main {
+    max-height: calc(100vh - 180px); /* 小屏幕适当减小头部底部总高度 */
+  }
+}
+
+@media (max-width: 600px) {
+  .page-main {
+    max-height: calc(100vh - 160px); /* 手机屏幕进一步减小 */
   }
 }
 
@@ -912,20 +930,27 @@ input {
 }
 
 // "导图预览" 模块：
+// 中部容器：
+.page-main {
+  max-height: calc(100vh - 220px);
+  overflow-y: auto;
+  box-sizing: border-box;
+}
 .mindmap-preview-container {
   padding: 2%;
   box-sizing: border-box;
   width: 100%;
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  gap: 20px;
+  gap: 2%;
   margin: 0 auto;
   max-width: 1400px;
 }
 
 // 导图卡片：
 .mindmap-card {
-  width: 83%;
+  width: 85%;
+  margin: 0 auto;
   border: 1px solid #eee;
   border-radius: 8px;
   overflow: hidden;
@@ -934,7 +959,8 @@ input {
   position: relative;
   display: flex;
   flex-direction: column;
-  min-height: 230px;
+  min-height: 100px;
+  max-height: 320px;
   &:hover {
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
     transform: translateY(-2px);
@@ -976,7 +1002,7 @@ input {
 }
 
 .map-thumbnail {
-  height: 180px;
+  height: 85%;
   position: relative;
   background-color: #f9f9f9;
   overflow: hidden;
@@ -993,6 +1019,7 @@ input {
 .map-info {
   padding: 10px;
   background-color: #f4f7fa;
+  height: 25%;
 }
 
 .map-name {
@@ -1001,7 +1028,7 @@ input {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  margin: 0 0 5px 0;
+  margin: 0 0 7px 0;
 }
 
 .map-meta {
@@ -1044,6 +1071,16 @@ input {
   }
 }
 
+//底部容器：
+.page-footer {
+  position: fixed;
+  bottom: 2%;
+  left: 45%;
+  z-index: 10;
+  display: flex;
+  justify-content: center;
+  align-content: center;
+}
 // 分页容器：
 // 分页外层容器：
 .pagination-wrapper {
@@ -1052,6 +1089,7 @@ input {
   padding: 2px;
   margin: 0 auto;
   max-width: 1400px;
+  border-top: 1px solid #f0f0f0;
 }
 
 .pagination-container {
