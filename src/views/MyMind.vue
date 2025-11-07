@@ -136,8 +136,12 @@
     </div>
   </main>
 
-  <!-- 分页 -->
   <footer class="page-footer">
+    <div class="batch-label">
+      <img src="@/assets/images/folder.png" alt="folder" class="folder-icon" />
+      <span class="batch-text">批量操作</span>
+    </div>
+    <!-- 分页 -->
     <div class="pagination-wrapper">
       <div class="pagination-container" v-if="totalPages > 1">
         <button
@@ -165,14 +169,36 @@
         </button>
       </div>
     </div>
+
+    <!-- 占位元素，用于平衡分页控件 -->
+    <div class="spacer"></div>
+
+    <!-- 批量操作区 -->
+    <div class="batch-action-bar" v-show="selectedCount > 0">
+      <div class="selected-count">已选择{{ selectedCount }}个导图</div>
+      <div class="batch-buttons">
+        <button class="batch-btn export-btn" @click="handleBatchExport">
+          批量导出
+        </button>
+        <button class="batch-btn delete-btn" @click="handleBatchDeleteConfirm">
+          批量删除
+        </button>
+      </div>
+    </div>
+
+    <!-- 操作状态反馈浮层 -->
+    <div class="status-toast" :class="statusType" v-show="showStatusToast">
+      {{ statusMessage }}
+    </div>
   </footer>
 </template>
 
 <script lang="ts" setup>
-import { ref, onMounted, onUnmounted, computed } from 'vue'
+import { ref, onMounted, onUnmounted, computed, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import PreviewPage from '@/components/PreviewPage.vue'
 import type { MindMapOptions } from '@/utils/type'
+import { ElMessageBox } from 'element-plus'
 // import axios from 'axios'
 
 // 搜索相关状态
@@ -638,6 +664,74 @@ const changePage = (page: number) => {
 const resetPagination = () => {
   currentPage.value = 1
 }
+
+// 选中导图数量：
+const selectedCount = computed(() => {
+  return mindmaps.value.filter(map => map.selected).length
+})
+
+// 状态返回变量：
+const showStatusToast = ref(false) // 弹窗
+const statusMessage = ref('')
+const statusType = ref('')
+
+// 批量导出逻辑：
+const handleBatchExport = () => {
+  // 导出状态：
+  statusMessage.value = '导出中...'
+  statusType.value = 'loading'
+  showStatusToast.value = true
+
+  // 模拟导出请求：
+  setTimeout(() => {
+    statusMessage.value = '导出成功'
+    statusType.value = 'success'
+    hideToast()
+  }, 2000)
+}
+
+// 批量删除确认逻辑：
+const handleBatchDeleteConfirm = () => {
+  ElMessageBox.confirm('是否删除所选导图？删除后不可恢复。', '确认删除', {
+    confirmButtonText: '确定',
+    cancelButtonText: '取消',
+    type: 'warning'
+  })
+
+    .then(() => {
+      handleBatchDelete()
+    })
+    .catch(() => {})
+}
+
+// 批量删除逻辑：
+const handleBatchDelete = () => {
+  statusMessage.value = '正在删除...'
+  statusType.value = 'loading'
+  showStatusToast.value = true
+
+  // 模拟删除请求：
+  setTimeout(() => {
+    mindmaps.value = mindmaps.value.filter(map => !map.selected)
+    statusMessage.value = `已删除${selectedCount.value}个导图`
+    statusType.value = 'success'
+    hideToast()
+  }, 1500)
+}
+
+// 隐藏状态显示：
+const hideToast = () => {
+  setTimeout(() => {
+    showStatusToast.value = false
+  }, 3000)
+}
+
+// 监听选中导图的数量变化：
+watch(selectedCount, count => {
+  if (count === 0) {
+    showStatusToast.value = false
+  }
+})
 </script>
 
 <style lang="scss" scoped>
@@ -1074,12 +1168,14 @@ input {
 //底部容器：
 .page-footer {
   position: fixed;
-  bottom: 2%;
-  left: 45%;
+  bottom: 3%;
+  left: 0;
+  right: 0;
   z-index: 10;
   display: flex;
-  justify-content: center;
+  justify-content: space-between;
   align-content: center;
+  padding: 0px 15% 0px 4%;
 }
 // 分页容器：
 // 分页外层容器：
@@ -1090,6 +1186,10 @@ input {
   margin: 0 auto;
   max-width: 1400px;
   border-top: 1px solid #f0f0f0;
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 
 .pagination-container {
@@ -1153,6 +1253,78 @@ input {
     background-color: #409eff;
     color: white;
     font-weight: 500;
+  }
+}
+
+// 批量操作区：
+.batch-label {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  white-space: nowrap;
+  margin-left: 10%;
+
+  .folder-icon {
+    width: 20px;
+    height: 20px;
+    object-fit: contain;
+  }
+}
+
+.batch-action-bar {
+  position: fixed;
+  bottom: 0;
+  right: 5%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 20px;
+  gap: 30px;
+  z-index: 10;
+}
+
+.selected-count {
+  font-size: 14px;
+  color: #666;
+}
+
+.batch-btn {
+  padding: 6px 16px;
+  margin: 10px;
+  border-radius: 4px;
+  border: none;
+  color: #fff;
+  background-color: #409eff;
+  cursor: pointer;
+  transition: all 0.2s;
+
+  &:hover {
+    background-color: #3a8ee6;
+  }
+}
+
+// 状态反馈层：
+.status-toast {
+  position: fixed;
+  bottom: 50%;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 10px 20px;
+  border-radius: 4px;
+  color: #fff;
+  font-size: 14px;
+  z-index: 10;
+  background-color: #409eff;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateX(-50%) translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
   }
 }
 </style>
