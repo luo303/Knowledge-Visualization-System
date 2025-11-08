@@ -21,9 +21,9 @@ export interface MindMapOptions {
 }
 
 // 个人主页类型接口
-export interface PersonalCenterOpitons {
+export interface UserInfo {
   username: string // 用户名
-  avator: string // 头像
+  avatar: string // 头像
   phone: string
   email: string
   passwordSet: boolean // 是否设置过密码
