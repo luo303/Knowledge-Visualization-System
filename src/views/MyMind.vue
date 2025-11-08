@@ -199,6 +199,7 @@ import { useRouter } from 'vue-router'
 import PreviewPage from '@/components/PreviewPage.vue'
 import type { MindMapOptions } from '@/utils/type'
 import { ElMessageBox } from 'element-plus'
+import { exports } from '@/utils/export.ts'
 // import axios from 'axios'
 
 // 搜索相关状态
@@ -676,20 +677,36 @@ const statusMessage = ref('')
 const statusType = ref('')
 
 // 批量导出逻辑：
-const handleBatchExport = () => {
-  // 导出状态：
-  statusMessage.value = '导出中...'
+const handleBatchExport = async () => {
+  const selectedMaps = mindmaps.value.filter(
+    map => map.selected
+  ) as Array<MindMapOptions>
+
+  if (selectedMaps.length === 0) {
+    statusMessage.value = '请先选择要导出的思维导图'
+    statusType.value = 'error'
+    showStatusToast.value = true
+    hideToast()
+    return
+  }
+
+  statusMessage.value = '准备导出...'
   statusType.value = 'loading'
   showStatusToast.value = true
 
-  // 模拟导出请求：
-  setTimeout(() => {
-    statusMessage.value = '导出成功'
-    statusType.value = 'success'
-    hideToast()
-  }, 2000)
-}
+  try {
+    await exports(selectedMaps, 'png')
 
+    statusMessage.value = `全部 ${selectedMaps.length} 个导图导出成功！`
+    statusType.value = 'success'
+  } catch (err) {
+    console.error('批量导出失败：', err)
+    statusMessage.value = `导出失败： ${(err as Error).message}`
+    statusType.value = 'error'
+  } finally {
+    hideToast()
+  }
+}
 // 批量删除确认逻辑：
 const handleBatchDeleteConfirm = () => {
   ElMessageBox.confirm('是否删除所选导图？删除后不可恢复。', '确认删除', {
