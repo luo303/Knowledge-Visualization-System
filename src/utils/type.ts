@@ -19,3 +19,14 @@ export interface MindMapOptions {
   root: MindMapNode // 根节点，包含整个导图的节点结构
   [key: string]: any
 }
+
+// 个人主页类型接口
+export interface PersonalCenterOpitons {
+  username: string // 用户名
+  avator: string // 头像
+  phone: string
+  email: string
+  passwordSet: boolean // 是否设置过密码
+  phoneBound: boolean // 是否绑定过手机
+  emailBound: boolean // 是否绑定过邮箱
+}
