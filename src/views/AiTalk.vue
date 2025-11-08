@@ -97,9 +97,13 @@
     :title="newtitle ? '新对话' : '修改标题'"
     width="400"
   >
-    <el-form :model="form" :rules="rules" ref="formRef">
+    <el-form :model="form" :rules="rules" ref="formRef" @submit.prevent>
       <el-form-item label="标题名称" prop="name">
-        <el-input v-model="form.name" autocomplete="off" />
+        <el-input
+          v-model="form.name"
+          autocomplete="off"
+          @keyup.enter="handleEnter"
+        />
       </el-form-item>
     </el-form>
 
@@ -151,6 +155,14 @@ const scrollToBottom = () => {
     }
   })
 }
+const handleEnter = (event: any) => {
+  // 阻止回车键的默认行为（如表单提交）
+  event.preventDefault()
+  // 可选：添加自定义回车逻辑
+  console.log(event)
+
+  console.log('回车触发，但已阻止默认行为')
+}
 //用时间戳代替id
 const createid = () => {
   const timestamp = Date.now()
@@ -197,6 +209,7 @@ const confirm = async () => {
   await formRef.value.validate()
   currentChat.value.title = form.value.name
   dialogFormVisible.value = false
+  formRef.value.resetFields()
 }
 // 进入聊天窗口（添加参数类型）
 const enterChat = (id: string): void => {
