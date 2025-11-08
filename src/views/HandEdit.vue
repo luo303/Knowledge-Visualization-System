@@ -222,29 +222,40 @@
       </template>
     </el-dialog>
     <el-drawer
+      class="help"
       v-model="drawer"
       direction="rtl"
       size="40%"
-      title="使用方法"
+      title="快捷键"
       resizable
     >
-      <p>复制节点快捷键:Ctrl+C</p>
+      <p>复制节点:Ctrl + C</p>
       <el-divider>
         <el-icon><star-filled /></el-icon>
       </el-divider>
-      <p>剪切节点快捷键:Ctrl+X</p>
+      <p>剪切节点:Ctrl + X</p>
       <el-divider>
         <el-icon><star-filled /></el-icon>
       </el-divider>
-      <p>删除节点快捷键:Backspace</p>
+      <p>删除节点:Backspace</p>
+      <p>仅删除删除当前节点:Shitf + Backspace</p>
       <el-divider>
         <el-icon><star-filled /></el-icon>
       </el-divider>
-      <p>添加节点快捷键:Tab</p>
+      <p>添加子节点:Tab</p>
+      <p>添加同级节点:Enter</p>
+      <el-divider>
+        <el-icon><star-filled /></el-icon>
+      </el-divider>
+      <p>文本换行:Shitf + Enter</p>
       <el-divider>
         <el-icon><star-filled /></el-icon>
       </el-divider>
       <p>缩放思维导图:既可以通过底部按钮也可以鼠标滚轮</p>
+      <el-divider>
+        <el-icon><star-filled /></el-icon>
+      </el-divider>
+      <p>多选:Ctrl + 左键</p>
       <el-divider>
         <el-icon><star-filled /></el-icon>
       </el-divider>
@@ -361,6 +372,9 @@ onMounted(() => {
     maxZoomRatio: 150, //最大缩放倍数
     minZoomRatio: 20 //最小缩放倍数
   } as any)
+  setTimeout(() => {
+    mindMap.resize()
+  }, 260)
   mindMap.on('search_info_change', (data: any) => {
     console.log(data)
     if (data.total === 0) {
@@ -379,15 +393,10 @@ onMounted(() => {
     show.value = true
     currentNode.value = node
   })
+
   //将背景色设置为白色
   mindMap.setThemeConfig({
-    backgroundColor: 'rgb(255, 255, 255)',
-    lineStyle: 'curve',
-    paddingX: 4,
-    paddingY: 4,
-    second: {
-      fillColor: 'rgb(255, 255, 255)'
-    }
+    lineStyle: 'curve'
   })
   // 监听节点激活事件
   mindMap.on('node_active', (node: any, nodeList: any) => {
@@ -572,14 +581,15 @@ const pasteNode = () => {
     flex-direction: column;
     .Handedit {
       flex: 1;
+      width: 100%;
       height: 70%;
-      padding: 10px;
       border-radius: 20px;
       box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
       background-color: white;
       display: flex;
       flex-direction: column;
       #mindMapContainer {
+        border-radius: 20px 20px 0 0;
         width: 100%;
         height: 90%;
         border-bottom: 1px solid rgb(191, 189, 189);
@@ -673,13 +683,9 @@ const pasteNode = () => {
 .menu-item:hover::before {
   transform: translateX(0);
 }
-.el-popper.is-customized {
-  /* Set padding to ensure the height is 32px */
-  padding: 6px 12px;
-  background: linear-gradient(90deg, rgb(159, 229, 151), rgb(204, 229, 129));
-}
-.el-popper.is-customized .el-popper__arrow::before {
-  background: linear-gradient(45deg, #b2e68d, #bce689);
-  right: 0;
+.help {
+  p {
+    margin: 5px 0;
+  }
 }
 </style>

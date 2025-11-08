@@ -27,9 +27,8 @@ onMounted(() => {
     data: props.Map.root || baseMap.root,
     layout: props.Map.layout,
     fit: true,
-    initRootNodePosition: ['left', 'center'],
-    fix: true,
     readonly: true,
+    mousewheelAction: 'zoom',
     isDisableDrag: true, //是否禁止拖动画布
     isLimitMindMapInCanvas: true,
     notShowExpandBtn: true,
@@ -37,14 +36,11 @@ onMounted(() => {
   } as any) //实在是配不出来ts类型呜呜
   //将背景色设置为白色
   mindMap.setThemeConfig({
-    backgroundColor: 'white',
-    lineStyle: 'curve',
-    paddingX: 4,
-    paddingY: 4,
-    second: {
-      fillColor: 'rgb(255, 255, 255)'
-    }
+    lineStyle: 'curve'
   })
+  setTimeout(() => {
+    mindMap.resize()
+  }, 260)
 })
 </script>
 
