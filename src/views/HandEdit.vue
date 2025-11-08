@@ -164,6 +164,15 @@
     </div>
 
     <div class="AiTalk">
+      <el-input
+        @change="search"
+        ref="searchRef"
+        v-model="search_content"
+        class="search_input"
+        placeholder="输入查找内容后按回车"
+        :prefix-icon="Search"
+        clearable
+      />
       <AiTalk></AiTalk>
     </div>
     <!-- 右键菜单（绝对定位，基于鼠标位置显示） -->
@@ -256,20 +265,12 @@ import {
   DocumentCopy,
   Upload,
   QuestionFilled,
-  StarFilled
+  StarFilled,
+  Search
 } from '@element-plus/icons-vue'
 import { useLayoutStore } from '@/stores'
 import { ElMessage } from 'element-plus'
-//异步导入插件
-import('simple-mind-map/src/plugins/Export.js' as any).then(res => {
-  mindMap.addPlugin(res.default)
-})
-import('simple-mind-map/src/plugins/ExportPDF.js' as any).then(res => {
-  mindMap.addPlugin(res.default)
-})
-import('simple-mind-map/src/plugins/ExportXMind.js' as any).then(res => {
-  mindMap.addPlugin(res.default)
-})
+
 //是否保存
 const status = ref('未保存')
 //控制帮助页是否打开
@@ -331,7 +332,9 @@ const hide = () => {
   top.value = 0
   type.value = ''
 }
-
+//搜索节点框内容
+const search_content = ref('')
+const searchRef = ref()
 onMounted(() => {
   mindMap = new MindMap({
     el: document.getElementById('mindMapContainer'),
@@ -357,7 +360,15 @@ onMounted(() => {
     fit: true, //一开始大小自适应
     maxZoomRatio: 150, //最大缩放倍数
     minZoomRatio: 20 //最小缩放倍数
-  } as any) //实在是配不出来ts类型呜呜呜
+  } as any)
+  mindMap.on('search_info_change', (data: any) => {
+    console.log(data)
+    if (data.total === 0) {
+      ElMessage.warning('未找到包含该内容的节点')
+    } else {
+      ElMessage.success(`共找到${data.total}个包含改内容的节点`)
+    }
+  })
   mindMap.on('node_click', hide)
   mindMap.on('draw_click', hide)
   mindMap.on('expand_btn_click', hide)
@@ -415,6 +426,11 @@ onMounted(() => {
     isEnd.value = index >= len - 1
   })
 })
+const search = () => {
+  mindMap.search.search(search_content.value, () => {
+    search_content.value = ''
+  })
+}
 const input = ref('')
 // 当前激活的节点列表
 const activeNodes = shallowRef([])
@@ -597,7 +613,15 @@ const pasteNode = () => {
     }
   }
   .AiTalk {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    height: 90%;
     width: 25%;
+    .search_input {
+      border-radius: 10px;
+      height: 7%;
+    }
   }
 }
 .context-menu {
