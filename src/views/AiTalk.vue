@@ -117,29 +117,20 @@
 
 <script lang="ts" setup>
 import { ElMessage } from 'element-plus'
-import { ref, reactive, computed, nextTick } from 'vue'
+import { ref, computed, nextTick } from 'vue'
 import { EditPen } from '@element-plus/icons-vue'
+import { useLayoutStore } from '@/stores'
+import { storeToRefs } from 'pinia'
+import type { Chat } from '@/stores/modules/type'
+const LayoutStore = useLayoutStore()
 
-// 定义消息类型接口
-interface Message {
-  content: string
-  role: string
-  timestamp: string
-}
-
-// 定义对话类型接口
-interface Chat {
-  title: string //本次对话标题
-  conversation_id: string //本次对话唯一标识id
-  messages: Message[]
-}
 const form = ref({
   name: ''
 })
 const formRef = ref()
 //判断标题是否重复
 const detect = (rule: any, value: any, callback: any) => {
-  if (chatList.every(item => item.title !== value)) callback()
+  if (chatList.value.every((item: Chat) => item.title !== value)) callback()
   else callback('标题已使用')
 }
 const rules = ref({
@@ -176,11 +167,13 @@ const currentChatId = ref<string>(createid())
 const inputContent = ref<string>('')
 
 // 所有对话数据（指定类型为Chat数组）
-const chatList = reactive<Chat[]>([])
+const { chat: chatList } = storeToRefs(LayoutStore)
 
 // 获取当前对话数据（添加返回值类型）
 const currentChat = computed<Chat>(() => {
-  return chatList.find(item => item.conversation_id === currentChatId.value)!
+  return chatList.value.find(
+    (item: Chat) => item.conversation_id === currentChatId.value
+  )!
 })
 //编辑对话标题
 const edittitle = (item: Chat) => {
@@ -247,7 +240,7 @@ const createNewChat = async () => {
   await formRef.value.validate()
   const id = createid()
   currentChatId.value = id
-  chatList.push({
+  chatList.value.push({
     title: form.value.name,
     conversation_id: id,
     messages: []
@@ -259,12 +252,14 @@ const createNewChat = async () => {
 
 // 删除对话
 const deleteChat = (id: string): void => {
-  if (chatList.length <= 1) {
+  if (chatList.value.length <= 1) {
     ElMessage.error('至少保留一个对话')
     return
   }
-  const index = chatList.findIndex(item => item.conversation_id === id)
-  chatList.splice(index, 1)
+  const index = chatList.value.findIndex(
+    (item: Chat) => item.conversation_id === id
+  )
+  chatList.value.splice(index, 1)
 }
 </script>
 
