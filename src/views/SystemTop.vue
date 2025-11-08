@@ -14,7 +14,11 @@
                 alt="通知"
               />
             </router-link>
-            <router-link class="icon-item" active-class="active" to="/personal">
+            <router-link
+              class="icon-item"
+              active-class="active"
+              to="/layout/personalcenter"
+            >
               <img src="@/assets/images/personal.png" class="icon" alt="个人" />
             </router-link>
           </div>

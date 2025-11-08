@@ -26,7 +26,7 @@
         ><el-icon><DocumentChecked /></el-icon
         ><span>保存/导出</span></el-menu-item
       >
-      <el-menu-item
+      <el-menu-item index="/layout/personalcenter"
         ><el-icon><Tools /></el-icon><span>设置</span></el-menu-item
       >
     </el-menu>
