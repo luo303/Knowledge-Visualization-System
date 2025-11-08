@@ -175,14 +175,12 @@
       />
       <AiTalk></AiTalk>
     </div>
-    <!-- 右键菜单（绝对定位，基于鼠标位置显示） -->
     <div
       class="context-menu"
       v-show="show"
       :style="{ left: `${left}px`, top: `${top}px` }"
       @click.stop
     >
-      <!-- 节点右键菜单（当 type 为 'node' 时显示） -->
       <div v-if="type === 'node'">
         <div class="menu-item" @click="addNode()">添加子节点</div>
         <div class="menu-item" @click="pasteNode()">粘贴节点</div>
@@ -190,9 +188,8 @@
         <div class="menu-item" @click="copyNode()">复制节点</div>
         <div class="menu-item" @click="cutNode()">剪切节点</div>
       </div>
-
-      <!-- 其他类型菜单（如空白处右键，可扩展） -->
     </div>
+
     <el-dialog v-model="dialogFormVisible" title="导出" width="500">
       <el-form :model="form" :rules="rules" ref="formRef">
         <el-form-item
@@ -221,6 +218,15 @@
         </div>
       </template>
     </el-dialog>
+    <el-dialog v-model="centerDialogVisible" title="Warning" width="400">
+      <span> 是否要删除该节点，若有子节点会被一并删除 </span>
+      <template #footer>
+        <div class="dialog-footer">
+          <el-button @click="No">取消删除</el-button>
+          <el-button type="primary" @click="Yes"> 确认删除 </el-button>
+        </div>
+      </template>
+    </el-dialog>
     <el-drawer
       class="help"
       v-model="drawer"
@@ -238,7 +244,6 @@
         <el-icon><star-filled /></el-icon>
       </el-divider>
       <p>删除节点:Backspace</p>
-      <p>仅删除删除当前节点:Shitf + Backspace</p>
       <el-divider>
         <el-icon><star-filled /></el-icon>
       </el-divider>
@@ -256,6 +261,10 @@
         <el-icon><star-filled /></el-icon>
       </el-divider>
       <p>多选:Ctrl + 左键</p>
+      <el-divider>
+        <el-icon><star-filled /></el-icon>
+      </el-divider>
+      <p>回退:Ctrl + Z</p>
       <el-divider>
         <el-icon><star-filled /></el-icon>
       </el-divider>
@@ -288,6 +297,8 @@ const status = ref('未保存')
 const drawer = ref(false)
 //控制导出页是否打开
 const dialogFormVisible = ref(false)
+//控制删除确认框
+const centerDialogVisible = ref(false)
 //导出页宽度
 const formLabelWidth = '140px'
 const form = ref({
@@ -346,6 +357,8 @@ const hide = () => {
 //搜索节点框内容
 const search_content = ref('')
 const searchRef = ref()
+let confirmResolve: ((value: boolean) => void) | null = null
+
 onMounted(() => {
   mindMap = new MindMap({
     el: document.getElementById('mindMapContainer'),
@@ -353,12 +366,25 @@ onMounted(() => {
     layout: Map.layout,
     textAutoWrapWidth: 200,
     beforeShortcutRun: (key: any, activeNodes: any) => {
-      if (key === 'Backspace' && activeNodes[0].isRoot) {
+      if (key === 'Backspace' && activeNodes[0]?.isRoot) {
         ElMessage.error('根节点无法删除')
         return true
       }
+      if (key === 'Backspace' && activeNodes.length !== 0) {
+        centerDialogVisible.value = true
+        return new Promise(resolve => {
+          confirmResolve = resolve
+        }).then(e => {
+          if (!e) {
+            mindMap.execCommand('REMOVE_NODE')
+            ElMessage.success('删除成功')
+          }
+          return e
+        })
+      }
+      return false
     }, //防止通过快捷键删除根节点
-    // selectTextOnEnterEditText:false,
+    scaleRatio: 0.05,
     mousewheelAction: 'zoom', // zoom（放大缩小）、move（上下移动）
     // 当mousewheelAction设为move时，可以通过该属性控制鼠标滚动一下视图移动的步长，单位px
     mousewheelMoveStep: 100,
@@ -375,6 +401,9 @@ onMounted(() => {
   setTimeout(() => {
     mindMap.resize()
   }, 260)
+  //删除Shift + Backspace快捷键
+  mindMap.keyCommand.removeShortcut('Shift+Backspace')
+  //监听搜索节点
   mindMap.on('search_info_change', (data: any) => {
     console.log(data)
     if (data.total === 0) {
@@ -492,7 +521,32 @@ const Del = () => {
     ElMessage.error('根节点无法删除')
     return
   }
-  mindMap.execCommand('REMOVE_NODE')
+  centerDialogVisible.value = true
+  new Promise<boolean>(resolve => {
+    confirmResolve = resolve
+  }).then(e => {
+    if (!e) {
+      // 用户确认删除
+      mindMap.execCommand('REMOVE_NODE')
+      ElMessage.success('删除成功')
+    }
+  })
+}
+//确认删除按钮
+const Yes = () => {
+  if (confirmResolve) {
+    confirmResolve(false) // 传递true表示阻止删除
+    confirmResolve = null // 重置，避免重复调用
+    centerDialogVisible.value = false
+  }
+}
+//取消删除
+const No = () => {
+  if (confirmResolve) {
+    confirmResolve(true) // 传递true表示阻止删除
+    confirmResolve = null // 重置，避免重复调用
+    centerDialogVisible.value = false
+  }
 }
 //切换结构
 const handleCommand = (command: string | number | object) => {
@@ -551,11 +605,20 @@ const copyNode = () => {
 const delNode = () => {
   if ((activeNodes as any)._rawValue[0].isRoot) {
     ElMessage.error('根节点无法删除')
+    show.value = false
     return
   }
-  mindMap.execCommand('REMOVE_NODE')
   show.value = false
-  ElMessage.success('删除成功')
+  centerDialogVisible.value = true
+  new Promise<boolean>(resolve => {
+    confirmResolve = resolve
+  }).then(e => {
+    if (!e) {
+      // 用户确认删除
+      mindMap.execCommand('REMOVE_NODE')
+      ElMessage.success('删除成功')
+    }
+  })
 }
 const addNode = () => {
   mindMap.execCommand('INSERT_CHILD_NODE')
