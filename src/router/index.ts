@@ -32,6 +32,10 @@ const router = createRouter({
               path: 'handedit',
               component: () => import('@/views/HandEdit.vue'),
               name: 'handedit'
+            },
+            {
+              path: 'personalcenter',
+              component: () => import('@/views/PersonalCenter.vue')
             }
           ]
         }
