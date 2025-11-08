@@ -1029,6 +1029,8 @@ input {
   max-height: calc(100vh - 220px);
   overflow-y: auto;
   box-sizing: border-box;
+  position: relative;
+  z-index: 1;
 }
 .mindmap-preview-container {
   padding: 2%;
@@ -1100,6 +1102,7 @@ input {
   position: relative;
   background-color: #f9f9f9;
   overflow: hidden;
+  pointer-events: none;
 }
 
 .map-preview-img {
