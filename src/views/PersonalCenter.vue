@@ -15,10 +15,36 @@
                 @error="handleAvatarError"
               />
             </div>
-            <button class="edit-avatar-btn" @click="handleEditAvatar">
+            <button class="edit-avatar-btn" @click="openAvatarDialog">
               修改头像
             </button>
           </div>
+
+          <!-- 修改头像弹窗 -->
+          <ElDialog v-model="avatarDialogOpen" title="修改头像" width="30%">
+            <div class="avatar-upload-container">
+              <ElUpload
+                :file-list="avatarFileList"
+                :on-change="handleFileChange"
+                :auto-upload="false"
+                list-type="picture-card"
+              >
+                <div class="upload-btn">
+                  <ElIcon size="24"><Upload /></ElIcon>
+                  <div class="upload-text">上传头像</div>
+                </div>
+              </ElUpload>
+            </div>
+            <template #footer>
+              <ElButton @click="avatarDialogOpen = false">取消</ElButton>
+              <ElButton
+                type="primary"
+                @click="handleUpdateAvatar"
+                :disabled="!avatarFileList.length"
+                >确定</ElButton
+              >
+            </template>
+          </ElDialog>
 
           <!-- 用户名 -->
           <div class="username-wrapper">
@@ -35,7 +61,9 @@
 </template>
 
 <script setup lang="ts">
-import { Edit } from '@element-plus/icons-vue'
+import { Edit, Upload } from '@element-plus/icons-vue'
+import { ElDialog, ElUpload, ElButton, ElMessage, ElIcon } from 'element-plus'
+import type { UploadProps } from 'element-plus'
 import type { UserInfo } from '../utils/type'
 import { ref } from 'vue'
 import defaultAvatar from '@/assets/images/personal.png' // 默认头像
@@ -51,9 +79,61 @@ const userInfo = ref<UserInfo>({
   emailBound: true
 })
 
-// 事件处理函数：
-const handleEditAvatar = () => {
-  console.log('修改头像')
+// 修改头像：
+const avatarDialogOpen = ref(false)
+const avatarFileList = ref<UploadProps['fileList']>([])
+
+// 打开头像弹窗：
+const openAvatarDialog = () => {
+  avatarFileList.value = []
+  avatarDialogOpen.value = true
+}
+
+const handleFileChange: UploadProps['onChange'] = (uploadFile, uploadFiles) => {
+  avatarFileList.value = uploadFiles
+
+  // 文件校验：
+  const file = uploadFile.raw
+  if (file) {
+    if (!file.type.startsWith('image/')) {
+      ElMessage.error('请上传图片文件！')
+      avatarFileList.value = []
+      return
+    }
+    if (file.size / 1024 / 1024 > 2) {
+      ElMessage.error('图片文件大小不能超过2MB！')
+      avatarFileList.value = []
+      return
+    }
+  }
+}
+
+// 处理更新头像的逻辑:
+const handleUpdateAvatar = async () => {
+  if (avatarFileList.value.length === 0) {
+    ElMessage.warning('请先选择头像图片!')
+    return
+  }
+
+  try {
+    const selectedFile = avatarFileList.value[0]?.raw
+    if (!selectedFile) {
+      ElMessage.error('获取图片文件失败！')
+      return
+    }
+    const tempImageUrl = URL.createObjectURL(selectedFile)
+
+    // 模拟API请求延迟：
+    console.log('正在模拟上传并更新头像...')
+    await new Promise(resolve => setTimeout(resolve, 1000))
+
+    userInfo.value.avatar = tempImageUrl.valueOf()
+    ElMessage.success('头像更新成功！')
+    avatarDialogOpen.value = false
+  } catch (error) {
+    console.error('更新头像失败：', error)
+    ElMessage.error('更新头像失败！')
+  }
 }
 
 const handleEditUsername = () => {
@@ -131,6 +211,28 @@ const handleAvatarError = (e: Event) => {
       &:hover {
         color: #409eff;
       }
+    }
+  }
+
+  .avatar-upload-container {
+    display: flex;
+    justify-content: center;
+    padding: 20px 0;
+  }
+
+  .upload-btn {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    width: 100px;
+    height: 100px;
+    border: 1px dashed #999;
+    border-radius: 50%;
+    transition: border-color 0.3s;
+
+    &:hover {
+      border-color: #409eff;
     }
   }
 
