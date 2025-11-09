@@ -241,17 +241,21 @@ const cancel = () => {
 const confirm = async () => {
   await formRef.value.validate()
   // currentChat.value.title = form.value.name
-  const res = await UpdateTitle(
-    currentChat.value.conversation_id,
-    currentChat.value.title
-  )
-  if ((res as any).Code === 200) {
-    getlist()
-    dialogFormVisible.value = false
-    formRef.value.resetFields()
-    ElMessage.success('修改成功')
-  } else {
-    ElMessage.error('修改失败')
+  try {
+    const res = await UpdateTitle(
+      currentChat.value.conversation_id,
+      form.value.name
+    )
+    if ((res as any).Code === 200) {
+      getlist()
+      dialogFormVisible.value = false
+      formRef.value.resetFields()
+      ElMessage.success('修改成功')
+    } else {
+      ElMessage.error('修改失败')
+    }
+  } catch (error) {
+    console.log(error)
   }
 }
 // 进入聊天窗口（添加参数类型）
@@ -269,7 +273,7 @@ const backToList = (): void => {
 // 发送消息
 const sendMsg = async () => {
   if (!inputContent.value.trim()) return
-
+  const temp = inputContent.value
   // 添加用户消息
   currentChat.value.messages.push({
     content: inputContent.value,
@@ -278,21 +282,25 @@ const sendMsg = async () => {
   // 清空输入框
   inputContent.value = ''
   scrollToBottom()
-  const res = await SendMessage(
-    currentChat.value.conversation_id,
-    inputContent.value,
-    LayoutStore.data
-  )
-  if ((res as any).Code === 200) {
-    if ((res as any).Data.new_map_json) {
-      LayoutStore.data = (res as any).Data.new_map_json
+  try {
+    const res = await SendMessage(
+      currentChat.value.conversation_id,
+      temp,
+      LayoutStore.data
+    )
+    if ((res as any).Code === 200) {
+      if ((res as any).Data.new_map_json) {
+        LayoutStore.data = (res as any).Data.new_map_json
+      }
+      currentChat.value.messages.push({
+        content: (res as any).Data.content,
+        role: 'system'
+      })
+    } else {
+      ElMessage.error('发送失败')
     }
-    currentChat.value.messages.push({
-      content: (res as any).Data.content,
-      role: 'system'
-    })
-  } else {
-    ElMessage.error('发送失败')
+  } catch (error) {
+    console.log(error)
   }
 
   // // 模拟系统回复
@@ -313,19 +321,23 @@ const createNewChat = async () => {
   await formRef.value.validate()
   // const id = createid()
   // currentChatId.value = id
-  const res = await NewChat(LayoutStore.data, form.value.name)
-  if ((res as any).Code === 200) {
-    currentChatId.value = res.data.conversation_id
-    chatList.value.push({
-      title: form.value.name,
-      conversation_id: res.data.conversation_id,
-      messages: []
-    })
-  } else {
-    dialogFormVisible.value = false
-    formRef.value.resetFields()
-    ElMessage.error('新建失败')
-    return
+  try {
+    const res = await NewChat(LayoutStore.data, form.value.name)
+    if ((res as any).Code === 200) {
+      currentChatId.value = res.data.conversation_id
+      chatList.value.push({
+        title: form.value.name,
+        conversation_id: res.data.conversation_id,
+        messages: []
+      })
+    } else {
+      dialogFormVisible.value = false
+      formRef.value.resetFields()
+      ElMessage.error('新建失败')
+      return
+    }
+  } catch (error) {
+    console.log(error)
   }
   // chatList.value.push({
   //   title: form.value.name,
@@ -343,15 +355,19 @@ const deleteChat = async (id: string) => {
     ElMessage.error('至少保留一个对话')
     return
   }
-  const res = await DelChat(id)
-  if ((res as any).Code === 200) {
-    const index = chatList.value.findIndex(
-      (item: Chat) => item.conversation_id === id
-    )
-    chatList.value.splice(index, 1)
-    getlist()
-  } else {
-    ElMessage.error('删除失败')
+  try {
+    const res = await DelChat(id)
+    if ((res as any).Code === 200) {
+      const index = chatList.value.findIndex(
+        (item: Chat) => item.conversation_id === id
+      )
+      chatList.value.splice(index, 1)
+      getlist()
+    } else {
+      ElMessage.error('删除失败')
+    }
+  } catch (error) {
+    console.log(error)
   }
 }
 </script>
