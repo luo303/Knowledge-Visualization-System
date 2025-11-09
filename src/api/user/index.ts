@@ -28,3 +28,46 @@ export const Getcode = (data: code) =>
 //更新思维导图
 export const UpdateMap = (data: MindMapOptions) =>
   request.put(`/api/biz/v1/mindmap/${data.mapId}`, data)
+//新建对话
+export const NewChat = (data: MindMapOptions, title: string) =>
+  request.post('/api/biz/v1/aichat/save_conversation', {
+    title,
+    map_id: data.mapId,
+    map_data: data
+  })
+//获取该导图所有会话
+export const GetMapChatList = (map_id: string) =>
+  request.get('/api/biz/v1/aichat/get_conversation_list', {
+    params: {
+      map_id
+    }
+  })
+//获取某会话的聊天记录
+export const GetChat = (conversation_id: string) =>
+  request.get('/api/biz/v1/aichat/get_conversation', {
+    params: {
+      conversation_id
+    }
+  })
+//基础ai对话
+export const SendMessage = (
+  conversation_id: string,
+  content: string,
+  map_data: MindMapOptions
+) =>
+  request.post('/api/biz/v1/aichat/send_message', {
+    conversation_id,
+    content,
+    map_data
+  })
+//删除会话
+export const DelChat = (conversation_id: string) =>
+  request.post('/api/biz/v1/aichat/del_conversation', {
+    conversation_id
+  })
+//更改某会话的标题
+export const UpdateTitle = (conversation_id: string, title: string) =>
+  request.post('/api/biz/v1/aichat/update_conversation_title', {
+    conversation_id,
+    title
+  })

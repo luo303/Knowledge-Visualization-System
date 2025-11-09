@@ -290,7 +290,7 @@ import {
 } from '@element-plus/icons-vue'
 import { useLayoutStore } from '@/stores'
 import { ElMessage } from 'element-plus'
-
+import { UpdateMap, GetMapChatList } from '@/api/user'
 //是否保存
 const status = ref('未保存')
 //控制帮助页是否打开
@@ -331,7 +331,7 @@ const baseMap = {
     ]
   }
 }
-const Map = LayoutStore.data || baseMap
+const Map = LayoutStore.data.mapId ? LayoutStore.data : baseMap
 let mindMap: any = null
 //判断是否在记录栈最前和最后
 const isStart = ref(true)
@@ -359,7 +359,7 @@ const search_content = ref('')
 const searchRef = ref()
 let confirmResolve: ((value: boolean) => void) | null = null
 
-onMounted(() => {
+onMounted(async () => {
   mindMap = new MindMap({
     el: document.getElementById('mindMapContainer'),
     data: Map.root,
@@ -398,6 +398,16 @@ onMounted(() => {
     maxZoomRatio: 150, //最大缩放倍数
     minZoomRatio: 20 //最小缩放倍数
   } as any)
+  //进入手动编辑页获取导图对应的会话列表
+  try {
+    const res = await GetMapChatList(LayoutStore.data.mapId)
+    if ((res as any).Code === 200) {
+    } else {
+      ElMessage.error('获取该导图所有对话失败')
+    }
+  } catch (error) {
+    console.log(error)
+  }
   setTimeout(() => {
     mindMap.resize()
   }, 260)
@@ -489,12 +499,24 @@ const addson = () => {
   }
 }
 //手动保存
-const save = () => {
+const save = async () => {
   const data = mindMap.getData(true)
   LayoutStore.data.layout = data.layout
   LayoutStore.data.root = data.root
-  status.value = '已保存'
-  ElMessage.success('保存成功')
+  try {
+    const res = await UpdateMap(LayoutStore.data)
+    if ((res as any).Code === 200) {
+      status.value = '已保存'
+      ElMessage.success('保存成功')
+      clearTimeout(timer)
+    } else {
+      ElMessage.error('保存失败')
+    }
+  } catch (error) {
+    console.log(error)
+  }
+  // status.value = '已保存'
+  // ElMessage.success('保存成功')
   clearTimeout(timer)
 }
 //回退
@@ -634,8 +656,17 @@ const pasteNode = () => {
   ElMessage.success('粘贴成功')
 }
 //组件销毁前更新思维导图
-onBeforeUnmount(() => {
-  console.log(11111)
+onBeforeUnmount(async () => {
+  LayoutStore.chat = [] //离开手动编辑页清空对话区
+  try {
+    const res = await UpdateMap(LayoutStore.data)
+    if ((res as any).Code === 200) {
+    } else {
+      ElMessage.error('请求失败')
+    }
+  } catch (error) {
+    console.log(error)
+  }
 })
 </script>
 
