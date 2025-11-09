@@ -274,7 +274,7 @@
 
 <script lang="ts" setup>
 import AiTalk from './AiTalk.vue'
-import { onMounted, ref, shallowRef } from 'vue'
+import { onMounted, onBeforeUnmount, ref, shallowRef } from 'vue'
 import MindMap from 'simple-mind-map'
 import {
   Close,
@@ -437,7 +437,8 @@ onMounted(() => {
     if (timer) clearTimeout(timer)
     timer = setTimeout(() => {
       const data = mindMap.getData(true)
-      LayoutStore.data = data
+      LayoutStore.data.layout = data.layout
+      LayoutStore.data.root = data.root
       status.value = '已保存'
       ElMessage.success('已自动保存')
     }, 3000)
@@ -490,7 +491,8 @@ const addson = () => {
 //手动保存
 const save = () => {
   const data = mindMap.getData(true)
-  LayoutStore.data = data
+  LayoutStore.data.layout = data.layout
+  LayoutStore.data.root = data.root
   status.value = '已保存'
   ElMessage.success('保存成功')
   clearTimeout(timer)
@@ -549,8 +551,9 @@ const No = () => {
   }
 }
 //切换结构
-const handleCommand = (command: string | number | object) => {
+const handleCommand = (command: string) => {
   mindMap.setLayout(command)
+  LayoutStore.data.layout = command
 }
 //居中按钮
 const center = () => {
@@ -630,6 +633,10 @@ const pasteNode = () => {
   show.value = false
   ElMessage.success('粘贴成功')
 }
+//组件销毁前更新思维导图
+onBeforeUnmount(() => {
+  console.log(11111)
+})
 </script>
 
 <style lang="scss" scoped>

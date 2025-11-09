@@ -7,6 +7,8 @@ import ElementPlus from 'element-plus'
 import 'element-plus/dist/index.css'
 
 import '@/styles/index.scss'
+// @ts-expect-error 忽略 simple-mind-map 无类型声明的报错
+import Markdown from 'vue3-markdown-it'
 
 import MindMap from 'simple-mind-map'
 // @ts-expect-error 忽略 simple-mind-map 无类型声明的报错
@@ -31,4 +33,5 @@ app.use(router)
 app.use(ElementPlus)
 app.use(store)
 
+app.use(Markdown)
 app.mount('#app')

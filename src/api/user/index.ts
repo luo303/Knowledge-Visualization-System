@@ -7,6 +7,7 @@ import type {
   ApiResponse,
   LoginSuccessData
 } from './type'
+import type { MindMapOptions } from '@/utils/type'
 import type { registerData } from './type'
 
 // 登录接口
@@ -24,3 +25,6 @@ export const Forgetpwd = (data: forgetpwd) =>
 //发送验证码
 export const Getcode = (data: code) =>
   request.post('/api/biz/v1/user/send_code', data)
+//更新思维导图
+export const UpdateMap = (data: MindMapOptions) =>
+  request.put(`/api/biz/v1/mindmap/${data.mapId}`, data)
