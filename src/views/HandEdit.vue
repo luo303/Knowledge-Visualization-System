@@ -399,10 +399,14 @@ onMounted(async () => {
     minZoomRatio: 20 //最小缩放倍数
   } as any)
   //进入手动编辑页获取导图对应的会话列表
-  const res = GetMapChatList(LayoutStore.data.mapId)
-  if ((res as any).Code === 200) {
-  } else {
-    ElMessage.error('获取该导图所有对话失败')
+  try {
+    const res = await GetMapChatList(LayoutStore.data.mapId)
+    if ((res as any).Code === 200) {
+    } else {
+      ElMessage.error('获取该导图所有对话失败')
+    }
+  } catch (error) {
+    console.log(error)
   }
   setTimeout(() => {
     mindMap.resize()

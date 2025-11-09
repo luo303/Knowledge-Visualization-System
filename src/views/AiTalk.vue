@@ -194,18 +194,22 @@ const inputContent = ref<string>('')
 
 // 所有对话数据（指定类型为Chat数组）
 const { chat: chatList } = storeToRefs(LayoutStore)
-const getlist = () => {
+const getlist = async () => {
   chatList.value = []
-  LayoutStore.chatlist.forEach(item => {
-    const res = GetChat(item.conversation_id)
-    if ((res as any).Code === 200) {
-      chatList.value.push({
-        title: (res as any).Data.title,
-        conversation_id: item.conversation_id,
-        messages: (res as any).Data.messages
-      })
-    } else {
-      ElMessage.error('获取某个会话聊天记录失败')
+  LayoutStore.chatlist.forEach(async item => {
+    try {
+      const res = await GetChat(item.conversation_id)
+      if ((res as any).Code === 200) {
+        chatList.value.push({
+          title: (res as any).Data.title,
+          conversation_id: item.conversation_id,
+          messages: (res as any).Data.messages
+        })
+      } else {
+        ElMessage.error('获取某个会话聊天记录失败')
+      }
+    } catch (error) {
+      console.log(error)
     }
   })
 }
