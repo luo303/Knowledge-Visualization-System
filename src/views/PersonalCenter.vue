@@ -50,10 +50,26 @@
           <div class="username-wrapper">
             <span class="label">用户名:</span>
             <span class="username">{{ userInfo.username }}</span>
-            <button class="edit-btn" @click="handleEditUsername">
+            <button class="edit-btn" @click="openUsernameDialog">
               <el-icon><Edit /></el-icon>修改用户名
             </button>
           </div>
+
+          <!-- 修改用户名弹窗 -->
+          <ElDialog v-model="usernameDialogOpen" title="修改用户名" width="30%">
+            <ElInput
+              v-model="newUsername"
+              placeholder="请输入用户名"
+              max-length="20"
+              show-word-limit
+            />
+            <template #footer>
+              <ElButton @click="usernameDialogOpen = false">取消</ElButton>
+              <ElButton type="primary" @click="handleUpdateUsername"
+                >确定</ElButton
+              >
+            </template>
+          </ElDialog>
         </div>
       </div>
     </div>
@@ -67,10 +83,16 @@ import type { UploadProps } from 'element-plus'
 import type { UserInfo } from '../utils/type'
 import { ref } from 'vue'
 import defaultAvatar from '@/assets/images/personal.png' // 默认头像
+import { useUserStore } from '@/stores/modules/user'
+// import { useRouter } from 'vue-router'
+
+// 初始化用户仓库：
+const userStore = useUserStore()
+// const router = useRouter()
 
 // 模拟用户数据:
 const userInfo = ref<UserInfo>({
-  username: 'piaodaqiang',
+  username: '你的名字', // userStore.userName || '你的名字',
   avatar: defaultAvatar,
   phone: '12345678901',
   email: 'piaodaqiang@163.com',
@@ -136,10 +158,6 @@ const handleUpdateAvatar = async () => {
   }
 }
 
-const handleEditUsername = () => {
-  console.log('修改用户名')
-}
-
 // 处理本地静态资源路径：
 const getAvatarUrl = (avatar: string) => {
   // 是否是本地路径：
@@ -154,6 +172,30 @@ const getAvatarUrl = (avatar: string) => {
 const handleAvatarError = (e: Event) => {
   const img = e.target as HTMLImageElement
   img.src = new URL(defaultAvatar, import.meta.url).href
+}
+
+// 修改用户名：
+const usernameDialogOpen = ref(false)
+const newUsername = ref('')
+
+// 打开用户名弹窗：
+const openUsernameDialog = () => {
+  newUsername.value = userInfo.value.username // 显示当前用户名
+  usernameDialogOpen.value = true
+}
+
+// 提交用户名修改：// 等待后端
+const handleUpdateUsername = () => {
+  if (!newUsername.value.trim()) {
+    ElMessage.warning('用户名不能为空！')
+    return
+  }
+
+  // 刷新本地状态：
+  userInfo.value.username = newUsername.value
+  userStore.updateUsername(newUsername.value)
+  ElMessage.success('用户名修改成功！')
+  usernameDialogOpen.value = false
 }
 </script>
 

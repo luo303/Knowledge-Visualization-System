@@ -17,6 +17,13 @@ export const useUserStore = defineStore(
       token.value = data.token // 同步token
     }
 
+    // 动作：用于个人中心修改用户名：
+    const updateUsername = (newUsername: string) => {
+      if (userInfo.value) {
+        userInfo.value.user_name = newUsername
+      }
+    }
+
     // 动作：退出登录时清除信息
     const clearUserInfo = () => {
       userInfo.value = null
@@ -27,6 +34,7 @@ export const useUserStore = defineStore(
       userInfo,
       token,
       setUserInfo,
+      updateUsername,
       clearUserInfo
     }
   },
