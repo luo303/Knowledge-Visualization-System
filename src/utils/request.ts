@@ -22,22 +22,26 @@ request.interceptors.response.use(
     return response.data
   },
   (error: any) => {
-    //处理网络错误
-    let msg = ''
-    const status = error.response.status
-    switch (status) {
-      case -2:
-        msg = 'token过期'
-        break
-      default:
-        msg = '无网络'
+    //处理网络错误或跨域报错
+    if (!error.response) {
+      ElMessage.error('网络错误，请检查跨域配置或网络连接')
+    } else {
+      let msg = ''
+      const status = error.response.status
+      switch (status) {
+        case -2:
+          msg = 'token过期'
+          break
+        default:
+          msg = '无网络'
+      }
+      ElMessage({
+        type: 'error',
+        message: msg
+      })
+      router.push('/login')
+      return Promise.reject(error)
     }
-    ElMessage({
-      type: 'error',
-      message: msg
-    })
-    router.push('/login')
-    return Promise.reject(error)
   }
 )
 export default request

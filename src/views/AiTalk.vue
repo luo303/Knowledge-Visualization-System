@@ -334,6 +334,9 @@ const createNewChat = async () => {
         conversation_id: res.data.conversation_id,
         messages: []
       })
+      dialogFormVisible.value = false
+      formRef.value.resetFields()
+      enterChat(currentChatId.value)
     } else {
       dialogFormVisible.value = false
       formRef.value.resetFields()
@@ -341,6 +344,8 @@ const createNewChat = async () => {
       return
     }
   } catch (error) {
+    dialogFormVisible.value = false
+    formRef.value.resetFields()
     console.log(error)
   }
   // chatList.value.push({
@@ -348,9 +353,6 @@ const createNewChat = async () => {
   //   conversation_id: id,
   //   messages: []
   // })
-  dialogFormVisible.value = false
-  formRef.value.resetFields()
-  enterChat(currentChatId.value)
 }
 
 // 删除对话

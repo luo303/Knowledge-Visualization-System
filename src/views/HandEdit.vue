@@ -450,7 +450,7 @@ onMounted(async () => {
       LayoutStore.data.layout = data.layout
       LayoutStore.data.root = data.root
       status.value = '已保存'
-      ElMessage.success('已自动保存')
+      ElMessage.success('本地已自动保存')
     }, 3000)
   })
   //监听视图变化
@@ -501,11 +501,11 @@ const addson = () => {
 //手动保存
 const save = async () => {
   const data = mindMap.getData(true)
-  LayoutStore.data.layout = data.layout
-  LayoutStore.data.root = data.root
   try {
     const res = await UpdateMap(LayoutStore.data)
     if ((res as any).Code === 200) {
+      LayoutStore.data.layout = data.layout
+      LayoutStore.data.root = data.root
       status.value = '已保存'
       ElMessage.success('保存成功')
       clearTimeout(timer)
