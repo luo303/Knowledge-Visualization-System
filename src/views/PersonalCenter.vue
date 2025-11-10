@@ -90,8 +90,69 @@
             <span class="status">{{
               userInfo.passwordSet ? '已设置' : '未设置'
             }}</span>
-            <button class="edit-btn">修改密码</button>
+            <button class="edit-btn" @click="openPasswordDialog">
+              修改密码
+            </button>
           </div>
+
+          <ElDialog v-model="passwordDialogOpen" title="修改密码" width="35%">
+            <div class="password-form">
+              <ElInput
+                v-model="oldPassword"
+                type="pasword"
+                placeholder="请输入原密码"
+                :show-password="showOldPwd"
+                class="password-input"
+              />
+              <div
+                class="show-pwd-toggle-container"
+                @click="showOldPwd = !showOldPwd"
+              >
+                <span class="show-pwd-toggle">
+                  {{ showOldPwd ? '隐藏' : '显示' }} </span
+                >密码
+              </div>
+
+              <ElInput
+                v-model="newPassword"
+                type="pasword"
+                placeholder="请输入新密码"
+                :show-password="showNewPwd"
+                class="password-input"
+              />
+              <div
+                class="show-pwd-toggle-container"
+                @click="showNewPwd = !showNewPwd"
+              >
+                <span class="show-pwd-toggle">
+                  {{ showNewPwd ? '隐藏' : '显示' }} </span
+                >密码
+              </div>
+
+              <ElInput
+                v-model="confirmPassword"
+                type="pasword"
+                placeholder="请确认新密码"
+                :show-password="showConfirmPwd"
+                class="password-input"
+              />
+              <div
+                class="show-pwd-toggle-container"
+                @click="showConfirmPwd = !showConfirmPwd"
+              >
+                <span class="show-pwd-toggle">
+                  {{ showConfirmPwd ? '隐藏' : '显示' }} </span
+                >密码
+              </div>
+            </div>
+
+            <template #footer>
+              <ElButton @click="closePasswordDialog">取消</ElButton>
+              <ElButton type="primary" @click="handleUpdatePassword"
+                >确定</ElButton
+              >
+            </template>
+          </ElDialog>
 
           <div class="security-item">
             <span class="label">邮箱绑定：</span>
@@ -102,23 +163,36 @@
           </div>
         </div>
       </div>
+
+      <footer class="section">
+        <button class="switch-account-btn" @click="handleSwitchAccount">
+          切换账号
+        </button>
+      </footer>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
 import { Edit, Upload } from '@element-plus/icons-vue'
-import { ElDialog, ElUpload, ElButton, ElMessage, ElIcon } from 'element-plus'
+import {
+  ElDialog,
+  ElUpload,
+  ElButton,
+  ElMessage,
+  ElIcon,
+  ElMessageBox
+} from 'element-plus'
 import type { UploadProps } from 'element-plus'
 import type { UserInfo } from '../utils/type'
 import { ref } from 'vue'
 import defaultAvatar from '@/assets/images/personal.png' // 默认头像
 import { useUserStore } from '@/stores/modules/user'
-// import { useRouter } from 'vue-router'
+import { useRouter } from 'vue-router'
 
 // 初始化用户仓库：
 const userStore = useUserStore()
-// const router = useRouter()
+const router = useRouter()
 
 // 模拟用户数据:
 const userInfo = ref<UserInfo>({
@@ -226,6 +300,85 @@ const handleUpdateUsername = () => {
   userStore.updateUsername(newUsername.value)
   ElMessage.success('用户名修改成功！')
   usernameDialogOpen.value = false
+}
+
+// 修改密码：
+// 弹窗：
+const passwordDialogOpen = ref(false)
+// 密码：
+const oldPassword = ref('')
+const newPassword = ref('')
+const confirmPassword = ref('')
+// 显示/隐藏密码开关：
+const showOldPwd = ref(false)
+const showNewPwd = ref(false)
+const showConfirmPwd = ref(false)
+
+// 打开弹窗：
+const openPasswordDialog = () => {
+  passwordDialogOpen.value = true
+  resetPasswordForm()
+}
+
+// 关闭弹窗：
+const closePasswordDialog = () => {
+  passwordDialogOpen.value = false
+  resetPasswordForm()
+}
+
+// 重置密码表单：
+const resetPasswordForm = () => {
+  oldPassword.value = ''
+  newPassword.value = ''
+  confirmPassword.value = ''
+  showOldPwd.value = false
+  showNewPwd.value = false
+  showConfirmPwd.value = false
+}
+
+// 提交修改密码：（waiting for 后 端）
+const handleUpdatePassword = () => {
+  // 前端校验：
+  if (!oldPassword.value.trim()) {
+    ElMessage.warning('输入密码!')
+    return
+  }
+  if (newPassword.value.length < 6 || newPassword.value.length > 10) {
+    ElMessage.warning('新密码需为 6~10 位！')
+    return
+  }
+  // 检查 确认密码 是否与 新密码 一致：
+  if (newPassword.value !== confirmPassword.value) {
+    ElMessage.warning('两次输入的新密码不一致！')
+    return
+  }
+  // 检查新密码是否与原密码相同：
+  if (newPassword.value === oldPassword.value) {
+    ElMessage.warning('新密码不能与原密码相同！')
+    return
+  }
+
+  // 模拟修改成功：
+  ElMessage.success('密码修改成功！')
+  passwordDialogOpen.value = false
+}
+
+// 切换账号：
+const handleSwitchAccount = async () => {
+  try {
+    await ElMessageBox.confirm('您确认要切换账号吗？', '确认切换', {
+      confirmButtonText: '确定',
+      cancelButtonText: '取消',
+      type: 'warning'
+    })
+
+    userStore.clearUserInfo()
+    ElMessage.success('已退出登录！')
+    router.push('/login')
+  } catch (error) {
+    ElMessage.info('已取消切换账号')
+    console.error('取消切换账号：', error)
+  }
 }
 </script>
 
@@ -389,6 +542,47 @@ const handleUpdateUsername = () => {
       font-weight: 500;
       padding: 2px 8px;
     }
+  }
+}
+
+// 修改密码弹窗：
+.password-form {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+
+  .password-input {
+    width: 100%;
+  }
+
+  .show-pwd-toggle-container {
+    text-align: right;
+    font-size: 12px;
+
+    .show-pwd-toggle {
+      color: #409eff;
+      cursor: pointer;
+    }
+  }
+}
+
+// 切换账号按钮：
+.switch-account-btn {
+  position: absolute;
+  margin-left: 10px;
+  margin-top: 10px;
+  bottom: 10%;
+  padding: 8px 20px;
+  border-radius: 8px;
+  border: none;
+  background-color: #409eff;
+  color: #fff;
+  font-size: 16px;
+  cursor: pointer;
+  transition: all 0.3s;
+
+  &:hover {
+    background-color: #5cb3ff;
   }
 }
 </style>
