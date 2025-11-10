@@ -72,6 +72,36 @@
           </ElDialog>
         </div>
       </div>
+
+      <!-- 账号安全 -->
+      <div class="section">
+        <h3 class="section-title">账号安全</h3>
+        <div class="security-info">
+          <div class="security-item">
+            <span class="label">手机号码：</span>
+            <span class="userphone">{{ userInfo.phone }}</span>
+            <span class="status">{{
+              userInfo.phoneBound ? '已绑定' : '未绑定'
+            }}</span>
+          </div>
+
+          <div class="security-item">
+            <span class="label">账号密码：</span>
+            <span class="status">{{
+              userInfo.passwordSet ? '已设置' : '未设置'
+            }}</span>
+            <button class="edit-btn">修改密码</button>
+          </div>
+
+          <div class="security-item">
+            <span class="label">邮箱绑定：</span>
+            <span class="useremail">{{ userInfo.email }}</span>
+            <span class="status">{{
+              userInfo.emailBound ? '已绑定' : '未绑定'
+            }}</span>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 </template>
@@ -213,7 +243,6 @@ const handleUpdateUsername = () => {
   color: #4e4e4e;
   margin-bottom: 16px;
   padding-bottom: 16px;
-  border-bottom: 1px solid black;
 }
 
 // 基本信息:
@@ -305,6 +334,60 @@ const handleUpdateUsername = () => {
       &:hover {
         color: #409eff;
       }
+    }
+  }
+}
+
+// 账号安全：
+.security-info {
+  padding: 20px 70px;
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+
+  .security-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+
+    .label {
+      font-size: 18px;
+      color: #666;
+      width: 100px;
+      text-align: right;
+    }
+
+    .status {
+      font-size: 16px;
+      padding: 2px 8px;
+      color: #5a6edf;
+      font-weight: 500;
+    }
+
+    .edit-btn {
+      margin-left: 10px;
+      padding: 2px 8px;
+      font-size: 16px;
+      border: none;
+      border-radius: 4px;
+      background-color: transparent;
+      cursor: pointer;
+      color: #3687d8;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+
+      &:hover {
+        color: #409eff;
+      }
+    }
+
+    .userphone,
+    .useremail {
+      font-size: 16px;
+      color: #333;
+      font-weight: 500;
+      padding: 2px 8px;
     }
   }
 }
