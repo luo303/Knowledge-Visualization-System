@@ -10,6 +10,7 @@ import('simple-mind-map/src/plugins/ExportPDF.js' as any).then(res => {
 import('simple-mind-map/src/plugins/ExportXMind.js' as any).then(res => {
   MindMap.usePlugin(res.default)
 })
+import { ElMessage } from 'element-plus'
 //导出状态
 const isExporting = ref(false) // 是否正在导出
 const exportError = ref(false) // 是否导出失败
@@ -46,7 +47,13 @@ export const exports = async (
       })
 
       // 导出并自动下载
-      await mindMap.export(format, true, mindMapDatas[i]?.title)
+      if (format === 'xmind') {
+        await mindMap.export(format, mindMapDatas[i]?.title)
+      } else if (format === 'png' || format === 'pdf') {
+        await mindMap.export(format, true, mindMapDatas[i]?.title)
+      } else {
+        ElMessage.error(`暂不支持${format}格式`)
+      }
 
       // 清理临时资源
       mindMap.destroy()
