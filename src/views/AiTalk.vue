@@ -9,9 +9,9 @@
         </div>
 
         <div class="chat_list">
-          <div v-if="chatList.length !== 0">
+          <div v-if="chat.length !== 0">
             <div
-              v-for="(chat, id) in chatList"
+              v-for="(chat, id) in chat"
               :key="id"
               class="chat_item"
               @click="enterChat(chat.conversation_id)"
@@ -67,7 +67,7 @@
               p-id="14695"
             ></path>
           </svg>
-          <span class="title"> {{ currentChat.title }}</span>
+          <span class="title"> {{ currentChat?.title }}</span>
         </div>
 
         <div class="talk_area" ref="messageArea">
@@ -75,7 +75,7 @@
             欢迎来到对话系统，请问有什么可以帮您？
           </div>
           <div
-            v-for="(msg, idx) in currentChat.messages"
+            v-for="(msg, idx) in currentChat?.messages"
             :key="idx"
             :class="['msg', msg.role === 'user' ? 'user-msg' : 'system_msg']"
           >
@@ -132,15 +132,55 @@
 // @ts-expect-error 忽略 simple-mind-map 无类型声明的报错
 import Markdown from 'vue3-markdown-it'
 import { ElMessage } from 'element-plus'
-import { ref, computed, nextTick } from 'vue'
+import { ref, nextTick, onMounted } from 'vue'
 import { EditPen } from '@element-plus/icons-vue'
 import { useLayoutStore } from '@/stores'
 import { storeToRefs } from 'pinia'
-import type { Chat } from '@/stores/modules/type'
-import { NewChat } from '@/api/user'
-import { GetChat, DelChat, UpdateTitle, SendMessage } from '@/api/user'
-
+import type { Chat, Message } from '@/stores/modules/type'
+import {
+  NewChat,
+  GetChat,
+  DelChat,
+  UpdateTitle,
+  SendMessage,
+  GetMapChatList
+} from '@/api/user'
 const LayoutStore = useLayoutStore()
+// 所有对话数据（指定类型为Chat数组）
+const { chat, currentChat, currentChatId } = storeToRefs(LayoutStore)
+onMounted(async () => {
+  //进入ai对话框获取导图对应的会话列表
+  try {
+    const res = await GetMapChatList(LayoutStore.data.mapId)
+    if ((res as any).Code === 200) {
+      LayoutStore.chat = (res as any).Data.list
+    } else {
+      ElMessage.error('获取该导图所有对话失败')
+    }
+  } catch (error) {
+    console.log(error)
+  }
+})
+const getlist = async () => {
+  chat.value = []
+  LayoutStore.chat.forEach(async item => {
+    try {
+      const res = await GetChat(item.conversation_id)
+      if ((res as any).Code === 200) {
+        chat.value.push({
+          title: (res as any).Data.title as string,
+          conversation_id: item.conversation_id as string,
+          messages: (res as any).Data.messages as Message[]
+        })
+      } else {
+        ElMessage.error('获取某个会话聊天记录失败')
+      }
+    } catch (error) {
+      console.log(error)
+    }
+  })
+}
+getlist()
 
 const form = ref({
   name: ''
@@ -148,7 +188,7 @@ const form = ref({
 const formRef = ref()
 //判断标题是否重复
 const detect = (rule: any, value: any, callback: any) => {
-  if (chatList.value.every((item: Chat) => item.title !== value)) callback()
+  if (chat.value.every((item: Chat) => item.title !== value)) callback()
   else callback('标题已使用')
 }
 const rules = ref({
@@ -177,49 +217,12 @@ const handleEnter = (event: any) => {
 
   console.log('回车触发，但已阻止默认行为')
 }
-//用时间戳代替id
-const createid = () => {
-  const timestamp = Date.now()
-  const id = timestamp.toString()
-  return id
-}
 // 控制当前显示视图：false=列表，true=聊天窗口
 const isChatting = ref<boolean>(false)
-
-// 当前选中的对话ID
-const currentChatId = ref<string>(createid())
 
 // 输入框内容
 const inputContent = ref<string>('')
 
-// 所有对话数据（指定类型为Chat数组）
-const { chat: chatList } = storeToRefs(LayoutStore)
-const getlist = async () => {
-  chatList.value = []
-  LayoutStore.chatlist.forEach(async item => {
-    try {
-      const res = await GetChat(item.conversation_id)
-      if ((res as any).Code === 200) {
-        chatList.value.push({
-          title: (res as any).Data.title,
-          conversation_id: item.conversation_id,
-          messages: (res as any).Data.messages
-        })
-      } else {
-        ElMessage.error('获取某个会话聊天记录失败')
-      }
-    } catch (error) {
-      console.log(error)
-    }
-  })
-}
-getlist()
-// 获取当前对话数据（添加返回值类型）
-const currentChat = computed<Chat>(() => {
-  return chatList.value.find(
-    (item: Chat) => item.conversation_id === currentChatId.value
-  )!
-})
 //编辑对话标题
 const edittitle = (item: Chat) => {
   currentChatId.value = item.conversation_id
@@ -245,28 +248,39 @@ const cancel = () => {
 const confirm = async () => {
   await formRef.value.validate()
   // currentChat.value.title = form.value.name
-  try {
-    const res = await UpdateTitle(
-      currentChat.value.conversation_id,
-      form.value.name
-    )
-    if ((res as any).Code === 200) {
-      getlist()
-      dialogFormVisible.value = false
-      formRef.value.resetFields()
-      ElMessage.success('修改成功')
-    } else {
-      ElMessage.error('修改失败')
+
+  if (currentChat.value.conversation_id) {
+    try {
+      const res = await UpdateTitle(
+        currentChat.value.conversation_id,
+        form.value.name
+      )
+      if ((res as any).Code === 200) {
+        getlist()
+        dialogFormVisible.value = false
+        formRef.value.resetFields()
+        ElMessage.success('修改成功')
+      } else {
+        dialogFormVisible.value = false
+        formRef.value.resetFields()
+        ElMessage.error('修改失败')
+      }
+    } catch (error) {
+      console.log(error)
     }
-  } catch (error) {
-    console.log(error)
+  } else {
+    ElMessage.error('系统错误，当前没有导图')
   }
 }
 // 进入聊天窗口（添加参数类型）
 const enterChat = (id: string): void => {
   currentChatId.value = id
-  isChatting.value = true
-  scrollToBottom()
+  if (currentChat.value.conversation_id) {
+    isChatting.value = true
+    scrollToBottom()
+  } else {
+    ElMessage.error('系统错误，当前聊天不存在')
+  }
 }
 
 // 返回列表
@@ -329,7 +343,7 @@ const createNewChat = async () => {
     const res = await NewChat(LayoutStore.data, form.value.name)
     if ((res as any).Code === 200) {
       currentChatId.value = res.data.conversation_id
-      chatList.value.push({
+      chat.value.push({
         title: form.value.name,
         conversation_id: res.data.conversation_id,
         messages: []
@@ -348,7 +362,7 @@ const createNewChat = async () => {
     formRef.value.resetFields()
     console.log(error)
   }
-  // chatList.value.push({
+  // chat.value.push({
   //   title: form.value.name,
   //   conversation_id: id,
   //   messages: []
@@ -357,17 +371,13 @@ const createNewChat = async () => {
 
 // 删除对话
 const deleteChat = async (id: string) => {
-  if (chatList.value.length <= 1) {
+  if (chat.value.length <= 1) {
     ElMessage.error('至少保留一个对话')
     return
   }
   try {
     const res = await DelChat(id)
     if ((res as any).Code === 200) {
-      const index = chatList.value.findIndex(
-        (item: Chat) => item.conversation_id === id
-      )
-      chatList.value.splice(index, 1)
       getlist()
     } else {
       ElMessage.error('删除失败')
