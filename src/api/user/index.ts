@@ -78,19 +78,10 @@ export const UpdateTitle = (conversation_id: string, title: string) =>
 export const generateMindMap = async (
   data: GenerateMindMapParams
 ): Promise<ApiResponse<GenerateMindMapData>> => {
-  try {
-    const responseData = await request.post<ApiResponse<GenerateMindMapData>>(
-      '/api/biz/v1/aichat/generate_mind_map',
-      data
-    )
-    return responseData.data
-  } catch (error) {
-    console.error('调用 generate_mind_map 接口请求失败：', error)
-    const errorResponse: ApiResponse<GenerateMindMapData> = {
-      Code: 500,
-      Message: '网络错误或跨域问题，请检查网络',
-      Data: { success: false, map_json: '{}' }
-    }
-    return errorResponse
-  }
+  const response = await request.post<ApiResponse<GenerateMindMapData>>(
+    '/api/biz/v1/aichat/generate_mind_map',
+    data
+  )
+
+  return response.data
 }

@@ -24,7 +24,9 @@ request.interceptors.response.use(
   (error: any) => {
     //处理网络错误或跨域报错
     if (!error.response) {
-      ElMessage.error('网络错误，请检查跨域配置或网络连接')
+      const networkError = new Error('网络错误，请检查网络连接或跨域配置')
+      ;(networkError as any).isNetworkError = true
+      return Promise.reject(networkError)
     } else {
       let msg = ''
       const status = error.response.status

@@ -128,6 +128,8 @@ const handleFileUpload = async (e: Event) => {
     status.value = 'uploading'
     progress.value = 0
 
+    let progressInterval: number | undefined
+
     try {
       const fileText = await new Promise<string>((resolve, reject) => {
         const timer = setInterval(() => {
@@ -136,27 +138,28 @@ const handleFileUpload = async (e: Event) => {
             clearInterval(timer)
             readFileAsText(file).then(resolve).catch(reject)
           }
-        }, 50)
+        }, 100)
       })
 
       status.value = 'parsing'
       progress.value = 0
+
+      // 管理 “处理中” 的进度条：
+      progressInterval = setInterval(() => {
+        if (progress.value < 95) {
+          progress.value += 5
+        }
+      }, 200)
 
       // 调用后端生成思维导图：
       const response = await generateMindMap({
         text: fileText
       })
 
-      // 模拟解析进度：
-      await new Promise(resolve => {
-        const timer = setInterval(() => {
-          progress.value += 20
-          if (progress.value >= 100) {
-            clearInterval(timer)
-            resolve(true)
-          }
-        }, 100)
-      })
+      // 网络请求完成后，清楚进度条计时器，并将进度条直接拉满：
+      clearInterval(progressInterval)
+      progress.value = 100
+      await new Promise(resolve => setTimeout(resolve, 1000))
 
       // 处理接口响应：
       if (response && response.Code === 200 && response.Data?.success) {
@@ -171,8 +174,14 @@ const handleFileUpload = async (e: Event) => {
         throw new Error(response.Message || '生成导图失败！')
       }
     } catch (error) {
-      console.error('文件处理失败:', error)
-      ElMessage.error((error as Error).message || '文件处理失败，请重试')
+      clearInterval(progressInterval)
+      progress.value = 100
+      await new Promise(resolve => setTimeout(resolve, 1000))
+
+      const errorMessage = (error as Error).message || '文件处理失败，请重试！'
+
+      console.error('文件处理失败:', errorMessage)
+      ElMessage.error(errorMessage)
       status.value = 'error'
     }
   }
