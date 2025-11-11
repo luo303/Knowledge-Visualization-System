@@ -198,7 +198,7 @@ import { ref, onMounted, onUnmounted, computed, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import PreviewPage from '@/components/PreviewPage.vue'
 import type { MindMapOptions } from '@/utils/type'
-import { ElMessageBox } from 'element-plus'
+import { ElMessageBox, ElMessage } from 'element-plus'
 import { exports } from '@/utils/export.ts'
 // import axios from 'axios'
 
@@ -676,6 +676,13 @@ const showStatusToast = ref(false) // 弹窗
 const statusMessage = ref('')
 const statusType = ref('')
 
+// 批量导出时的文件格式选择：
+const exportFormat = [
+  { label: 'PNG 图片', value: 'png' },
+  { label: 'PDF 文档', value: 'pdf' },
+  { label: 'XMind 文件', value: 'xmind' }
+]
+
 // 批量导出逻辑：
 const handleBatchExport = async () => {
   const selectedMaps = mindmaps.value.filter(
@@ -690,19 +697,58 @@ const handleBatchExport = async () => {
     return
   }
 
-  statusMessage.value = '准备导出...'
-  statusType.value = 'loading'
-  showStatusToast.value = true
-
   try {
-    await exports(selectedMaps, 'png')
+    const { value: selectedFormat } = await ElMessageBox.confirm(
+      `
+      <div style="margin-bottom: 16px;">请选择导出的格式</div>
+      <div style="display: flex; align-items: center; gap: 12px; flex-wrap;">
+      ${exportFormat
+        .map(
+          format => `
+        <label style="display: flex; align-items: center; gap: 4px; cursor: pointer;">
+        <input type="radio" name="format" value="${format.value}"/>
+        ${format.label}</label>`
+        )
+        .join('')}</div>`,
+      '批量导出',
+      {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        dangerouslyUseHTMLString: true,
+        // 点击确认按钮时获取选中格式：
+        beforeClose: (action, instance, done) => {
+          if (action === 'confirm') {
+            const radio = document.querySelector(
+              'input[name="format"]:checked'
+            ) as HTMLInputElement
+            if (radio) {
+              exports(selectedMaps, radio.value)
+              done()
+            } else {
+              ElMessage.warning('请选择导出格式！')
+            }
+          } else {
+            done()
+          }
+        }
+      }
+    )
 
-    statusMessage.value = `全部 ${selectedMaps.length} 个导图导出成功！`
+    // 执行导出：
+    statusMessage.value = '正在导出 ...'
+    statusType.value = 'loading'
+    showStatusToast.value = true
+
+    await exports(selectedMaps, selectedFormat)
+
+    statusMessage.value = `${selectedMaps.length}个导图导出成功！`
     statusType.value = 'success'
-  } catch (err) {
-    console.error('批量导出失败：', err)
-    statusMessage.value = `导出失败： ${(err as Error).message}`
-    statusType.value = 'error'
+  } catch (error) {
+    if ((error as Error).message !== 'cancel') {
+      console.error('批量导出失败：', error)
+      statusMessage.value = '导出失败： ${(error as Error).message}'
+      statusType.value = 'error'
+    }
   } finally {
     hideToast()
   }

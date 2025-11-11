@@ -32,7 +32,9 @@
             </el-input>
           </el-form-item>
           <el-form-item>
-            <el-button type="primary" @click="onSubmit">登录</el-button>
+            <el-button type="primary" @click="onSubmit" :loading="isLoading"
+              >登录</el-button
+            >
           </el-form-item>
           <el-link type="primary" class="register" @click="register"
             >一键注册新账号</el-link
