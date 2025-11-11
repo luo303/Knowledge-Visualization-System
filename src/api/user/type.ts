@@ -17,10 +17,13 @@ export interface ApiResponse<T = any> {
 
 // 登录成功时Data的类型（根据后端返回的用户信息定义）
 export interface LoginSuccessData {
-  token: string // 用户身份令牌（必选，用于后续接口授权）
-  user_id: string | number // 用户ID
-  user_name: string // 用户名
-  account?: string // 登录账号（手机号/邮箱）
+  token: string
+  user_id: string
+  user_name: string
+  account?: string
+  email?: string
+  phone?: string
+  role?: string
 }
 
 // 用户信息
