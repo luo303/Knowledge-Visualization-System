@@ -5,7 +5,9 @@ import type {
   forgetpwd,
   code,
   ApiResponse,
-  LoginSuccessData
+  LoginSuccessData,
+  GenerateMindMapParams,
+  GenerateMindMapData
 } from './type'
 import type { MindMapOptions } from '@/utils/type'
 import type { registerData } from './type'
@@ -71,3 +73,24 @@ export const UpdateTitle = (conversation_id: string, title: string) =>
     conversation_id,
     title
   })
+
+// 生成思维导图接口
+export const generateMindMap = async (
+  data: GenerateMindMapParams
+): Promise<ApiResponse<GenerateMindMapData>> => {
+  try {
+    const responseData = await request.post<ApiResponse<GenerateMindMapData>>(
+      '/api/biz/v1/aichat/generate_mind_map',
+      data
+    )
+    return responseData.data
+  } catch (error) {
+    console.error('调用 generate_mind_map 接口请求失败：', error)
+    const errorResponse: ApiResponse<GenerateMindMapData> = {
+      Code: 500,
+      Message: '网络错误或跨域问题，请检查网络',
+      Data: { success: false, map_json: '{}' }
+    }
+    return errorResponse
+  }
+}

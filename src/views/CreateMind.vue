@@ -93,6 +93,8 @@ import AiTalk from './AiTalk.vue'
 import { useLayoutStore } from '@/stores/modules/layout'
 import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
+import { generateMindMap } from '@/api/user/index'
+// import type { GenerateMindMapParams } from '@/api/user/type'
 
 const uploadedFileName = ref('') // 存储上传的文件名
 const LayoutStore = useLayoutStore()
@@ -103,51 +105,21 @@ const status = ref<
 const router = useRouter()
 const tempMindMapData = ref<any>(null) // 预留：存储未来真实接口的临时数据
 
-// 模拟上传文件（无后端地址时用，后续替换为真实接口）
-const mockUploadFile = (file: File) => {
-  return new Promise<any>(resolve => {
-    const uploadTimer = setInterval(() => {
-      progress.value += 5
-      if (progress.value >= 100) {
-        clearInterval(uploadTimer)
-        // 模拟返回临时思维导图数据（结构和真实接口一致）
-        resolve({
-          data: {
-            title: file.name.replace(/\.[^.]+$/, ''), // 用文件名当导图标题
-            desc: '由上传文件生成',
-            layout: 'tree',
-            root: {
-              data: { text: '根节点' },
-              children: [{ data: { text: '二级节点' }, children: [] }]
-            }
-          }
-        })
-      }
-    }, 100)
+// 读取文件内容为文本：
+const readFileAsText = (file: File): Promise<string> => {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader()
+    reader.onload = e => {
+      resolve(e.target?.result as string)
+    }
+    reader.onerror = () => {
+      reject(new Error('文件读取失败！'))
+    }
+    reader.readAsText(file) // 文本文件直接读取为文本
   })
 }
 
-// 模拟创建导图（无后端地址时用，后续替换为真实接口）
-const mockCreateMap = (tempData: any) => {
-  return new Promise<any>(resolve => {
-    // 模拟后端处理延迟（1秒）
-    setTimeout(() => {
-      resolve({
-        data: {
-          Code: 200,
-          Message: '成功',
-          Data: {
-            mapId: `map_${Date.now()}`, // 生成唯一mapId
-            userId: LayoutStore.data?.userId || '123456', // 从仓库取用户ID
-            ...tempData
-          }
-        }
-      })
-    }, 1000)
-  })
-}
-
-// 处理文件上传
+// 文件上传：
 const handleFileUpload = async (e: Event) => {
   const target = e.target as HTMLInputElement
   if (target.files && target.files[0]) {
@@ -157,38 +129,50 @@ const handleFileUpload = async (e: Event) => {
     progress.value = 0
 
     try {
-      //  模拟上传 后续替换为真实接口：await uploadFileForMindMap(file, {...})
-      const uploadRes = await mockUploadFile(file)
-      tempMindMapData.value = uploadRes.data // 存储临时数据
+      const fileText = await new Promise<string>((resolve, reject) => {
+        const timer = setInterval(() => {
+          progress.value += 10
+          if (progress.value >= 100) {
+            clearInterval(timer)
+            readFileAsText(file).then(resolve).catch(reject)
+          }
+        }, 50)
+      })
 
-      // 2. 上传完成 → 切换到 解析中
       status.value = 'parsing'
       progress.value = 0
 
-      // 3. 模拟解析进度
-      await new Promise<void>(resolve => {
-        const parseTimer = setInterval(() => {
-          progress.value += 5
+      // 调用后端生成思维导图：
+      const response = await generateMindMap({
+        text: fileText
+      })
+
+      // 模拟解析进度：
+      await new Promise(resolve => {
+        const timer = setInterval(() => {
+          progress.value += 20
           if (progress.value >= 100) {
-            clearInterval(parseTimer)
-            resolve()
+            clearInterval(timer)
+            resolve(true)
           }
         }, 100)
       })
 
-      // 4. 解析完成 后 调用创建导图接口 后续替换为真实接口：await createMap(...)
-      const createRes = await mockCreateMap(tempMindMapData.value)
-
-      // 5. 创建成功 后 存储数据 并切换状态
-      if (createRes.data?.Code === 200 && createRes.data?.Data?.mapId) {
-        LayoutStore.data = createRes.data.Data // 保存到Layout仓库
-        status.value = 'success'
+      // 处理接口响应：
+      if (response && response.Code === 200 && response.Data?.success) {
+        if (response.Data?.map_json) {
+          const mapData = JSON.parse(response.Data?.map_json) // 转换为对象
+          LayoutStore.data = mapData
+          status.value = 'success'
+        } else {
+          throw new Error('生成导图失败：缺少 map_json 数据')
+        }
       } else {
-        throw new Error('创建导图失败')
+        throw new Error(response.Message || '生成导图失败！')
       }
     } catch (error) {
-      console.error('文件处理失败：', error)
-      ElMessage.error('文件处理失败，请重试')
+      console.error('文件处理失败:', error)
+      ElMessage.error((error as Error).message || '文件处理失败，请重试')
       status.value = 'error'
     }
   }
