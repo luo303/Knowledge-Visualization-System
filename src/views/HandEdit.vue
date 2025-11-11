@@ -290,7 +290,7 @@ import {
 } from '@element-plus/icons-vue'
 import { useLayoutStore } from '@/stores'
 import { ElMessage } from 'element-plus'
-import { UpdateMap, GetMapChatList } from '@/api/user'
+import { UpdateMap } from '@/api/user'
 //是否保存
 const status = ref('未保存')
 //控制帮助页是否打开
@@ -398,16 +398,6 @@ onMounted(async () => {
     maxZoomRatio: 150, //最大缩放倍数
     minZoomRatio: 20 //最小缩放倍数
   } as any)
-  //进入手动编辑页获取导图对应的会话列表
-  try {
-    const res = await GetMapChatList(LayoutStore.data.mapId)
-    if ((res as any).Code === 200) {
-    } else {
-      ElMessage.error('获取该导图所有对话失败')
-    }
-  } catch (error) {
-    console.log(error)
-  }
   setTimeout(() => {
     mindMap.resize()
   }, 260)
