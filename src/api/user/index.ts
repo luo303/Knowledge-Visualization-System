@@ -87,7 +87,7 @@ export const generateMindMap = async (
   const response = await request.post<ApiResponse<GenerateMindMapData>>(
     '/api/biz/v1/aichat/generate_mind_map',
     formData,
-    { headers: { 'Content-Type': 'multipart/form-ata' } }
+    { headers: { 'Content-Type': 'multipart/form-data' } }
   )
   return response.data
 }

@@ -95,14 +95,15 @@ import AiTalk from './AiTalk.vue'
 import { useLayoutStore } from '@/stores/modules/layout'
 import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
-import { generateMindMap } from '@/api/user/index'
+import { generateMindMap, createMindMap } from '@/api/user/index'
 import type { GenerateMindMapResponse } from '@/api/user/type'
+import type { CreateMindMapParams } from '@/utils/type'
 
 const uploadedFileName = ref('') // 存储上传的文件名
 const LayoutStore = useLayoutStore()
 const progress = ref(0) // 进度条进度
 const status = ref<
-  'init' | 'uploading' | 'parsing' | 'success' | 'error' | 'view'
+  'init' | 'uploading' | 'parsing' | 'success' | 'error' | 'saving' | 'view'
 >('init') // 文件状态
 const router = useRouter()
 const tempMindMapData = ref<any>(null) // 预留：存储未来真实接口的临时数据
@@ -151,32 +152,55 @@ const handleFileUpload = async (e: Event) => {
       }, 200)
 
       console.log('开始调用生成导图接口...')
-      const response = (await generateMindMap(file)) as GenerateMindMapResponse
+      const generateResp = (await generateMindMap(
+        file
+      )) as GenerateMindMapResponse
+      console.log('生成导图接口调用完成，收到响应：', generateResp)
+      if (
+        !generateResp ||
+        generateResp.Code !== 200 ||
+        !generateResp.Data?.success ||
+        !generateResp.Data?.map_json
+      ) {
+        throw new Error(generateResp?.Message || '生成导图(草稿)失败!')
+      }
+
+      // 将草稿的map_json解析为对象：
+      const draftMapData = JSON.parse(generateResp.Data.map_json)
+      // 构造创建导图的请求参数：
+      const createParams: CreateMindMapParams = {
+        title: draftMapData.title || '未命名导图',
+        desc: draftMapData.desc || '无描述',
+        layout: draftMapData.layout || 'tree',
+        root: draftMapData.root
+      }
+
+      // 调用创建导图接口：
+      status.value = 'saving'
+      console.log('开始调用创建导图接口...')
+      const createResp = await createMindMap(createParams)
+      if (!createResp || createResp.Code !== 200 || !createResp.Data?.mapId) {
+        throw new Error(createResp?.Message || '创建正式导图失败！')
+      }
+
+      // 用正式数据更新全局状态：
+      const formalMapData = {
+        ...draftMapData,
+        mapId: createResp.Data.mapId
+      }
+      LayoutStore.data = formalMapData
 
       // 网络请求完成后，清楚进度条计时器，并将进度条直接拉满：
       clearInterval(progressInterval)
       progress.value = 100
       await new Promise(resolve => setTimeout(resolve, 1000))
-
-      // 处理接口响应：
-      if (response && response.Code === 200 && response.Data?.success) {
-        if (response.Data?.map_json) {
-          const mapData = JSON.parse(response.Data?.map_json) // 转换为对象
-          LayoutStore.data = mapData
-          status.value = 'success'
-        } else {
-          throw new Error('生成导图失败：缺少 map_json 数据')
-        }
-      } else {
-        throw new Error(response.Message || '生成导图失败！')
-      }
+      status.value = 'success'
+      ElMessage.success('导图创建成功！')
     } catch (error) {
       clearInterval(progressInterval)
       progress.value = 100
       await new Promise(resolve => setTimeout(resolve, 1000))
-
       const errorMessage = (error as Error).message || '文件处理失败，请重试！'
-
       console.error('文件处理失败:', errorMessage)
       ElMessage.error(errorMessage)
       status.value = 'error'
@@ -187,10 +211,10 @@ const handleFileUpload = async (e: Event) => {
 // 查看导图（跳转编辑页）
 const viewMindmap = () => {
   const mapId = LayoutStore.data?.mapId
-  if (mapId) {
+  if (mapId && mapId !== 'xxx') {
     router.push({ name: 'handedit', query: { mapId } }) // 携带 mapId
   } else {
-    ElMessage.warning('导图数据未找到，无法跳转')
+    ElMessage.warning('导图数据未找到或未生成正式ID，无法跳转')
   }
 }
 
