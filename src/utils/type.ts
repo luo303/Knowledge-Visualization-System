@@ -22,7 +22,20 @@ export interface MindMapOptions {
   root: MindMapNode // 根节点，包含整个导图的节点结构
   createdAt?: string
   updatedAt?: string
+  selected?: boolean // 导图是否被选中
   [key: string]: any
+}
+
+// 思维导图列表接口的响应类型：
+export interface MindMapResponse {
+  Code: number
+  Message: string
+  Data: {
+    list: MindMapOptions[]
+    total: number
+    page: number
+    page_size: number
+  }
 }
 
 // 个人主页类型接口
