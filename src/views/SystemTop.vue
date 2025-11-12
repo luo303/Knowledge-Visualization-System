@@ -7,13 +7,13 @@
       <div class="box2">
         <nav>
           <div class="icon-container">
-            <router-link class="icon-item" active-class="active" to="/home">
+            <div class="icon-item" active-class="active">
               <img
                 src="@/assets/images/notification.png"
                 class="icon"
                 alt="通知"
               />
-            </router-link>
+            </div>
             <router-link
               class="icon-item"
               active-class="active"

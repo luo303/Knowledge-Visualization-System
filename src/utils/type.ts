@@ -48,3 +48,20 @@ export interface UserInfo {
   phoneBound: boolean // 是否绑定过手机
   emailBound: boolean // 是否绑定过邮箱
 }
+
+// 创建导图的请求参数类型：
+export interface CreateMindMapParams {
+  title: string
+  desc: string
+  layout: string
+  root: MindMapNode
+}
+
+// 创建导图的响应类型：
+export interface CreateMindMapResponse {
+  Code: number
+  Message: string
+  Data: {
+    mapId: string
+  }
+}

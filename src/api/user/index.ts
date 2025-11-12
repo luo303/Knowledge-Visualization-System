@@ -8,7 +8,12 @@ import type {
   LoginSuccessData,
   GenerateMindMapData
 } from './type'
-import type { MindMapOptions, MindMapResponse } from '@/utils/type'
+import type {
+  MindMapOptions,
+  MindMapResponse,
+  CreateMindMapParams,
+  CreateMindMapResponse
+} from '@/utils/type'
 import type { registerData } from './type'
 
 // 登录接口
@@ -73,7 +78,7 @@ export const UpdateTitle = (conversation_id: string, title: string) =>
     title
   })
 
-// 生成思维导图接口
+// 生成思维导图接口 (草稿？)
 export const generateMindMap = async (
   file: File
 ): Promise<ApiResponse<GenerateMindMapData>> => {
@@ -82,7 +87,7 @@ export const generateMindMap = async (
   const response = await request.post<ApiResponse<GenerateMindMapData>>(
     '/api/biz/v1/aichat/generate_mind_map',
     formData,
-    { headers: { 'Content-Type': 'multipar/form-ata' } }
+    { headers: { 'Content-Type': 'multipart/form-ata' } }
   )
   return response.data
 }
@@ -96,4 +101,16 @@ export const getMindMapList = (params?: {
   sort?: string
 }) => {
   return request.get<MindMapResponse>('/api/biz/v1/mindmap/list', { params })
+}
+
+// 创建正式思维导图
+export const createMindMap = async (
+  data: CreateMindMapParams
+): Promise<CreateMindMapResponse> => {
+  const response = await request.post<CreateMindMapResponse>(
+    'api/biz/v1/mindmap',
+    data,
+    { headers: { 'Current-Type': 'application/json' } }
+  )
+  return response.data
 }
