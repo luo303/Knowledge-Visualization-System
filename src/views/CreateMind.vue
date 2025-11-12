@@ -20,7 +20,9 @@
           <p class="upload-desc" v-if="uploadedFileName">
             已上传: {{ uploadedFileName }}
           </p>
-          <p class="upload-desc" v-else>支持 TXT、DOCX、PDF 格式文件</p>
+          <p class="upload-desc" v-else>
+            支持 TXT、DOCX、PDF 格式文件 ( 最大32MB )
+          </p>
         </div>
 
         <div class="mindmap-container">
@@ -110,6 +112,17 @@ const handleFileUpload = async (e: Event) => {
   const target = e.target as HTMLInputElement
   if (target.files && target.files[0]) {
     const file = target.files[0]
+
+    // 检查文件大小是否超过限制:
+    const maxSize = 32 * 1024 * 1024
+    if (file.size > maxSize) {
+      ElMessage.error(
+        `文件大小不能超过 32MB ， 当前文件大小为 ${(file.size / (1024 * 1024)).toFixed(2)}`
+      )
+      if (target) target.value = ''
+      return
+    }
+
     uploadedFileName.value = file.name
     status.value = 'uploading'
     progress.value = 0
