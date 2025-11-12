@@ -197,10 +197,11 @@
 import { ref, onMounted, onUnmounted, computed, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import PreviewPage from '@/components/PreviewPage.vue'
-import type { MindMapOptions } from '@/utils/type'
+import type { MindMapOptions, MindMapResponse } from '@/utils/type'
 import { ElMessageBox, ElMessage } from 'element-plus'
 import { exports } from '@/utils/export.ts'
-// import axios from 'axios'
+import { getMindMapList } from '@/api/user/index'
+import { type AxiosResponse } from 'axios'
 
 // 搜索相关状态
 const searchQuery = ref('')
@@ -364,13 +365,15 @@ onUnmounted(() => {
 
 // 导图数据：
 
+const totalCount = ref(0) // 存储从后端获取的原始导图数，用于分页
+
 // 筛选并排序后的导图列表：
 const filteredMindMaps = computed(() => {
   // 时间排序：
   let sortedResult = [...mindmaps.value].sort((a, b) => {
     // 切换时间戳比较：
-    const timeA = new Date(a.createTime).getTime()
-    const timeB = new Date(b.createTime).getTime()
+    const timeA = new Date(a.updatedAt || '').getTime()
+    const timeB = new Date(b.updatedAt || '').getTime()
     if (currentSort.value === 'latest') {
       return timeB - timeA
     } else {
@@ -410,179 +413,45 @@ const shouldShowNoResult = computed(() => {
 // 页面加载时获取导图数据：
 onMounted(() => {
   // 接口请求：
-  // fetchMyMindMaps()
-
-  // 模拟数据：
-  mindmaps.value = [
-    {
-      mapId: 'test01',
-      userId: 'user01',
-      title: '测试导图01',
-      desc: '这是一条测试数据',
-      layout: 'mindMap',
-      root: {
-        data: {
-          text: '根节点'
-        },
-        children: [
-          {
-            data: {
-              text: '二级节点'
-            },
-            children: []
-          }
-        ]
-      },
-      createTime: '2024-06-01 10:00:00',
-      selected: false
-    },
-    {
-      mapId: 'test02',
-      userId: 'user02',
-      title: '测试导图02',
-      desc: '这是另一条测试数据',
-      layout: 'logicalStructure',
-      root: {
-        data: { text: '根节点', uid: 'root02' },
-        children: [
-          { data: { text: '子节点A', uid: 'cA' }, children: [] },
-          { data: { text: '子节点A', uid: 'cA' }, children: [] }
-        ]
-      },
-      createTime: '2024-06-02 14:30:00',
-      selected: false
-    },
-    {
-      mapId: 'test03',
-      userId: 'user03',
-      title: '测试导图03',
-      desc: '这是第三条测试数据',
-      layout: 'timeline',
-      root: {
-        data: { text: '根节点', uid: 'root03' },
-        children: [
-          { data: { text: '子节点A', uid: 'cA' }, children: [] },
-          { data: { text: '子节点A', uid: 'cA' }, children: [] }
-        ]
-      },
-      createTime: '2024-06-03 09:15:00',
-      selected: false
-    },
-    {
-      mapId: 'test04',
-      userId: 'user04',
-      title: '测试导图04',
-      desc: '这是第四条测试数据',
-      layout: 'organizationStructure',
-      root: {
-        data: { text: '根节点', uid: 'root04' },
-        children: [
-          { data: { text: '子节点A', uid: 'cA' }, children: [] },
-          { data: { text: '子节点A', uid: 'cA' }, children: [] }
-        ]
-      },
-      createTime: '2024-06-04 12:00:00',
-      selected: false
-    },
-    {
-      mapId: 'test05',
-      userId: 'user05',
-      title: '测试导图05',
-      desc: '这是第五条测试数据',
-      layout: 'catalogOrganization',
-      root: {
-        data: { text: '根节点', uid: 'root05' },
-        children: [
-          { data: { text: '子节点A', uid: 'cA' }, children: [] },
-          { data: { text: '子节点A', uid: 'cA' }, children: [] }
-        ]
-      },
-      createTime: '2024-06-05 15:30:00',
-      selected: false
-    },
-    {
-      mapId: 'test06',
-      userId: 'user06',
-      title: '测试导图06',
-      desc: '这是第六条测试数据',
-      layout: 'fishbone',
-      root: {
-        data: { text: '根节点', uid: 'root06' },
-        children: [
-          { data: { text: '子节点A', uid: 'cA' }, children: [] },
-          { data: { text: '子节点A', uid: 'cA' }, children: [] }
-        ]
-      },
-      createTime: '2024-06-06 10:00:00',
-      selected: false
-    },
-    {
-      mapId: 'test07',
-      userId: 'user07',
-      title: '测试导图07',
-      desc: '这是第七条测试数据',
-      layout: '时间轴2',
-      root: {
-        data: { text: '根节点', uid: 'root07' },
-        children: [
-          { data: { text: '子节点A', uid: 'cA' }, children: [] },
-          { data: { text: '子节点A', uid: 'cA' }, children: [] }
-        ]
-      },
-      createTime: '2024-06-07 13:30:00',
-      selected: false
-    },
-    {
-      mapId: 'test08',
-      userId: 'user08',
-      title: '测试导图08',
-      desc: '这是第八条测试数据',
-      layout: 'verticalTimeline',
-      root: {
-        data: { text: '根节点', uid: 'root08' },
-        children: [
-          { data: { text: '子节点A', uid: 'cA' }, children: [] },
-          { data: { text: '子节点A', uid: 'cA' }, children: [] }
-        ]
-      },
-      createTime: '2024-06-08 08:00:00',
-      selected: false
-    },
-    {
-      mapId: 'test09',
-      userId: 'user09',
-      title: '测试导图09',
-      desc: '这是第九条测试数据',
-      layout: 'logicalStructure',
-      root: {
-        data: { text: '根节点', uid: 'root09' },
-        children: [
-          { data: { text: '子节点A', uid: 'cA' }, children: [] },
-          { data: { text: '子节点A', uid: 'cA' }, children: [] }
-        ]
-      },
-      createTime: '2024-06-09 11:30:00',
-      selected: false
-    }
-  ]
+  fetchMyMindMaps()
 })
 
 // 获取数据：
-// const fetchMyMindMaps = async () => {
-//   try {
-//     console.log('开始请求导图数据')
-//     const response = await axios.get('/api/mymindmaps') // 先写个 "/api/mymindmaps" 等待接口地址
-//     console.log('接口返回数据: ', response.data)
-//     const mapsWithSelected = response.data.map((map: MindMapOptions) => ({
-//       ...map,
-//       selected: false
-//     }))
-//     mindmaps.value = mapsWithSelected
-//     console.log('处理后的数据： ', mindmaps.value)
-//   } catch (error) {
-//     console.log('获取导图数据失败: ', error)
-//   }
-// }
+const fetchMyMindMaps = async () => {
+  try {
+    console.log('开始请求导图数据')
+    const requestParams = {
+      page: currentPage.value,
+      page_size: pageSize.value,
+      keyword: searchKeyword.value.trim() || undefined,
+      layout: currentType.value === 'all' ? undefined : currentType.value,
+      sort: currentSort.value === 'latest' ? 'updatedAt,desc' : 'updatedAt,asc'
+    }
+    // 调用接口：
+    const response: AxiosResponse<MindMapResponse> =
+      await getMindMapList(requestParams)
+
+    if (response.data.Code === 200 && response.data.Data) {
+      console.log('接口返回数据：', response.data.Data)
+      const mapWithSelected = response.data.Data.list.map(
+        (map: MindMapOptions) => ({
+          ...map,
+          selected: false
+        })
+      ) as MindMapOptions[]
+
+      mindmaps.value = mapWithSelected
+      totalCount.value = response.data.Data.total
+    } else {
+      ElMessage.error(
+        `获取思维导图失败：${response.data.Message || '未知错误'}`
+      )
+    }
+  } catch (error) {
+    console.error('获取导图数据失败', error)
+    ElMessage.error('网络错误，获取导图列表失败，请稍后再试...')
+  }
+}
 
 // 方法：
 const router = useRouter()
@@ -597,7 +466,7 @@ const formatTime = (time: string): string => {
 const handleCardClick = (map: MindMapOptions, e: MouseEvent): void => {
   const target = e.target as HTMLElement
   if (!target.closest('.batch-checkbox') && !target.closest('.map-actions')) {
-    router.push(`/edit/${map.Id}`)
+    router.push(`/edit/${map.mapId}`)
   }
 }
 
@@ -624,7 +493,7 @@ const pageSize = ref(8)
 
 // 计算总页数：
 const totalPages = computed(() => {
-  return Math.ceil(filteredMindMaps.value.length / pageSize.value)
+  return Math.ceil(totalCount.value / pageSize.value)
 })
 
 // 计算当前可显示的数据：
@@ -746,7 +615,7 @@ const handleBatchExport = async () => {
   } catch (error) {
     if ((error as Error).message !== 'cancel') {
       console.error('批量导出失败：', error)
-      statusMessage.value = '导出失败： ${(error as Error).message}'
+      statusMessage.value = `导出失败： ${(error as Error).message}`
       statusType.value = 'error'
     }
   } finally {
@@ -790,11 +659,14 @@ const hideToast = () => {
 }
 
 // 监听选中导图的数量变化：
-watch(selectedCount, count => {
-  if (count === 0) {
-    showStatusToast.value = false
-  }
-})
+watch(
+  [searchKeyword, currentSort, currentType],
+  () => {
+    resetPagination() // 重置页码
+    fetchMyMindMaps() // 获取数据
+  },
+  { deep: true }
+)
 </script>
 
 <style lang="scss" scoped>

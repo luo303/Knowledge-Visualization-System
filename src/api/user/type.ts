@@ -51,9 +51,14 @@ export interface registerData {
   account_type: string
 }
 
-// 生成导图的请求参数
-export interface GenerateMindMapParams {
-  text: string // 文件解析后的文本内容
+// 生成导图
+export interface GenerateMindMapResponse {
+  Code: number
+  Message: string
+  Data: {
+    success: boolean
+    map_json: string
+  }
 }
 
 // 生成导图的响应数据类型

@@ -22,7 +22,20 @@ export interface MindMapOptions {
   root: MindMapNode // 根节点，包含整个导图的节点结构
   createdAt?: string
   updatedAt?: string
+  selected?: boolean // 导图是否被选中
   [key: string]: any
+}
+
+// 思维导图列表接口的响应类型：
+export interface MindMapResponse {
+  Code: number
+  Message: string
+  Data: {
+    list: MindMapOptions[]
+    total: number
+    page: number
+    page_size: number
+  }
 }
 
 // 个人主页类型接口
@@ -34,4 +47,21 @@ export interface UserInfo {
   passwordSet: boolean // 是否设置过密码
   phoneBound: boolean // 是否绑定过手机
   emailBound: boolean // 是否绑定过邮箱
+}
+
+// 创建导图的请求参数类型：
+export interface CreateMindMapParams {
+  title: string
+  desc: string
+  layout: string
+  root: MindMapNode
+}
+
+// 创建导图的响应类型：
+export interface CreateMindMapResponse {
+  Code: number
+  Message: string
+  Data: {
+    mapId: string
+  }
 }

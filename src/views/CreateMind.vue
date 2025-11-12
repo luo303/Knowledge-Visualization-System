@@ -20,7 +20,9 @@
           <p class="upload-desc" v-if="uploadedFileName">
             已上传: {{ uploadedFileName }}
           </p>
-          <p class="upload-desc" v-else>支持 TXT、DOCX、PDF 格式文件</p>
+          <p class="upload-desc" v-else>
+            支持 TXT、DOCX、PDF 格式文件 ( 最大32MB )
+          </p>
         </div>
 
         <div class="mindmap-container">
@@ -93,86 +95,114 @@ import AiTalk from './AiTalk.vue'
 import { useLayoutStore } from '@/stores/modules/layout'
 import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
-import { generateMindMap } from '@/api/user/index'
-// import type { GenerateMindMapParams } from '@/api/user/type'
+import { generateMindMap, createMindMap } from '@/api/user/index'
+import type { GenerateMindMapResponse } from '@/api/user/type'
+import type { CreateMindMapParams } from '@/utils/type'
 
 const uploadedFileName = ref('') // 存储上传的文件名
 const LayoutStore = useLayoutStore()
 const progress = ref(0) // 进度条进度
 const status = ref<
-  'init' | 'uploading' | 'parsing' | 'success' | 'error' | 'view'
+  'init' | 'uploading' | 'parsing' | 'success' | 'error' | 'saving' | 'view'
 >('init') // 文件状态
 const router = useRouter()
 const tempMindMapData = ref<any>(null) // 预留：存储未来真实接口的临时数据
-
-// 读取文件内容为文本：
-const readFileAsText = (file: File): Promise<string> => {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader()
-    reader.onload = e => {
-      resolve(e.target?.result as string)
-    }
-    reader.onerror = () => {
-      reject(new Error('文件读取失败！'))
-    }
-    reader.readAsText(file) // 文本文件直接读取为文本
-  })
-}
 
 // 文件上传：
 const handleFileUpload = async (e: Event) => {
   const target = e.target as HTMLInputElement
   if (target.files && target.files[0]) {
     const file = target.files[0]
+
+    // 检查文件大小是否超过限制:
+    const maxSize = 32 * 1024 * 1024
+    if (file.size > maxSize) {
+      ElMessage.error(
+        `文件大小不能超过 32MB ， 当前文件大小为 ${(file.size / (1024 * 1024)).toFixed(2)}`
+      )
+      if (target) target.value = ''
+      return
+    }
+
     uploadedFileName.value = file.name
     status.value = 'uploading'
     progress.value = 0
 
+    let progressInterval: number | undefined
+
     try {
-      const fileText = await new Promise<string>((resolve, reject) => {
-        const timer = setInterval(() => {
+      await new Promise<void>(resolve => {
+        progressInterval = window.setInterval(() => {
           progress.value += 10
           if (progress.value >= 100) {
-            clearInterval(timer)
-            readFileAsText(file).then(resolve).catch(reject)
+            clearInterval(progressInterval)
+            resolve()
           }
-        }, 50)
+        }, 100)
       })
 
       status.value = 'parsing'
       progress.value = 0
 
-      // 调用后端生成思维导图：
-      const response = await generateMindMap({
-        text: fileText
-      })
-
-      // 模拟解析进度：
-      await new Promise(resolve => {
-        const timer = setInterval(() => {
-          progress.value += 20
-          if (progress.value >= 100) {
-            clearInterval(timer)
-            resolve(true)
-          }
-        }, 100)
-      })
-
-      // 处理接口响应：
-      if (response && response.Code === 200 && response.Data?.success) {
-        if (response.Data?.map_json) {
-          const mapData = JSON.parse(response.Data?.map_json) // 转换为对象
-          LayoutStore.data = mapData
-          status.value = 'success'
-        } else {
-          throw new Error('生成导图失败：缺少 map_json 数据')
+      // 管理 “处理中” 的进度条：
+      progressInterval = setInterval(() => {
+        if (progress.value < 95) {
+          progress.value += 5
         }
-      } else {
-        throw new Error(response.Message || '生成导图失败！')
+      }, 200)
+
+      console.log('开始调用生成导图接口...')
+      const generateResp = (await generateMindMap(
+        file
+      )) as GenerateMindMapResponse
+      console.log('生成导图接口调用完成，收到响应：', generateResp)
+      if (
+        !generateResp ||
+        generateResp.Code !== 200 ||
+        !generateResp.Data?.success ||
+        !generateResp.Data?.map_json
+      ) {
+        throw new Error(generateResp?.Message || '生成导图(草稿)失败!')
       }
+
+      // 将草稿的map_json解析为对象：
+      const draftMapData = JSON.parse(generateResp.Data.map_json)
+      // 构造创建导图的请求参数：
+      const createParams: CreateMindMapParams = {
+        title: draftMapData.title || '未命名导图',
+        desc: draftMapData.desc || '无描述',
+        layout: draftMapData.layout || 'tree',
+        root: draftMapData.root
+      }
+
+      // 调用创建导图接口：
+      status.value = 'saving'
+      console.log('开始调用创建导图接口...')
+      const createResp = await createMindMap(createParams)
+      if (!createResp || createResp.Code !== 200 || !createResp.Data?.mapId) {
+        throw new Error(createResp?.Message || '创建正式导图失败！')
+      }
+
+      // 用正式数据更新全局状态：
+      const formalMapData = {
+        ...draftMapData,
+        mapId: createResp.Data.mapId
+      }
+      LayoutStore.data = formalMapData
+
+      // 网络请求完成后，清楚进度条计时器，并将进度条直接拉满：
+      clearInterval(progressInterval)
+      progress.value = 100
+      await new Promise(resolve => setTimeout(resolve, 1000))
+      status.value = 'success'
+      ElMessage.success('导图创建成功！')
     } catch (error) {
-      console.error('文件处理失败:', error)
-      ElMessage.error((error as Error).message || '文件处理失败，请重试')
+      clearInterval(progressInterval)
+      progress.value = 100
+      await new Promise(resolve => setTimeout(resolve, 1000))
+      const errorMessage = (error as Error).message || '文件处理失败，请重试！'
+      console.error('文件处理失败:', errorMessage)
+      ElMessage.error(errorMessage)
       status.value = 'error'
     }
   }
@@ -181,10 +211,10 @@ const handleFileUpload = async (e: Event) => {
 // 查看导图（跳转编辑页）
 const viewMindmap = () => {
   const mapId = LayoutStore.data?.mapId
-  if (mapId) {
+  if (mapId && mapId !== 'xxx') {
     router.push({ name: 'handedit', query: { mapId } }) // 携带 mapId
   } else {
-    ElMessage.warning('导图数据未找到，无法跳转')
+    ElMessage.warning('导图数据未找到或未生成正式ID，无法跳转')
   }
 }
 

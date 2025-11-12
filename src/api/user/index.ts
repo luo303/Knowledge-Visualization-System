@@ -6,10 +6,14 @@ import type {
   code,
   ApiResponse,
   LoginSuccessData,
-  GenerateMindMapParams,
   GenerateMindMapData
 } from './type'
-import type { MindMapOptions } from '@/utils/type'
+import type {
+  MindMapOptions,
+  MindMapResponse,
+  CreateMindMapParams,
+  CreateMindMapResponse
+} from '@/utils/type'
 import type { registerData } from './type'
 
 // 登录接口
@@ -74,23 +78,39 @@ export const UpdateTitle = (conversation_id: string, title: string) =>
     title
   })
 
-// 生成思维导图接口
+// 生成思维导图接口 (草稿？)
 export const generateMindMap = async (
-  data: GenerateMindMapParams
+  file: File
 ): Promise<ApiResponse<GenerateMindMapData>> => {
-  try {
-    const responseData = await request.post<ApiResponse<GenerateMindMapData>>(
-      '/api/biz/v1/aichat/generate_mind_map',
-      data
-    )
-    return responseData.data
-  } catch (error) {
-    console.error('调用 generate_mind_map 接口请求失败：', error)
-    const errorResponse: ApiResponse<GenerateMindMapData> = {
-      Code: 500,
-      Message: '网络错误或跨域问题，请检查网络',
-      Data: { success: false, map_json: '{}' }
-    }
-    return errorResponse
-  }
+  const formData = new FormData()
+  formData.append('file', file)
+  const response = await request.post<ApiResponse<GenerateMindMapData>>(
+    '/api/biz/v1/aichat/generate_mind_map',
+    formData,
+    { headers: { 'Content-Type': 'multipart/form-data' } }
+  )
+  return response.data
+}
+
+// 获取思维导图列表
+export const getMindMapList = (params?: {
+  page?: number
+  pageP_size?: number
+  keyword?: string
+  layout?: string
+  sort?: string
+}) => {
+  return request.get<MindMapResponse>('/api/biz/v1/mindmap/list', { params })
+}
+
+// 创建正式思维导图
+export const createMindMap = async (
+  data: CreateMindMapParams
+): Promise<CreateMindMapResponse> => {
+  const response = await request.post<CreateMindMapResponse>(
+    'api/biz/v1/mindmap',
+    data,
+    { headers: { 'Current-Type': 'application/json' } }
+  )
+  return response.data
 }
