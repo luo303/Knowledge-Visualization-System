@@ -157,51 +157,33 @@
 <script lang="ts" setup>
 import { ref } from 'vue'
 import { ElMessage } from 'element-plus'
-import type { FormRules, FormInstance } from 'element-plus'
 import { Message, Lock } from '@element-plus/icons-vue'
 import { useRouter } from 'vue-router'
-// import request from '@/utils/request' // 引入请求工具
 import { Login } from '@/api/user/index'
-import type {
-  LoginParams,
-  LoginSuccessData,
-  ApiResponse
-} from '@/api/user/type'
 import { useUserStore } from '@/stores/modules/user' // 导入用户仓库
 
-// 表单数据类型
-interface RuleForm {
-  password: ''
-  account: ''
-}
-
 // 表单响应式数据
-const formdata = ref<RuleForm>({
+const formdata = ref({
+  account: '',
   password: '',
-  account: ''
+  account_type: ''
 })
-
 const phoneReg = /^1[3-9]\d{9}$/
 const emailReg =
   /^[a-zA-Z0-9_-]+(?:\.[a-zA-Z0-9_-]+)*@(?:[a-zA-Z0-9](?:[a-zA-Z0-9-]*[a-zA-Z0-9])?\.)+[a-zA-Z0-9](?:[a-zA-Z0-9-]*[a-zA-Z0-9])?$/
-const formRef = ref<FormInstance>()
+const formRef = ref()
 const router = useRouter()
 const isLoading = ref(false) // 防止重复提交
 
 // 表单验证规则
-const rules = ref<FormRules>({
+const rules = ref({
   account: [
     { required: true, message: '请输入电话号码或邮箱地址', trigger: 'blur' },
     {
-      validator: (
-        rule: any,
-        value: any,
-        cb: (error?: string | Error) => void
-      ) => {
+      validator: (rule: any, value: any, cb: any) => {
         // 检查是否是有效的电话号码或邮箱
         const isValidPhone = phoneReg.test(value)
         const isValidEmail = emailReg.test(value)
-
         if (isValidPhone || isValidEmail) {
           cb()
         } else {
@@ -217,48 +199,26 @@ const rules = ref<FormRules>({
   ]
 })
 
+// 登录请求：
 const onSubmit = async () => {
-  if (!formRef.value) return
-
-  // 表单验证
-  const valid = await formRef.value.validate().catch(() => false)
-  if (!valid) {
-    ElMessage.error('请正确填写表单')
-    return
-  }
-
   isLoading.value = true
-
+  await formRef.value.validate()
   try {
-    // 自动判断账号类型（phone/email）
-    const accountType = phoneReg.test(formdata.value.account)
-      ? 'phone'
-      : 'email'
-
-    // 构造请求参数
-    const params: LoginParams = {
-      account: formdata.value.account,
-      password: formdata.value.password,
-      account_type: accountType
-    }
-
-    // 调用登录接口
-    const response: ApiResponse<LoginSuccessData> = await Login(params)
-
-    // 处理响应
-    if (response.Code === 200 && response.success) {
-      ElMessage.success('登录成功,正在跳转')
-      // 存储用户信息到user仓库
+    const res = await Login(formdata.value)
+    if ((res as any).code === 200 && (res as any).Data.success) {
+      ElMessage.success('登录成功, 正在跳转...')
+      // 存储用户信息到仓库：
       const userStore = useUserStore()
-      userStore.setUserInfo(response.Data)
-      // 跳转首页
-      router.push('/layout')
+      userStore.setUserInfo((res as any).Data)
+      setTimeout(() => {
+        router.push('/layout')
+      }, 1000)
     } else {
-      ElMessage.error(response.Message || '登录失败，请重试') // 错误信息优先使用后端返回的Message
+      ElMessage.error((res as any).Message || '登录失败')
     }
   } catch (error) {
-    console.error('登录请求失败：', error)
-    ElMessage.error('网络异常，请检查网络后重试')
+    console.log(error)
+    ElMessage.error('发送登录请求失败')
   } finally {
     isLoading.value = false
   }
