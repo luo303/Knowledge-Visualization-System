@@ -9,7 +9,7 @@ import type {
   GenerateMindMapParams,
   GenerateMindMapData
 } from './type'
-import type { MindMapOptions } from '@/utils/type'
+import type { MindMapOptions, MindMapResponse } from '@/utils/type'
 import type { registerData } from './type'
 
 // 登录接口
@@ -84,4 +84,15 @@ export const generateMindMap = async (
   )
 
   return response.data
+}
+
+// 获取思维导图列表
+export const getMindMapList = (params?: {
+  page?: number
+  pageP_size?: number
+  keyword?: string
+  layout?: string
+  sort?: string
+}) => {
+  return request.get<MindMapResponse>('/api/biz/v1/mindmap/list', { params })
 }
