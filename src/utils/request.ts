@@ -35,7 +35,7 @@ request.interceptors.response.use(
           msg = 'token过期'
           break
         default:
-          msg = '无网络'
+          msg = `${error.response.data.Message}`
       }
       ElMessage({
         type: 'error',
