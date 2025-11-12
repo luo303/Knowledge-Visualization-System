@@ -6,7 +6,6 @@ import type {
   code,
   ApiResponse,
   LoginSuccessData,
-  GenerateMindMapParams,
   GenerateMindMapData
 } from './type'
 import type { MindMapOptions, MindMapResponse } from '@/utils/type'
@@ -76,13 +75,15 @@ export const UpdateTitle = (conversation_id: string, title: string) =>
 
 // 生成思维导图接口
 export const generateMindMap = async (
-  data: GenerateMindMapParams
+  file: File
 ): Promise<ApiResponse<GenerateMindMapData>> => {
+  const formData = new FormData()
+  formData.append('file', file)
   const response = await request.post<ApiResponse<GenerateMindMapData>>(
     '/api/biz/v1/aichat/generate_mind_map',
-    data
+    formData,
+    { headers: { 'Content-Type': 'multipar/form-ata' } }
   )
-
   return response.data
 }
 

@@ -94,7 +94,7 @@ import { useLayoutStore } from '@/stores/modules/layout'
 import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import { generateMindMap } from '@/api/user/index'
-// import type { GenerateMindMapParams } from '@/api/user/type'
+import type { GenerateMindMapResponse } from '@/api/user/type'
 
 const uploadedFileName = ref('') // 存储上传的文件名
 const LayoutStore = useLayoutStore()
@@ -104,20 +104,6 @@ const status = ref<
 >('init') // 文件状态
 const router = useRouter()
 const tempMindMapData = ref<any>(null) // 预留：存储未来真实接口的临时数据
-
-// 读取文件内容为文本：
-const readFileAsText = (file: File): Promise<string> => {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader()
-    reader.onload = e => {
-      resolve(e.target?.result as string)
-    }
-    reader.onerror = () => {
-      reject(new Error('文件读取失败！'))
-    }
-    reader.readAsText(file) // 文本文件直接读取为文本
-  })
-}
 
 // 文件上传：
 const handleFileUpload = async (e: Event) => {
@@ -131,12 +117,12 @@ const handleFileUpload = async (e: Event) => {
     let progressInterval: number | undefined
 
     try {
-      const fileText = await new Promise<string>((resolve, reject) => {
-        const timer = setInterval(() => {
+      await new Promise<void>(resolve => {
+        progressInterval = window.setInterval(() => {
           progress.value += 10
           if (progress.value >= 100) {
-            clearInterval(timer)
-            readFileAsText(file).then(resolve).catch(reject)
+            clearInterval(progressInterval)
+            resolve()
           }
         }, 100)
       })
@@ -151,10 +137,8 @@ const handleFileUpload = async (e: Event) => {
         }
       }, 200)
 
-      // 调用后端生成思维导图：
-      const response = await generateMindMap({
-        text: fileText
-      })
+      console.log('开始调用生成导图接口...')
+      const response = (await generateMindMap(file)) as GenerateMindMapResponse
 
       // 网络请求完成后，清楚进度条计时器，并将进度条直接拉满：
       clearInterval(progressInterval)
