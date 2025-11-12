@@ -648,14 +648,17 @@ const pasteNode = () => {
 //组件销毁前更新思维导图
 onBeforeUnmount(async () => {
   LayoutStore.chat = [] //离开手动编辑页清空对话区
-  try {
-    const res = await UpdateMap(LayoutStore.data)
-    if ((res as any).Code === 200) {
-    } else {
-      ElMessage.error('请求失败')
+  if (LayoutStore.data.mapId) {
+    try {
+      const res = await UpdateMap(LayoutStore.data)
+      if ((res as any).Code === 200) {
+      } else {
+        const message = (res as any).Message
+        ElMessage.error(`${message}`)
+      }
+    } catch (error) {
+      console.log(error)
     }
-  } catch (error) {
-    console.log(error)
   }
 })
 </script>

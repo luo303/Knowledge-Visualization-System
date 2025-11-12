@@ -174,6 +174,8 @@ const Code = computed(() => ({
 const phoneReg = /^1[3-9]\d{9}$/
 const emailReg =
   /^[a-zA-Z0-9_-]+(?:\.[a-zA-Z0-9_-]+)*@(?:[a-zA-Z0-9](?:[a-zA-Z0-9-]*[a-zA-Z0-9])?\.)+[a-zA-Z0-9](?:[a-zA-Z0-9-]*[a-zA-Z0-9])?$/
+const pwdReg =
+  /^(?![a-zA-Z]+$)(?![a-z0-9]+$)(?![A-Z0-9]+$)(?![a-zA-Z!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]+$)(?![a-z0-9!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]+$)(?![A-Z0-9!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]+$).{8,16}$/
 const formRef = ref()
 const rules = ref({
   user_name: [
@@ -182,7 +184,16 @@ const rules = ref({
   ],
   password: [
     { required: true, message: '请输入密码', trigger: 'blur' },
-    { min: 6, max: 10, message: '密码必须为6到10位', trigger: 'blur' }
+    {
+      validator: (rule: any, value: any, cb: any) => {
+        if (pwdReg.test(value)) {
+          cb()
+        } else {
+          cb('长度需为8-16位,含大小写字母、数字、特殊字符中的至少3种')
+        }
+      },
+      trigger: 'blur'
+    }
   ],
   account: [
     { required: true, message: '请输入正确的电话号码或邮箱', trigger: 'blur' },
@@ -192,7 +203,7 @@ const rules = ref({
           formdata.value.account_type = 'phone'
           cb()
         } else if (emailReg.test(value)) {
-          formdata.value.account_type = 'eamil'
+          formdata.value.account_type = 'email'
           cb()
         } else {
           cb('请输入正确的电话号码或邮箱')
@@ -224,7 +235,7 @@ const getcode = async () => {
 
   try {
     const res = await Getcode(Code.value)
-    if ((res as any).code === 200) {
+    if ((res as any).Code === 200) {
       ElMessage.success('验证码发送成功')
     } else {
       ElMessage.error((res as any).Message || '获取验证码失败')
@@ -243,7 +254,7 @@ const register = async () => {
   await formRef.value.validate()
   try {
     const res = await Register(formdata.value)
-    if ((res as any).code === 200) {
+    if ((res as any).Code === 200) {
       ElMessage.success('注册成功')
       setTimeout(() => {
         router.push('/login')
