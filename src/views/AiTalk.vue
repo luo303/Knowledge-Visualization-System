@@ -150,20 +150,23 @@ const LayoutStore = useLayoutStore()
 const { chat, currentChat, currentChatId } = storeToRefs(LayoutStore)
 onMounted(async () => {
   //进入ai对话框获取导图对应的会话列表
-  try {
-    const res = await GetMapChatList(LayoutStore.data.mapId)
-    if ((res as any).Code === 200) {
-      LayoutStore.chat = (res as any).Data.list
-    } else {
-      ElMessage.error('获取该导图所有对话失败')
+  if (LayoutStore.data.mapId) {
+    try {
+      const res = await GetMapChatList(LayoutStore.data.mapId)
+      if ((res as any).Code === 200) {
+        LayoutStore.chatlist = (res as any).Data.list
+      } else {
+        const message = (res as any).Message
+        ElMessage.error(`${message}`)
+      }
+    } catch (error) {
+      console.log(error)
     }
-  } catch (error) {
-    console.log(error)
   }
 })
 const getlist = async () => {
   chat.value = []
-  LayoutStore.chat.forEach(async item => {
+  LayoutStore.chatlist.forEach(async item => {
     try {
       const res = await GetChat(item.conversation_id)
       if ((res as any).Code === 200) {
@@ -173,7 +176,8 @@ const getlist = async () => {
           messages: (res as any).Data.messages as Message[]
         })
       } else {
-        ElMessage.error('获取某个会话聊天记录失败')
+        const message = (res as any).Message
+        ElMessage.error(`${message}`)
       }
     } catch (error) {
       console.log(error)
@@ -263,7 +267,8 @@ const confirm = async () => {
       } else {
         dialogFormVisible.value = false
         formRef.value.resetFields()
-        ElMessage.error('修改失败')
+        const message = (res as any).Message
+        ElMessage.error(`${message}`)
       }
     } catch (error) {
       console.log(error)
@@ -286,6 +291,7 @@ const enterChat = (id: string): void => {
 // 返回列表
 const backToList = (): void => {
   isChatting.value = false
+  getlist()
 }
 
 // 发送消息
@@ -315,7 +321,8 @@ const sendMsg = async () => {
         role: 'system'
       })
     } else {
-      ElMessage.error('发送失败')
+      const message = (res as any).Message
+      ElMessage.error(`${message}`)
     }
   } catch (error) {
     console.log(error)
@@ -342,7 +349,7 @@ const createNewChat = async () => {
   try {
     const res = await NewChat(LayoutStore.data, form.value.name)
     if ((res as any).Code === 200) {
-      currentChatId.value = res.data.conversation_id
+      currentChatId.value = (res as any).Data.conversation_id
       chat.value.push({
         title: form.value.name,
         conversation_id: res.data.conversation_id,
@@ -354,7 +361,8 @@ const createNewChat = async () => {
     } else {
       dialogFormVisible.value = false
       formRef.value.resetFields()
-      ElMessage.error('新建失败')
+      const message = (res as any).Message
+      ElMessage.error(`${message}`)
       return
     }
   } catch (error) {
@@ -380,7 +388,8 @@ const deleteChat = async (id: string) => {
     if ((res as any).Code === 200) {
       getlist()
     } else {
-      ElMessage.error('删除失败')
+      const message = (res as any).Message
+      ElMessage.error(`${message}`)
     }
   } catch (error) {
     console.log(error)

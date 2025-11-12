@@ -3,7 +3,7 @@ import { ElMessage } from 'element-plus'
 import { useUserStore } from '@/stores'
 import router from '@/router'
 //创建axios实例
-const baseURL = 'https://frp-ski.com:46285'
+const baseURL = 'https://frp-ski.com:46285' //等后续接口
 const request = axios.create({
   baseURL,
   timeout: 5000
@@ -35,7 +35,7 @@ request.interceptors.response.use(
           msg = 'token过期'
           break
         default:
-          msg = '无网络'
+          msg = `${error.response.data.Message}`
       }
       ElMessage({
         type: 'error',
