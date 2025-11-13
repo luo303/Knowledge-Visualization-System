@@ -75,16 +75,19 @@
             欢迎来到对话系统，请问有什么可以帮您？
           </div>
           <div
-            v-for="(msg, idx) in currentChat?.messages"
+            v-for="(msg, idx) in currentChat?.messages.filter(item => {
+              return item.role === 'user' || item.role === 'assistant'
+            })"
             :key="idx"
             :class="['msg', msg.role === 'user' ? 'user-msg' : 'system_msg']"
           >
             <template v-if="msg.role === 'user'">
               {{ msg.content }}
             </template>
-            <template v-else>
+            <template v-else-if="msg.role === 'assistant'">
               <Markdown :source="msg.content" />
             </template>
+            <template v-else></template>
           </div>
         </div>
 
@@ -136,7 +139,7 @@ import { ref, nextTick, onMounted } from 'vue'
 import { EditPen } from '@element-plus/icons-vue'
 import { useLayoutStore } from '@/stores'
 import { storeToRefs } from 'pinia'
-import type { Chat, Message } from '@/stores/modules/type'
+import type { Chat, ChatList, Message } from '@/stores/modules/type'
 import {
   NewChat,
   GetChat,
@@ -148,25 +151,38 @@ import {
 const LayoutStore = useLayoutStore()
 // 所有对话数据（指定类型为Chat数组）
 const { chat, currentChat, currentChatId } = storeToRefs(LayoutStore)
-onMounted(async () => {
-  //进入ai对话框获取导图对应的会话列表
-  if (LayoutStore.data.mapId) {
-    try {
-      const res = await GetMapChatList(LayoutStore.data.mapId)
-      if ((res as any).Code === 200) {
-        LayoutStore.chatlist = (res as any).Data.list
-      } else {
-        const message = (res as any).Message
-        ElMessage.error(`${message}`)
-      }
-    } catch (error) {
-      console.log(error)
-    }
-  }
+onMounted(() => {
+  currentChatId.value = ''
 })
+//对对话记录进行时间排序(ascending 是否升序（true：最早在前，false：最新在前）)
+const sortByUpdate = (
+  conversations: ChatList[],
+  ascending: boolean = false
+): ChatList[] => {
+  return [...conversations].sort((a, b) => {
+    const dateA = new Date(a.updated_at).getTime()
+    const dateB = new Date(b.updated_at).getTime()
+    return ascending ? dateA - dateB : dateB - dateA
+  })
+}
+const getconlist = async () => {
+  try {
+    const res = await GetMapChatList(LayoutStore.data.mapId)
+    if ((res as any).Code === 200) {
+      LayoutStore.chatlist = sortByUpdate((res as any).Data.list, false)
+    } else {
+      const message = (res as any).Message
+      ElMessage.error(`${message}`)
+    }
+  } catch (error) {
+    console.log(error)
+  }
+}
+
 const getlist = async () => {
+  getconlist()
   chat.value = []
-  LayoutStore.chatlist.forEach(async item => {
+  for (const item of LayoutStore.chatlist) {
     try {
       const res = await GetChat(item.conversation_id)
       if ((res as any).Code === 200) {
@@ -182,9 +198,11 @@ const getlist = async () => {
     } catch (error) {
       console.log(error)
     }
-  })
+  }
 }
-getlist()
+if (LayoutStore.data.mapId) {
+  getlist()
+}
 
 const form = ref({
   name: ''
@@ -278,12 +296,17 @@ const confirm = async () => {
   }
 }
 // 进入聊天窗口（添加参数类型）
-const enterChat = (id: string): void => {
+const enterChat = async (id: string) => {
+  console.log(id)
+
   currentChatId.value = id
+  await nextTick()
   if (currentChat.value.conversation_id) {
     isChatting.value = true
     scrollToBottom()
   } else {
+    console.log(currentChat.value)
+
     ElMessage.error('系统错误，当前聊天不存在')
   }
 }
@@ -318,8 +341,9 @@ const sendMsg = async () => {
       }
       currentChat.value.messages.push({
         content: (res as any).Data.content,
-        role: 'system'
+        role: 'assistant'
       })
+      scrollToBottom()
     } else {
       const message = (res as any).Message
       ElMessage.error(`${message}`)
@@ -352,12 +376,14 @@ const createNewChat = async () => {
       currentChatId.value = (res as any).Data.conversation_id
       chat.value.push({
         title: form.value.name,
-        conversation_id: res.data.conversation_id,
+        conversation_id: (res as any).Data.conversation_id,
         messages: []
       })
       dialogFormVisible.value = false
       formRef.value.resetFields()
+      ElMessage.success('新建成功')
       enterChat(currentChatId.value)
+      getlist()
     } else {
       dialogFormVisible.value = false
       formRef.value.resetFields()
@@ -386,7 +412,22 @@ const deleteChat = async (id: string) => {
   try {
     const res = await DelChat(id)
     if ((res as any).Code === 200) {
+      //重新获取所有对话列表
+      if (LayoutStore.data.mapId) {
+        try {
+          const res = await GetMapChatList(LayoutStore.data.mapId)
+          if ((res as any).Code === 200) {
+            LayoutStore.chatlist = sortByUpdate((res as any).Data.list, false)
+          } else {
+            const message = (res as any).Message
+            ElMessage.error(`${message}`)
+          }
+        } catch (error) {
+          console.log(error)
+        }
+      }
       getlist()
+      ElMessage.success('删除成功')
     } else {
       const message = (res as any).Message
       ElMessage.error(`${message}`)

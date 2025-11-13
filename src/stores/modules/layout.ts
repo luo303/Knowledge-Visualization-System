@@ -45,7 +45,9 @@ export const useLayoutStore = defineStore(
     })
     watch(
       () => currentChatId.value,
-      newId => {
+      async newId => {
+        console.log(newId)
+
         if (newId) {
           const temp = chat.value.find(item => item.conversation_id === newId)
           if (temp) {
