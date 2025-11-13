@@ -31,6 +31,29 @@ export const useLayoutStore = defineStore(
       createdAt: '',
       updatedAt: ''
     })
+    //接收对话返回的思维导图
+    const aidata = ref<MindMapOptions>({
+      mapId: '',
+      userId: '',
+      title: '',
+      desc: '',
+      layout: '',
+      root: {
+        data: {
+          text: ''
+        },
+        children: [
+          {
+            data: {
+              text: ''
+            },
+            children: []
+          }
+        ]
+      },
+      createdAt: '',
+      updatedAt: ''
+    })
     //AI对话所有聊天数据(不包括聊天信息)
     const chatlist = ref<ChatList[]>([])
     //聊天信息
@@ -46,8 +69,6 @@ export const useLayoutStore = defineStore(
     watch(
       () => currentChatId.value,
       async newId => {
-        console.log(newId)
-
         if (newId) {
           const temp = chat.value.find(item => item.conversation_id === newId)
           if (temp) {
@@ -65,6 +86,7 @@ export const useLayoutStore = defineStore(
     return {
       isCollapse,
       data,
+      aidata,
       chat,
       chatlist,
       currentChat,

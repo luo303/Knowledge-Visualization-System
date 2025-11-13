@@ -6,7 +6,7 @@ import router from '@/router'
 const baseURL = 'https://frp-ski.com:46285' //等后续接口
 const request = axios.create({
   baseURL,
-  timeout: 5000
+  timeout: 10000000 //对话获取时间有点久，时间限制调大
 })
 //请求拦截器
 request.interceptors.request.use((config: any) => {

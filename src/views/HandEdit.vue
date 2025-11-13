@@ -274,7 +274,7 @@
 
 <script lang="ts" setup>
 import AiTalk from './AiTalk.vue'
-import { onMounted, onBeforeUnmount, ref, shallowRef } from 'vue'
+import { onMounted, onBeforeUnmount, ref, shallowRef, watch } from 'vue'
 import MindMap from 'simple-mind-map'
 import {
   Close,
@@ -331,7 +331,6 @@ const baseMap = {
     ]
   }
 }
-const Map = LayoutStore.data.mapId ? LayoutStore.data : baseMap
 let mindMap: any = null
 //判断是否在记录栈最前和最后
 const isStart = ref(true)
@@ -362,8 +361,8 @@ let confirmResolve: ((value: boolean) => void) | null = null
 onMounted(async () => {
   mindMap = new MindMap({
     el: document.getElementById('mindMapContainer'),
-    data: Map.root,
-    layout: Map.layout,
+    data: LayoutStore.data.root || baseMap.root,
+    layout: LayoutStore.data.layout || baseMap.layout,
     textAutoWrapWidth: 200,
     beforeShortcutRun: (key: any, activeNodes: any) => {
       if (key === 'Backspace' && activeNodes[0]?.isRoot) {
@@ -661,6 +660,18 @@ onBeforeUnmount(async () => {
     }
   }
 })
+watch(
+  () => LayoutStore.aidata,
+  newData => {
+    if (mindMap) {
+      mindMap.setData(newData.root)
+      // 2. 单独设置布局（如果库有 setLayout 方法）
+      mindMap.setLayout(newData.layout || 'logicalStructure')
+      mindMap.resize()
+    }
+  },
+  { deep: true }
+)
 </script>
 
 <style lang="scss" scoped>

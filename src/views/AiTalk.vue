@@ -169,6 +169,7 @@ const getconlist = async () => {
   try {
     const res = await GetMapChatList(LayoutStore.data.mapId)
     if ((res as any).Code === 200) {
+      LayoutStore.chatlist = []
       LayoutStore.chatlist = sortByUpdate((res as any).Data.list, false)
     } else {
       const message = (res as any).Message
@@ -234,10 +235,6 @@ const scrollToBottom = () => {
 const handleEnter = (event: any) => {
   // 阻止回车键的默认行为（如表单提交）
   event.preventDefault()
-  // 可选：添加自定义回车逻辑
-  console.log(event)
-
-  console.log('回车触发，但已阻止默认行为')
 }
 // 控制当前显示视图：false=列表，true=聊天窗口
 const isChatting = ref<boolean>(false)
@@ -297,16 +294,12 @@ const confirm = async () => {
 }
 // 进入聊天窗口（添加参数类型）
 const enterChat = async (id: string) => {
-  console.log(id)
-
   currentChatId.value = id
   await nextTick()
   if (currentChat.value.conversation_id) {
     isChatting.value = true
     scrollToBottom()
   } else {
-    console.log(currentChat.value)
-
     ElMessage.error('系统错误，当前聊天不存在')
   }
 }
@@ -314,6 +307,12 @@ const enterChat = async (id: string) => {
 // 返回列表
 const backToList = (): void => {
   isChatting.value = false
+  currentChatId.value = ''
+  currentChat.value = {
+    title: '',
+    conversation_id: '',
+    messages: []
+  }
   getlist()
 }
 
@@ -337,7 +336,9 @@ const sendMsg = async () => {
     )
     if ((res as any).Code === 200) {
       if ((res as any).Data.new_map_json) {
-        LayoutStore.data = (res as any).Data.new_map_json
+        console.log(JSON.parse((res as any).Data.new_map_json).root)
+
+        LayoutStore.aidata = JSON.parse((res as any).Data.new_map_json)
       }
       currentChat.value.messages.push({
         content: (res as any).Data.content,
