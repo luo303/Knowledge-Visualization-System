@@ -39,7 +39,7 @@ export const NewChat = (data: MindMapOptions, title: string) =>
   request.post('/api/biz/v1/aichat/save_conversation', {
     title,
     map_id: data.mapId,
-    map_data: data
+    map_data: JSON.stringify(data)
   })
 //获取该导图所有会话
 export const GetMapChatList = (map_id: string) =>
@@ -64,7 +64,7 @@ export const SendMessage = (
   request.post('/api/biz/v1/aichat/send_message', {
     conversation_id,
     content,
-    map_data
+    map_data: JSON.stringify(map_data)
   })
 //删除会话
 export const DelChat = (conversation_id: string) =>
