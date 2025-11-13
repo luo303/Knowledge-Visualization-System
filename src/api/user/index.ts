@@ -1,13 +1,6 @@
 //用于放置接口
 import request from '@/utils/request'
-import type {
-  LoginParams,
-  forgetpwd,
-  code,
-  ApiResponse,
-  LoginSuccessData,
-  GenerateMindMapData
-} from './type'
+import type { loginData, forgetpwd, code } from './type'
 import type {
   MindMapOptions,
   MindMapResponse,
@@ -17,9 +10,7 @@ import type {
 import type { registerData } from './type'
 
 // 登录接口
-export const Login = (
-  data: LoginParams
-): Promise<ApiResponse<LoginSuccessData>> =>
+export const Login = (data: loginData) =>
   request.post('/api/biz/v1/user/login', data)
 
 //注册
@@ -79,12 +70,10 @@ export const UpdateTitle = (conversation_id: string, title: string) =>
   })
 
 // 生成思维导图接口 (草稿？)
-export const generateMindMap = async (
-  file: File
-): Promise<ApiResponse<GenerateMindMapData>> => {
+export const generateMindMap = async (file: File) => {
   const formData = new FormData()
   formData.append('file', file)
-  const response = await request.post<ApiResponse<GenerateMindMapData>>(
+  const response = await request.post(
     '/api/biz/v1/aichat/generate_mind_map',
     formData,
     { headers: { 'Content-Type': 'multipart/form-data' } }
