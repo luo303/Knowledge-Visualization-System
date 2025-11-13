@@ -174,6 +174,8 @@ const emailReg =
 const formRef = ref()
 const router = useRouter()
 const isLoading = ref(false) // 防止重复提交
+const pwdReg =
+  /^(?![a-zA-Z]+$)(?![a-z0-9]+$)(?![A-Z0-9]+$)(?![a-zA-Z!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]+$)(?![a-z0-9!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]+$)(?![A-Z0-9!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]+$).{8,16}$/
 
 // 表单验证规则
 const rules = ref({
@@ -195,15 +197,24 @@ const rules = ref({
   ],
   password: [
     { required: true, message: '密码不能为空', trigger: 'blur' },
-    { min: 6, max: 10, message: '密码必须为6到10位', trigger: 'blur' }
+    {
+      validator: (rule: any, value: any, cb: any) => {
+        if (pwdReg.test(value)) {
+          cb()
+        } else {
+          cb('长度需为8-16位,含大小写字母、数字、特殊字符中的至少3种')
+        }
+      },
+      trigger: 'blur'
+    }
   ]
 })
 
 // 登录请求：
 const onSubmit = async () => {
   isLoading.value = true
-  await formRef.value.validate()
   try {
+    await formRef.value.validate()
     const res = await Login(formdata.value)
     if ((res as any).code === 200 && (res as any).Data.success) {
       ElMessage.success('登录成功, 正在跳转...')
