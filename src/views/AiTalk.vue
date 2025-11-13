@@ -135,7 +135,7 @@
 // @ts-expect-error 忽略 simple-mind-map 无类型声明的报错
 import Markdown from 'vue3-markdown-it'
 import { ElMessage } from 'element-plus'
-import { ref, nextTick } from 'vue'
+import { ref, nextTick, onMounted } from 'vue'
 import { EditPen } from '@element-plus/icons-vue'
 import { useLayoutStore } from '@/stores'
 import { storeToRefs } from 'pinia'
@@ -151,6 +151,9 @@ import {
 const LayoutStore = useLayoutStore()
 // 所有对话数据（指定类型为Chat数组）
 const { chat, currentChat, currentChatId } = storeToRefs(LayoutStore)
+onMounted(() => {
+  currentChatId.value = ''
+})
 //对对话记录进行时间排序(ascending 是否升序（true：最早在前，false：最新在前）)
 const sortByUpdate = (
   conversations: ChatList[],
