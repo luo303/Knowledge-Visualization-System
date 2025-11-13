@@ -11,7 +11,7 @@
           ref="formRef"
         >
           <!-- 邮箱输入框 -->
-          <el-form-item prop="email">
+          <el-form-item prop="account">
             <el-input v-model="formdata.account" placeholder="请输入电话/邮箱">
               <template #prefix>
                 <el-icon><Message /></el-icon>
@@ -186,10 +186,14 @@ const rules = ref({
         // 检查是否是有效的电话号码或邮箱
         const isValidPhone = phoneReg.test(value)
         const isValidEmail = emailReg.test(value)
-        if (isValidPhone || isValidEmail) {
+        if (isValidPhone) {
+          formdata.value.account_type = 'phone'
+          cb()
+        } else if (isValidEmail) {
+          formdata.value.account_type = 'email'
           cb()
         } else {
-          cb(new Error('请输入正确的电话号码或邮箱地址'))
+          cb('请输入正确的电话号码或邮箱地址')
         }
       },
       trigger: 'blur'
