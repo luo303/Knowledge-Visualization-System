@@ -9,7 +9,7 @@ export const useUserStore = defineStore(
     // 存储用户信息
     const userInfoJson = ref('')
     // 单独存储token（方便直接获取）
-    const tokenJson = ref('')
+    const token = ref('')
 
     const userInfo = computed(() => {
       try {
@@ -31,20 +31,12 @@ export const useUserStore = defineStore(
       }
     }
 
-    const token = computed(() => {
-      try {
-        return JSON.parse(
-          tokenJson.value || window.localStorage.getItem('TokenInfo') || '{}'
-        )
-      } catch (err) {
-        ElMessage.error('token的JSON字符串格式错误，转换对象时失败...')
-        window.localStorage.setItem('TokenInfo', '')
-        throw err
-      }
+    const getToken = computed(() => {
+      return token.value || window.localStorage.getItem('TokenInfo') || ''
     })
 
     const saveToken = (data: string) => {
-      tokenJson.value = data
+      token.value = data
       window.localStorage.setItem('TokenInfo', data)
     }
 
@@ -58,14 +50,14 @@ export const useUserStore = defineStore(
     // 动作：退出登录时清除信息
     const clearUserInfo = () => {
       userInfoJson.value = ''
-      tokenJson.value = ''
+      token.value = ''
       window.localStorage.setItem('UserInfo', '')
       window.localStorage.setItem('TokenInfo', '')
     }
 
     return {
       userInfo,
-      token,
+      getToken,
       setUserInfo,
       updateUsername,
       clearUserInfo,

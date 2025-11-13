@@ -11,8 +11,11 @@ const request = axios.create({
 //请求拦截器
 request.interceptors.request.use((config: any) => {
   const userstore = useUserStore()
-  if (userstore.token) {
-    config.headers.Authorization = userstore.token
+  const token = userstore.getToken
+  console.log('当前token:', token)
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`
+    console.log('设置的完整的Authorization的值:', config.headers.Authorization)
   }
   return config
 })
