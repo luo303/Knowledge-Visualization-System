@@ -66,6 +66,8 @@ export const useLayoutStore = defineStore(
       conversation_id: '',
       messages: []
     })
+    //是否需要调用接口获取会话历史记录
+    const needget = ref(false)
     watch(
       () => currentChatId.value,
       async newId => {
@@ -74,11 +76,8 @@ export const useLayoutStore = defineStore(
           if (temp) {
             currentChat.value = temp
           } else {
-            currentChat.value = {
-              title: '',
-              conversation_id: '',
-              messages: []
-            }
+            //如果没有缓存就调用接口获取，然后缓存
+            needget.value = true //控制调用接口获取
           }
         }
       }
@@ -90,7 +89,8 @@ export const useLayoutStore = defineStore(
       chat,
       chatlist,
       currentChat,
-      currentChatId
+      currentChatId,
+      needget
     }
   },
   {

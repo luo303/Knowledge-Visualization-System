@@ -9,22 +9,15 @@
         </div>
 
         <div class="chat_list">
-          <div v-if="chat.length !== 0">
+          <div v-if="chatlist.length !== 0">
             <div
-              v-for="(chat, id) in chat"
+              v-for="(chat, id) in chatlist"
               :key="id"
               class="chat_item"
               @click="enterChat(chat.conversation_id)"
             >
               <div class="chat_info">
                 <span class="chat_name"> {{ chat.title }}</span>
-                <span class="last_msg">
-                  <Markdown
-                    :source="
-                      chat.messages[chat.messages.length - 2]?.content ||
-                      '无消息'
-                    "
-                /></span>
               </div>
               <div class="actions">
                 <button>
@@ -150,7 +143,8 @@ import {
 } from '@/api/user'
 const LayoutStore = useLayoutStore()
 // 所有对话数据（指定类型为Chat数组）
-const { chat, currentChat, currentChatId } = storeToRefs(LayoutStore)
+const { chat, currentChat, currentChatId, chatlist, needget } =
+  storeToRefs(LayoutStore)
 onMounted(() => {
   currentChatId.value = ''
 })
@@ -180,29 +174,29 @@ const getconlist = async () => {
   }
 }
 
-const getlist = async () => {
-  getconlist()
-  chat.value = []
-  for (const item of LayoutStore.chatlist) {
-    try {
-      const res = await GetChat(item.conversation_id)
-      if ((res as any).Code === 200) {
-        chat.value.push({
-          title: (res as any).Data.title as string,
-          conversation_id: item.conversation_id as string,
-          messages: (res as any).Data.messages as Message[]
-        })
-      } else {
-        const message = (res as any).Message
-        ElMessage.error(`${message}`)
-      }
-    } catch (error) {
-      console.log(error)
-    }
-  }
-}
+// const getlist = async () => {
+//   getconlist()
+//   chat.value = []
+//   for (const item of LayoutStore.chatlist) {
+//     try {
+//       const res = await GetChat(item.conversation_id)
+//       if ((res as any).Code === 200) {
+//         chat.value.push({
+//           title: (res as any).Data.title as string,
+//           conversation_id: item.conversation_id as string,
+//           messages: (res as any).Data.messages as Message[]
+//         })
+//       } else {
+//         const message = (res as any).Message
+//         ElMessage.error(`${message}`)
+//       }
+//     } catch (error) {
+//       console.log(error)
+//     }
+//   }
+// }
 if (LayoutStore.data.mapId) {
-  getlist()
+  getconlist()
 }
 
 const form = ref({
@@ -243,7 +237,7 @@ const isChatting = ref<boolean>(false)
 const inputContent = ref<string>('')
 
 //编辑对话标题
-const edittitle = (item: Chat) => {
+const edittitle = (item: ChatList) => {
   currentChatId.value = item.conversation_id
   form.value.name = item.title
   newtitle.value = false
@@ -275,7 +269,7 @@ const confirm = async () => {
         form.value.name
       )
       if ((res as any).Code === 200) {
-        getlist()
+        getconlist()
         dialogFormVisible.value = false
         formRef.value.resetFields()
         ElMessage.success('修改成功')
@@ -296,6 +290,28 @@ const confirm = async () => {
 const enterChat = async (id: string) => {
   currentChatId.value = id
   await nextTick()
+  if (needget.value) {
+    try {
+      const res = await GetChat(currentChatId.value)
+      if ((res as any).Code === 200) {
+        chat.value.push({
+          title: (res as any).Data.title as string,
+          conversation_id: (res as any).Data.conversation_id as string,
+          messages: (res as any).Data.messages as Message[]
+        })
+        currentChat.value.title = (res as any).Data.title
+        currentChat.value.conversation_id = (res as any).Data.conversation_id
+        currentChat.value.messages = (res as any).Data.messages
+      } else {
+        const message = (res as any).Message
+        ElMessage.error(`${message}`)
+      }
+    } catch (error) {
+      console.log(error)
+    } finally {
+      needget.value = false
+    }
+  }
   if (currentChat.value.conversation_id) {
     isChatting.value = true
     scrollToBottom()
@@ -313,7 +329,7 @@ const backToList = (): void => {
     conversation_id: '',
     messages: []
   }
-  getlist()
+  getconlist()
 }
 
 // 发送消息
@@ -384,7 +400,6 @@ const createNewChat = async () => {
       formRef.value.resetFields()
       ElMessage.success('新建成功')
       enterChat(currentChatId.value)
-      getlist()
     } else {
       dialogFormVisible.value = false
       formRef.value.resetFields()
@@ -427,7 +442,6 @@ const deleteChat = async (id: string) => {
           console.log(error)
         }
       }
-      getlist()
       ElMessage.success('删除成功')
     } else {
       const message = (res as any).Message
