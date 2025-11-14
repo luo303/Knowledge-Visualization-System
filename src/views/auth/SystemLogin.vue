@@ -159,9 +159,10 @@ import { ref } from 'vue'
 import { ElMessage } from 'element-plus'
 import { Message, Lock } from '@element-plus/icons-vue'
 import { useRouter } from 'vue-router'
-import { Login } from '@/api/user/index'
+//import { Login } from '@/api/user/index'
 import { useUserStore } from '@/stores/modules/user' // 导入用户仓库
 
+const userStore = useUserStore() // 导入token仓库
 // 表单响应式数据
 const formdata = ref({
   account: '',
@@ -219,12 +220,26 @@ const onSubmit = async () => {
   isLoading.value = true
   try {
     await formRef.value.validate()
-    const res = await Login(formdata.value)
-    if ((res as any).code === 200 && (res as any).Data.success) {
+    // const res = await Login(formdata.value)
+    // 添加测试用户信息返回测试数据
+    const res = {
+      Code: 200,
+      Message: '成功',
+      Data: {
+        token: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.xxx',
+        user_id: '123456',
+        user_name: '测试用户',
+        avatar: 'https://example.com/avatars/test.jpg',
+        phone: '13800138000',
+        email: 'test@example.com',
+        success: true
+      }
+    }
+    if ((res as any).Code === 200 && (res as any).Data.success) {
       ElMessage.success('登录成功, 正在跳转...')
       // 存储用户信息到仓库：
-      const userStore = useUserStore()
       userStore.setUserInfo((res as any).Data)
+      userStore.saveToken((res as any).Data.token)
       setTimeout(() => {
         router.push('/layout')
       }, 1000)

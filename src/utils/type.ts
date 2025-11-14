@@ -56,12 +56,3 @@ export interface CreateMindMapParams {
   layout: string
   root: MindMapNode
 }
-
-// 创建导图的响应类型：
-export interface CreateMindMapResponse {
-  Code: number
-  Message: string
-  Data: {
-    mapId: string
-  }
-}

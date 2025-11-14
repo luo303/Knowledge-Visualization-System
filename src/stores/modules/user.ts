@@ -1,19 +1,43 @@
 //用户基本信息仓库
 import { defineStore } from 'pinia'
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
+import { ElMessage } from 'element-plus'
 
 export const useUserStore = defineStore(
   'user',
   () => {
-    // 状态：用户信息（初始值从仓库自动持久化中读取，无需手动操作localStorage）
-    const userInfo = ref<any | null>(null)
+    // 存储用户信息
+    const userInfoJson = ref('')
     // 单独存储token（方便直接获取）
-    const token = ref<string>('')
+    const token = ref('')
+
+    const userInfo = computed(() => {
+      try {
+        return JSON.parse(
+          userInfoJson.value || window.localStorage.getItem('UserInfo') || '{}'
+        )
+      } catch (err) {
+        ElMessage.error('用户的JSON字符串格式错误，转换对象时失败...')
+        window.localStorage.setItem('UserInfo', '')
+        throw err
+      }
+    })
 
     // 动作：登录成功后存储用户信息（仓库自动持久化）
     const setUserInfo = (data: any) => {
-      userInfo.value = data
-      token.value = data.token || ''
+      if (data) {
+        userInfoJson.value = JSON.stringify(data)
+        window.localStorage.setItem('UserInfo', userInfoJson.value)
+      }
+    }
+
+    const getToken = computed(() => {
+      return token.value || window.localStorage.getItem('TokenInfo') || ''
+    })
+
+    const saveToken = (data: string) => {
+      token.value = data
+      window.localStorage.setItem('TokenInfo', data)
     }
 
     // 动作：用于个人中心修改用户名：
@@ -25,16 +49,19 @@ export const useUserStore = defineStore(
 
     // 动作：退出登录时清除信息
     const clearUserInfo = () => {
-      userInfo.value = null
+      userInfoJson.value = ''
       token.value = ''
+      window.localStorage.setItem('UserInfo', '')
+      window.localStorage.setItem('TokenInfo', '')
     }
 
     return {
       userInfo,
-      token,
+      getToken,
       setUserInfo,
       updateUsername,
-      clearUserInfo
+      clearUserInfo,
+      saveToken
     }
   },
   {

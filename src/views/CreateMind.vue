@@ -96,7 +96,6 @@ import { useLayoutStore } from '@/stores/modules/layout'
 import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import { generateMindMap, createMindMap } from '@/api/user/index'
-import type { GenerateMindMapResponse } from '@/api/user/type'
 import type { CreateMindMapParams } from '@/utils/type'
 
 const uploadedFileName = ref('') // 存储上传的文件名
@@ -152,15 +151,15 @@ const handleFileUpload = async (e: Event) => {
       }, 200)
 
       console.log('开始调用生成导图接口...')
-      const generateResp = (await generateMindMap(
-        file
-      )) as GenerateMindMapResponse
+      const Resp = await generateMindMap(file)
+      const generateResp = Resp as any
       console.log('生成导图接口调用完成，收到响应：', generateResp)
+
       if (
         !generateResp ||
         generateResp.Code !== 200 ||
-        !generateResp.Data?.success ||
-        !generateResp.Data?.map_json
+        !generateResp.Data.success ||
+        !generateResp.Data.map_json
       ) {
         throw new Error(generateResp?.Message || '生成导图(草稿)失败!')
       }

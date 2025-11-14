@@ -31,16 +31,6 @@ export interface registerData {
   account_type: string
 }
 
-// 生成导图
-export interface GenerateMindMapResponse {
-  Code: number
-  Message: string
-  Data: {
-    success: boolean
-    map_json: string
-  }
-}
-
 // 生成导图的响应数据类型
 export interface GenerateMindMapData {
   success: boolean
