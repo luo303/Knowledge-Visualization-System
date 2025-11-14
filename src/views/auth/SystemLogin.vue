@@ -220,13 +220,14 @@ const onSubmit = async () => {
   isLoading.value = true
   try {
     await formRef.value.validate()
-    // const res = await Login(formdata.value)
+    //const res = await Login(formdata.value)
     // 添加测试用户信息返回测试数据
     const res = {
       Code: 200,
       Message: '成功',
       Data: {
-        token: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.xxx',
+        token:
+          'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoiMTk4ODYwMjA2ODI3Njg3NTI2NCIsImV4cCI6MTc2MzU2MjEwNCwiaWF0IjoxNzYyOTU3MzA0fQ.0yKzq8qXh1p8uUKso7J2gAUtwigFDXWPQ275e0vgDxI',
         user_id: '123456',
         user_name: '测试用户',
         avatar: 'https://example.com/avatars/test.jpg',
