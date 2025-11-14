@@ -223,13 +223,13 @@ const onSubmit = async () => {
     const res = await Login(formdata.value)
     // 添加测试用户信息返回测试数据
     if ((res as any).Code === 200 && (res as any).Data.success) {
-      ElMessage.success('登录成功, 正在跳转...')
+      ElMessage.success({ message: '登录成功, 正在跳转...', duration: 1000 })
       // 存储用户信息到仓库：
       userStore.setUserInfo((res as any).Data)
       userStore.saveToken((res as any).Data.token)
       setTimeout(() => {
         router.push('/layout')
-      }, 1000)
+      }, 1500)
     } else {
       ElMessage.error((res as any).Message || '登录失败')
     }
