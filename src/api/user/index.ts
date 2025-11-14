@@ -69,16 +69,13 @@ export const UpdateTitle = (conversation_id: string, title: string) =>
     title
   })
 
-// 生成思维导图接口 (草稿？)
-export const generateMindMap = async (file: File) => {
+// 生成思维导图
+export const generateMindMap = (file: File) => {
   const formData = new FormData()
   formData.append('file', file)
-  const response = await request.post(
-    '/api/biz/v1/aichat/generate_mind_map',
-    formData,
-    { headers: { 'Content-Type': 'multipart/form-data' } }
-  )
-  return response.data
+  return request.post('/api/biz/v1/aichat/generate_mind_map', formData, {
+    headers: { 'Content-Type': 'multipart/form-data' }
+  })
 }
 
 // 获取思维导图列表
