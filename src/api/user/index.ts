@@ -99,7 +99,7 @@ export const getMindMapList = (params?: {
 // 测试数据
 const mockSuccessResponse = {
   Code: 200,
-  Message: '成功',
+  Message: '生成导图成功',
   Data: {
     success: true,
     map_json: JSON.stringify({
@@ -133,7 +133,7 @@ export const createMindMap = (params: any): Promise<any> => {
     setTimeout(() => {
       resolve({
         Code: 200,
-        Message: '成功',
+        Message: '创建导图成功',
         Data: { mapId: 'formal_map_456' } // 模拟正式 mapId
       })
     }, 1000)

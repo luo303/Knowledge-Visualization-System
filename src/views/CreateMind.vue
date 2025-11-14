@@ -181,6 +181,7 @@ const handleFileUpload = async (e: Event) => {
       if (!createResp || createResp.Code !== 200 || !createResp.Data?.mapId) {
         throw new Error(createResp?.Message || '创建正式导图失败！')
       }
+      console.log('createMindMap 接口原始返回值:', createResp)
 
       // 用正式数据更新全局状态：
       const formalMapData = {
