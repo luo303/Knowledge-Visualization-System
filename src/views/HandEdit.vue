@@ -646,7 +646,6 @@ const pasteNode = () => {
 }
 //组件销毁前更新思维导图
 onBeforeUnmount(async () => {
-  LayoutStore.chat = [] //离开手动编辑页清空对话区
   if (LayoutStore.data.mapId) {
     try {
       const res = await UpdateMap(LayoutStore.data)

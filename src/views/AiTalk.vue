@@ -25,9 +25,7 @@
                     ><EditPen
                   /></el-icon>
                 </button>
-                <button @click.stop="deleteChat(chat.conversation_id)">
-                  🗑️
-                </button>
+                <button @click.stop="openDel(chat.conversation_id)">🗑️</button>
               </div>
             </div>
           </div>
@@ -122,6 +120,20 @@
       </div>
     </template>
   </el-dialog>
+  <el-dialog v-model="DelDialogVisible" title="提示" width="400">
+    <span> 是否要删除该会话 </span>
+    <template #footer>
+      <div class="dialog-footer">
+        <el-button @click="DelDialogVisible = false">取消删除</el-button>
+        <el-button
+          type="primary"
+          @click="deleteChat(currentChat.conversation_id)"
+        >
+          确认删除
+        </el-button>
+      </div>
+    </template>
+  </el-dialog>
 </template>
 
 <script lang="ts" setup>
@@ -174,27 +186,6 @@ const getconlist = async () => {
   }
 }
 
-// const getlist = async () => {
-//   getconlist()
-//   chat.value = []
-//   for (const item of LayoutStore.chatlist) {
-//     try {
-//       const res = await GetChat(item.conversation_id)
-//       if ((res as any).Code === 200) {
-//         chat.value.push({
-//           title: (res as any).Data.title as string,
-//           conversation_id: item.conversation_id as string,
-//           messages: (res as any).Data.messages as Message[]
-//         })
-//       } else {
-//         const message = (res as any).Message
-//         ElMessage.error(`${message}`)
-//       }
-//     } catch (error) {
-//       console.log(error)
-//     }
-//   }
-// }
 if (LayoutStore.data.mapId) {
   getconlist()
 }
@@ -214,7 +205,7 @@ const rules = ref({
     { validator: detect, trigger: 'blur' }
   ]
 })
-
+const DelDialogVisible = ref(false)
 const dialogFormVisible = ref(false)
 const newtitle = ref(true) //判断是新建标题还剩修改标题
 const messageArea = ref<HTMLDivElement | null>(null)
@@ -261,8 +252,6 @@ const cancel = () => {
 //确认
 const confirm = async () => {
   await formRef.value.validate()
-  // currentChat.value.title = form.value.name
-
   if (currentChat.value.conversation_id) {
     try {
       const res = await UpdateTitle(
@@ -387,8 +376,6 @@ const sendMsg = async () => {
 // 创建新对话
 const createNewChat = async () => {
   await formRef.value.validate()
-  // const id = createid()
-  // currentChatId.value = id
   try {
     const res = await NewChat(LayoutStore.data, form.value.name)
     if ((res as any).Code === 200) {
@@ -414,19 +401,18 @@ const createNewChat = async () => {
     formRef.value.resetFields()
     console.log(error)
   }
-  // chat.value.push({
-  //   title: form.value.name,
-  //   conversation_id: id,
-  //   messages: []
-  // })
 }
 
 // 删除对话
-const deleteChat = async (id: string) => {
+const openDel = (id: string) => {
   if (chat.value.length <= 1) {
     ElMessage.error('至少保留一个对话')
     return
   }
+  currentChatId.value = id
+  DelDialogVisible.value = true
+}
+const deleteChat = async (id: string) => {
   try {
     const res = await DelChat(id)
     if ((res as any).Code === 200) {
@@ -436,6 +422,10 @@ const deleteChat = async (id: string) => {
           const res = await GetMapChatList(LayoutStore.data.mapId)
           if ((res as any).Code === 200) {
             LayoutStore.chatlist = sortByUpdate((res as any).Data.list, false)
+            const index = chat.value.findIndex(
+              item => item.conversation_id === id
+            )
+            chat.value.splice(index, 1)
           } else {
             const message = (res as any).Message
             ElMessage.error(`${message}`)
@@ -451,6 +441,8 @@ const deleteChat = async (id: string) => {
     }
   } catch (error) {
     console.log(error)
+  } finally {
+    DelDialogVisible.value = false
   }
 }
 </script>
