@@ -499,7 +499,7 @@ const save = async () => {
       ElMessage.success('保存成功')
       clearTimeout(timer)
     } else {
-      ElMessage.error('保存失败')
+      ElMessage.error(`${(res as any).Message}` || '保存失败')
     }
   } catch (error) {
     console.log(error)
@@ -664,7 +664,7 @@ watch(
   () => LayoutStore.aidata,
   newData => {
     if (mindMap) {
-      mindMap.setData(newData.root)
+      mindMap.updateData(newData.root)
       // 2. 单独设置布局（如果库有 setLayout 方法）
       mindMap.setLayout(newData.layout || 'logicalStructure')
       mindMap.resize()
