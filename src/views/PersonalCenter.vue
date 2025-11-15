@@ -96,62 +96,76 @@
           </div>
 
           <ElDialog v-model="passwordDialogOpen" title="修改密码" width="35%">
-            <div class="password-form">
-              <ElInput
-                v-model="oldPassword"
-                type="pasword"
-                placeholder="请输入原密码"
-                :show-password="showOldPwd"
-                class="password-input"
-              />
-              <div
-                class="show-pwd-toggle-container"
-                @click="showOldPwd = !showOldPwd"
-              >
-                <span class="show-pwd-toggle">
-                  {{ showOldPwd ? '隐藏' : '显示' }} </span
-                >密码
-              </div>
+            <el-form
+              style="width: 100%"
+              size="large"
+              :model="formdata"
+              :rules="rules"
+              ref="formRef"
+              :hide-required-asterisk="true"
+              label-width="auto"
+              class="password-form"
+            >
+              <el-form-item prop="new_password">
+                <el-input
+                  v-model="formdata.new_password"
+                  type="password"
+                  placeholder="请输入新密码"
+                  show-password
+                  class="password-input"
+                />
+              </el-form-item>
 
-              <ElInput
-                v-model="newPassword"
-                type="pasword"
-                placeholder="请输入新密码"
-                :show-password="showNewPwd"
-                class="password-input"
-              />
-              <div
-                class="show-pwd-toggle-container"
-                @click="showNewPwd = !showNewPwd"
-              >
-                <span class="show-pwd-toggle">
-                  {{ showNewPwd ? '隐藏' : '显示' }} </span
-                >密码
-              </div>
+              <el-form-item prop="confirm_password">
+                <el-input
+                  v-model="formdata.confirm_password"
+                  type="pasword"
+                  placeholder="请确认新密码"
+                  show-password
+                  class="password-input"
+                />
+              </el-form-item>
 
-              <ElInput
-                v-model="confirmPassword"
-                type="pasword"
-                placeholder="请确认新密码"
-                :show-password="showConfirmPwd"
-                class="password-input"
-              />
-              <div
-                class="show-pwd-toggle-container"
-                @click="showConfirmPwd = !showConfirmPwd"
-              >
-                <span class="show-pwd-toggle">
-                  {{ showConfirmPwd ? '隐藏' : '显示' }} </span
-                >密码
-              </div>
-            </div>
+              <el-form-item prop="code" class="parent">
+                <el-input
+                  v-model="formdata.code"
+                  type="password"
+                  placeholder="请输入验证码"
+                  :show-password="showCode"
+                  class="password-input"
+                />
+                <el-button
+                  v-if="show"
+                  type="primary"
+                  @click="getCode"
+                  text
+                  class="getCode-btn"
+                  >获取验证码</el-button
+                >
+                <el-button
+                  v-else
+                  type="default"
+                  @click="getCode"
+                  text
+                  class="getCode-btn"
+                  >{{ countdown }}s</el-button
+                >
+              </el-form-item>
+            </el-form>
 
-            <template #footer>
-              <ElButton @click="closePasswordDialog">取消</ElButton>
-              <ElButton type="primary" @click="handleUpdatePassword"
-                >确定</ElButton
+            <el-form-item class="parent">
+              <el-button
+                class="newpassword-cancel-btn"
+                @click="closePasswordDialog"
+                >取消</el-button
               >
-            </template>
+              <el-button
+                type="primary"
+                class="newpassword-confirm-btn"
+                @click="handleUpdatePassword"
+                >确定</el-button
+              >
+            </el-form-item>
           </ElDialog>
 
           <div class="security-item">
@@ -185,14 +199,29 @@ import {
 } from 'element-plus'
 import type { UploadProps } from 'element-plus'
 import type { UserInfo } from '../utils/type'
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 import defaultAvatar from '@/assets/images/personal.png' // 默认头像
 import { useUserStore } from '@/stores/modules/user'
 import { useRouter } from 'vue-router'
+import { Forgetpwd, Getcode } from '@/api/user'
 
 // 初始化用户仓库：
 const userStore = useUserStore()
 const router = useRouter()
+
+const formRef = ref()
+const formdata = ref({
+  confirm_password: '',
+  new_password: '',
+  account: '',
+  account_type: '',
+  code: ''
+})
+const Code = computed(() => ({
+  account: formdata.value.account,
+  account_type: formdata.value.account_type,
+  purpose: 'reset_password'
+}))
 
 // 模拟用户数据:
 const userInfo = ref<UserInfo>({
@@ -313,6 +342,7 @@ const confirmPassword = ref('')
 const showOldPwd = ref(false)
 const showNewPwd = ref(false)
 const showConfirmPwd = ref(false)
+const showCode = ref(false)
 
 // 打开弹窗：
 const openPasswordDialog = () => {
@@ -336,31 +366,89 @@ const resetPasswordForm = () => {
   showConfirmPwd.value = false
 }
 
-// 提交修改密码：（waiting for 后 端）
-const handleUpdatePassword = () => {
-  // 前端校验：
-  if (!oldPassword.value.trim()) {
-    ElMessage.warning('输入密码!')
-    return
+//获取验证码
+const countdown = ref(60)
+const show = ref(true)
+let timer: any = null
+const getCode = async () => {
+  await formRef.value.validateField(['account'])
+  clearInterval(timer)
+  countdown.value = 60
+  show.value = !show.value
+  timer = setInterval(() => {
+    if (countdown.value <= 0) {
+      clearInterval(timer)
+      show.value = !show.value
+      countdown.value = 60 // 重置
+    } else {
+      countdown.value--
+    }
+  }, 1000)
+  try {
+    const res = await Getcode(Code.value)
+    if ((res as any).Code === 200) {
+      ElMessage.success('验证码发送成功')
+    } else {
+      ElMessage.error((res as any).Message || '获取验证码失败')
+    }
+  } catch (error) {
+    console.log(error)
+    ElMessage.error('发送请求失败')
   }
-  if (newPassword.value.length < 6 || newPassword.value.length > 10) {
-    ElMessage.warning('新密码需为 6~10 位！')
-    return
-  }
-  // 检查 确认密码 是否与 新密码 一致：
-  if (newPassword.value !== confirmPassword.value) {
-    ElMessage.warning('两次输入的新密码不一致！')
-    return
-  }
-  // 检查新密码是否与原密码相同：
-  if (newPassword.value === oldPassword.value) {
-    ElMessage.warning('新密码不能与原密码相同！')
-    return
-  }
+}
 
-  // 模拟修改成功：
-  ElMessage.success('密码修改成功！')
-  passwordDialogOpen.value = false
+// 校验：
+const pwdReg =
+  /^(?![a-zA-Z]+$)(?![a-z0-9]+$)(?![A-Z0-9]+$)(?![a-zA-Z!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]+$)(?![a-z0-9!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]+$)(?![A-Z0-9!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]+$).{8,16}$/
+const rules = ref({
+  confirm_password: [
+    { required: true, message: '请输入密码', trigger: 'blur' },
+    {
+      validator: (rule: any, value: any, cb: any) => {
+        if (value !== formdata.value.new_password) {
+          cb('两次密码不一致')
+        } else {
+          cb()
+        }
+      },
+      trigger: 'blur'
+    }
+  ],
+  new_password: [
+    { required: true, message: '请输入密码', trigger: 'blur' },
+    {
+      validator: (rule: any, value: any, cb: any) => {
+        if (pwdReg.test(value)) {
+          cb()
+        } else {
+          cb('长度需为8-16位,含大小写字母、数字、特殊字符中的至少3种')
+        }
+      },
+      trigger: 'blur'
+    }
+  ],
+  code: [{ required: true, message: '请输入验证码', trigger: 'blur' }]
+})
+
+// 提交修改密码：（waiting for 后 端）
+//确认按钮
+const handleUpdatePassword = async () => {
+  await formRef.value.validate()
+
+  try {
+    const res = await Forgetpwd(formdata.value)
+    if ((res as any).Code === 200) {
+      ElMessage.success('重置成功')
+      setTimeout(() => {
+        router.push('/login')
+      }, 1000)
+    } else {
+      ElMessage.error((res as any).Message || '重置失败')
+    }
+  } catch (error) {
+    console.log(error)
+    ElMessage.error('发送请求失败')
+  }
 }
 
 // 切换账号：
@@ -583,6 +671,26 @@ const handleSwitchAccount = async () => {
 
   &:hover {
     background-color: #5cb3ff;
+  }
+}
+
+.parent {
+  position: relative;
+  padding: 10px 0px;
+  .getCode-btn {
+    position: absolute;
+    right: 0;
+    cursor: pointer;
+  }
+  .newpassword-confirm-btn {
+    margin-top: 10px;
+    position: absolute;
+    left: 30%;
+  }
+  .newpassword-cancel-btn {
+    margin-top: 10px;
+    position: absolute;
+    right: 30%;
   }
 }
 </style>
