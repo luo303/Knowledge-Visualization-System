@@ -24,16 +24,32 @@
           </div>
         </nav>
         <nav>
-          <router-link class="logout" active-class="active" to="/login">
+          <div class="logout" active-class="active" @click="handleToLogin">
             <el-button type="primary" class="logout-text">退出登录</el-button>
-          </router-link>
+          </div>
         </nav>
       </div>
     </div>
   </div>
 </template>
 
-<script lang="ts" setup></script>
+<script lang="ts" setup>
+import { ElMessageBox } from 'element-plus'
+import { useRouter } from 'vue-router'
+import { useUserStore } from '@/stores/modules/user'
+const userStore = useUserStore()
+const router = useRouter()
+const handleToLogin = () => {
+  ElMessageBox.confirm('是否要退出登录？', '确认退出', {
+    confirmButtonText: '确定',
+    cancelButtonText: '取消',
+    type: 'warning'
+  }).then(() => {
+    userStore.clearUserInfo()
+    router.push('/login')
+  })
+}
+</script>
 
 <style lang="scss" scoped>
 .header {
