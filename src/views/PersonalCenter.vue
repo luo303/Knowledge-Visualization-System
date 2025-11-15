@@ -9,7 +9,7 @@
           <div class="avatar-wrapper">
             <div class="avatar">
               <img
-                :src="getAvatarUrl(userInfo.avatar)"
+                :src="getAvatarUrl(userInfo.avatar_url)"
                 alt="personal"
                 class="avatar-img"
                 @error="handleAvatarError"
@@ -23,17 +23,18 @@
           <!-- 修改头像弹窗 -->
           <ElDialog v-model="avatarDialogOpen" title="修改头像" width="30%">
             <div class="avatar-upload-container">
-              <ElUpload
+              <el-upload
                 :file-list="avatarFileList"
                 :on-change="handleFileChange"
                 :auto-upload="false"
                 list-type="picture-card"
+                :show-file-list="showUploadComponent"
               >
-                <div class="upload-btn">
+                <div class="upload-btn" v-if="showUploadComponent">
                   <ElIcon size="24"><Upload /></ElIcon>
                   <div class="upload-text">上传头像</div>
                 </div>
-              </ElUpload>
+              </el-upload>
             </div>
             <template #footer>
               <ElButton @click="avatarDialogOpen = false">取消</ElButton>
@@ -198,16 +199,18 @@ import {
   ElMessageBox
 } from 'element-plus'
 import type { UploadProps } from 'element-plus'
-import type { UserInfo } from '../utils/type'
 import { ref, computed } from 'vue'
 import defaultAvatar from '@/assets/images/personal.png' // 默认头像
 import { useUserStore } from '@/stores/modules/user'
 import { useRouter } from 'vue-router'
 import { Forgetpwd, Getcode } from '@/api/user'
+import { ChangeAvatar } from '@/api/user'
+import { storeToRefs } from 'pinia'
 
 // 初始化用户仓库：
 const userStore = useUserStore()
 const router = useRouter()
+const { userInfo } = storeToRefs(userStore)
 
 const formRef = ref()
 const formdata = ref({
@@ -223,26 +226,10 @@ const Code = computed(() => ({
   purpose: 'reset_password'
 }))
 
-// 模拟用户数据:
-const userInfo = ref<UserInfo>({
-  username: '你的名字', // userStore.userName || '你的名字',
-  avatar: defaultAvatar,
-  phone: '12345678901',
-  email: 'piaodaqiang@163.com',
-  passwordSet: true,
-  phoneBound: true,
-  emailBound: true
-})
-
 // 修改头像：
 const avatarDialogOpen = ref(false)
 const avatarFileList = ref<UploadProps['fileList']>([])
-
-// 打开头像弹窗：
-const openAvatarDialog = () => {
-  avatarFileList.value = []
-  avatarDialogOpen.value = true
-}
+const showUploadComponent = ref(false)
 
 const handleFileChange: UploadProps['onChange'] = (uploadFile, uploadFiles) => {
   avatarFileList.value = uploadFiles
@@ -255,8 +242,8 @@ const handleFileChange: UploadProps['onChange'] = (uploadFile, uploadFiles) => {
       avatarFileList.value = []
       return
     }
-    if (file.size / 1024 / 1024 > 2) {
-      ElMessage.error('图片文件大小不能超过2MB！')
+    if (file.size / 1024 / 1024 > 5) {
+      ElMessage.error('图片文件大小不能超过 5MB！')
       avatarFileList.value = []
       return
     }
@@ -276,29 +263,64 @@ const handleUpdateAvatar = async () => {
       ElMessage.error('获取图片文件失败！')
       return
     }
-    const tempImageUrl = URL.createObjectURL(selectedFile)
 
-    // 模拟API请求延迟：
-    console.log('正在模拟上传并更新头像...')
-    await new Promise(resolve => setTimeout(resolve, 1000))
+    // 测试 临时本地图片路径：
+    // const localImageUrl = URL.createObjectURL(selectedFile)
 
-    userInfo.value.avatar = tempImageUrl.valueOf()
-    ElMessage.success('头像更新成功！')
-    avatarDialogOpen.value = false
+    // FormData 对象
+    const formData = new FormData()
+    formData.append('avatar', selectedFile)
+
+    console.log('正在上传并更新头像...')
+    console.log('准备上传的文件:', selectedFile)
+    console.log('FormData 内容:', formData)
+
+    // 调用真实 API
+    const response = await ChangeAvatar(formData)
+
+    // 模拟 API 响应
+    // const response = {
+    //   data: {
+    //     Code: 200,
+    //     Message: '头像上传成功',
+    //     Data: {
+    //       // 使用一个随机的网络图片作为模拟的返回头像 URL
+    //       avatar_url: localImageUrl
+    //     }
+    //   }
+    // }
+
+    console.log(response)
+
+    if (response.data.Code === 200 && response.data.Data.avatar_url) {
+      userStore.updateAvatar(response.data.Data.avatar_url)
+      ElMessage.success('头像更新成功！')
+      avatarDialogOpen.value = false
+    } else {
+      ElMessage.error(response.data.Message || '更新头像失败！')
+    }
   } catch (error) {
     console.error('更新头像失败：', error)
     ElMessage.error('更新头像失败！')
   }
 }
 
+// 打开头像弹窗：
+const openAvatarDialog = () => {
+  avatarFileList.value = []
+  avatarDialogOpen.value = true
+  showUploadComponent.value = true
+}
+
 // 处理本地静态资源路径：
-const getAvatarUrl = (avatar: string) => {
+const getAvatarUrl = (avatarUrl: string | undefined) => {
+  if (!avatarUrl) return defaultAvatar
   // 是否是本地路径：
-  if (avatar.startsWith('@/') || avatar.startsWith('./')) {
-    return new URL(avatar, import.meta.url).href
+  if (avatarUrl.startsWith('@/') || avatarUrl.startsWith('./')) {
+    return new URL(avatarUrl, import.meta.url).href
   }
   // 网络路径：
-  return avatar
+  return avatarUrl
 }
 
 // 加载头像失败处理：

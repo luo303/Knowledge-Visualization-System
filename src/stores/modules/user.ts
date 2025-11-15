@@ -1,71 +1,77 @@
-//用户基本信息仓库
+// stores/modules/user.ts
 import { defineStore } from 'pinia'
-import { ref, computed } from 'vue'
+import { ref } from 'vue'
 import { ElMessage } from 'element-plus'
+import type { UserInfo } from '@/utils/type'
 
 export const useUserStore = defineStore(
   'user',
   () => {
-    // 存储用户信息
-    const userInfoJson = ref('')
-    // 单独存储token（方便直接获取）
+    // 1. 存储用户信息
+    const userInfo = ref<UserInfo>({} as UserInfo)
+
+    // 2. 单独存储 token
     const token = ref('')
 
-    const userInfo = computed(() => {
+    // 动作：初始化用户信息（在应用启动时调用）
+    const initUserInfo = () => {
       try {
-        return JSON.parse(
-          userInfoJson.value || window.localStorage.getItem('UserInfo') || '{}'
-        )
-      } catch (err) {
-        ElMessage.error('用户的JSON字符串格式错误，转换对象时失败...')
-        window.localStorage.setItem('UserInfo', '')
-        throw err
-      }
-    })
+        const storedUserInfo = localStorage.getItem('user-userInfo') // pinia-plugin-persist 默认的存储键是 "storeId-key"
+        const storedToken = localStorage.getItem('user-token')
 
-    // 动作：登录成功后存储用户信息（仓库自动持久化）
-    const setUserInfo = (data: any) => {
-      if (data) {
-        userInfoJson.value = JSON.stringify(data)
-        window.localStorage.setItem('UserInfo', userInfoJson.value)
+        if (storedUserInfo) {
+          userInfo.value = JSON.parse(storedUserInfo)
+        }
+        if (storedToken) {
+          token.value = storedToken
+        }
+      } catch (err) {
+        ElMessage.error('解析用户信息失败，请重新登录。')
+        console.error(err)
+        // 清除错误的存储
+        localStorage.removeItem('user-userInfo')
+        localStorage.removeItem('user-token')
       }
     }
 
-    const getToken = computed(() => {
-      return token.value || window.localStorage.getItem('TokenInfo') || ''
-    })
+    // 动作：登录成功后设置用户信息
+    const setUserInfo = (data: UserInfo) => {
+      userInfo.value = { ...userInfo.value, ...data } // 合并数据
+    }
 
     const saveToken = (data: string) => {
       token.value = data
-      window.localStorage.setItem('TokenInfo', data)
     }
 
-    // 动作：用于个人中心修改用户名：
+    // 动作：修改用户名
     const updateUsername = (newUsername: string) => {
-      if (userInfo.value) {
-        userInfo.value.user_name = newUsername
-      }
+      userInfo.value.username = newUsername
     }
 
-    // 动作：退出登录时清除信息
+    // 动作：修改头像
+    const updateAvatar = (newAvatarUrl: string) => {
+      // 现在直接修改响应式对象的属性，会触发所有依赖它的组件重新渲染
+      userInfo.value.avatar_url = newAvatarUrl
+    }
+
+    // 动作：退出登录
     const clearUserInfo = () => {
-      userInfoJson.value = ''
+      userInfo.value = {} as UserInfo // 重置为初始状态
       token.value = ''
-      window.localStorage.setItem('UserInfo', '')
-      window.localStorage.setItem('TokenInfo', '')
     }
 
     return {
       userInfo,
-      getToken,
+      token,
+      initUserInfo,
       setUserInfo,
+      saveToken,
       updateUsername,
-      clearUserInfo,
-      saveToken
+      updateAvatar,
+      clearUserInfo
     }
   },
   {
-    // 仓库自动持久化配置（无需手动写localStorage，由插件处理）
-    persist: true
+    persist: true // 启用持久化
   }
 )

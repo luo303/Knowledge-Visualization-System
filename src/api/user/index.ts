@@ -21,6 +21,12 @@ export const Forgetpwd = (data: forgetpwd) =>
 //发送验证码
 export const Getcode = (data: code) =>
   request.post('/api/biz/v1/user/send_code', data)
+
+// 更改头像
+export const ChangeAvatar = (formdata: FormData) => {
+  return request.post('/api/biz/v1/user/avatar', formdata)
+}
+
 //更新思维导图
 export const UpdateMap = (data: MindMapOptions) =>
   request.put(`/api/biz/v1/mindmap/${data.mapId}`, data)
