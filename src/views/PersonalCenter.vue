@@ -153,7 +153,7 @@
               </el-form-item>
             </el-form>
 
-            <el-form-item class="parent">
+            <template #footer>
               <el-button
                 class="newpassword-cancel-btn"
                 @click="closePasswordDialog"
@@ -165,7 +165,7 @@
                 @click="handleUpdatePassword"
                 >确定</el-button
               >
-            </el-form-item>
+            </template>
           </ElDialog>
 
           <div class="security-item">
@@ -470,7 +470,7 @@ const handleSwitchAccount = async () => {
 }
 </script>
 
-<style lang="scss" scoped>
+<style lang="scss">
 .personal-info-container {
   width: 100%;
   max-height: 800px;
@@ -677,20 +677,16 @@ const handleSwitchAccount = async () => {
 .parent {
   position: relative;
   padding: 10px 0px;
+  display: flex;
+  justify-content: center;
   .getCode-btn {
     position: absolute;
     right: 0;
     cursor: pointer;
   }
-  .newpassword-confirm-btn {
-    margin-top: 10px;
-    position: absolute;
-    left: 30%;
-  }
-  .newpassword-cancel-btn {
-    margin-top: 10px;
-    position: absolute;
-    right: 30%;
-  }
+}
+
+.newpassword-confirm-btn {
+  margin-left: 20px;
 }
 </style>
