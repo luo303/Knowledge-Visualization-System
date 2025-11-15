@@ -499,7 +499,7 @@ const save = async () => {
       ElMessage.success('保存成功')
       clearTimeout(timer)
     } else {
-      ElMessage.error('保存失败')
+      ElMessage.error(`${(res as any).Message}` || '保存失败')
     }
   } catch (error) {
     console.log(error)
@@ -646,7 +646,6 @@ const pasteNode = () => {
 }
 //组件销毁前更新思维导图
 onBeforeUnmount(async () => {
-  LayoutStore.chat = [] //离开手动编辑页清空对话区
   if (LayoutStore.data.mapId) {
     try {
       const res = await UpdateMap(LayoutStore.data)
@@ -664,7 +663,7 @@ watch(
   () => LayoutStore.aidata,
   newData => {
     if (mindMap) {
-      mindMap.setData(newData.root)
+      mindMap.updateData(newData.root)
       // 2. 单独设置布局（如果库有 setLayout 方法）
       mindMap.setLayout(newData.layout || 'logicalStructure')
       mindMap.resize()
