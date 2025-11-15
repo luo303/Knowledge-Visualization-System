@@ -12,10 +12,8 @@ const request = axios.create({
 request.interceptors.request.use((config: any) => {
   const userstore = useUserStore()
   const token = userstore.getToken
-  console.log('当前token:', token)
   if (token) {
     config.headers.Authorization = `Bearer ${token}`
-    console.log('设置的完整的Authorization的值:', config.headers.Authorization)
   }
   return config
 })
