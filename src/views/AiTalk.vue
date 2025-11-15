@@ -270,6 +270,7 @@ const confirm = async () => {
       )
       if ((res as any).Code === 200) {
         getconlist()
+        currentChat.value.title = form.value.name
         dialogFormVisible.value = false
         formRef.value.resetFields()
         ElMessage.success('修改成功')
