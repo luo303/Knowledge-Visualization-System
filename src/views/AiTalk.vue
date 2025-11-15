@@ -247,6 +247,7 @@ const edittitle = (item: ChatList) => {
 const open = (item: boolean) => {
   if (LayoutStore.data.mapId) {
     dialogFormVisible.value = true
+    form.value.name = ''
     newtitle.value = item
   } else {
     ElMessage.error('请先上传文件生成导图')
