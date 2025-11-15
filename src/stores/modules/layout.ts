@@ -68,6 +68,8 @@ export const useLayoutStore = defineStore(
     })
     //是否需要调用接口获取会话历史记录
     const needget = ref(false)
+    //是否AI正在思考中
+    const isloading = ref(false)
     watch(
       () => currentChatId.value,
       async newId => {
@@ -90,7 +92,8 @@ export const useLayoutStore = defineStore(
       chatlist,
       currentChat,
       currentChatId,
-      needget
+      needget,
+      isloading
     }
   },
   {

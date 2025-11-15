@@ -80,16 +80,40 @@
             </template>
             <template v-else></template>
           </div>
+          <div class="msg system_msg load" v-show="isloading">
+            AI思考中
+            <svg
+              t="1763213934464"
+              class="load_icon"
+              viewBox="0 0 1024 1024"
+              version="1.1"
+              xmlns="http://www.w3.org/2000/svg"
+              p-id="7965"
+              width="50"
+              height="30"
+            >
+              <path
+                d="M480 96a32 32 0 0 1 64 0v192a32 32 0 0 1-64 0V96z m250.624 60.64a32 32 0 1 1 51.776 37.632l-112.832 155.328a32 32 0 0 1-51.808-37.632l112.864-155.328z m167.136 196.384a32 32 0 1 1 19.776 60.864l-182.624 59.328a32 32 0 0 1-19.776-60.864l182.624-59.328z m19.776 257.088a32 32 0 1 1-19.776 60.864l-182.624-59.328a32 32 0 0 1 19.776-60.864l182.624 59.328zM782.4 829.76a32 32 0 0 1-51.776 37.632l-112.864-155.328a32 32 0 1 1 51.808-37.632l112.832 155.328zM544 928a32 32 0 0 1-64 0v-192a32 32 0 0 1 64 0v192z m-250.624-60.64a32 32 0 0 1-51.776-37.632l112.832-155.328a32 32 0 0 1 51.808 37.632l-112.864 155.328z m-167.136-196.384a32 32 0 1 1-19.776-60.864l182.624-59.328a32 32 0 0 1 19.776 60.864l-182.624 59.328z m-19.776-257.088a32 32 0 0 1 19.776-60.864l182.624 59.328a32 32 0 1 1-19.776 60.864l-182.624-59.328zM241.6 194.24a32 32 0 1 1 51.776-37.632l112.864 155.328a32 32 0 1 1-51.808 37.632L241.6 194.24z"
+                fill="#1296db"
+                p-id="7966"
+              ></path>
+            </svg>
+          </div>
         </div>
 
         <div class="input_area">
-          <input
+          <el-input
+            class="input"
             v-model="inputContent"
-            type="text"
+            type="textarea"
             placeholder="输入消息..."
             @keyup.enter="sendMsg"
+            :autosize="{ minRows: 1, maxRows: 2 }"
+            show-word-limit
+            maxlength="100"
+            word-limit-position="outside"
           />
-          <button @click="sendMsg">发送</button>
+          <el-button @click="sendMsg" class="button">发送</el-button>
         </div>
       </div>
     </div>
@@ -155,7 +179,7 @@ import {
 } from '@/api/user'
 const LayoutStore = useLayoutStore()
 // 所有对话数据（指定类型为Chat数组）
-const { chat, currentChat, currentChatId, chatlist, needget } =
+const { chat, currentChat, currentChatId, chatlist, needget, isloading } =
   storeToRefs(LayoutStore)
 onMounted(() => {
   currentChatId.value = ''
@@ -337,6 +361,7 @@ const sendMsg = async () => {
   inputContent.value = ''
   scrollToBottom()
   try {
+    isloading.value = true
     const res = await SendMessage(
       currentChat.value.conversation_id,
       temp,
@@ -366,7 +391,6 @@ const sendMsg = async () => {
           role: 'assistant'
         })
       }
-
       scrollToBottom()
     } else {
       const message = (res as any).Message
@@ -374,6 +398,8 @@ const sendMsg = async () => {
     }
   } catch (error) {
     console.log(error)
+  } finally {
+    isloading.value = false
   }
 }
 
@@ -619,7 +645,21 @@ const deleteChat = async (id: string) => {
     border-radius: 12px;
     word-break: break-word;
   }
-
+  .load {
+    display: flex;
+    align-items: center;
+    .load_icon {
+      animation: loading 1.2s linear infinite;
+    }
+  }
+  @keyframes loading {
+    from {
+      transform: rotate(0deg);
+    }
+    to {
+      transform: rotate(360deg);
+    }
+  }
   .system_msg {
     background: #e9ecef;
     align-self: flex-start;
@@ -636,20 +676,20 @@ const deleteChat = async (id: string) => {
     display: flex;
     padding: 15px;
     gap: 10px;
+    align-items: center;
     border-top: 1px solid #eee;
   }
 
-  .input_area input {
+  .input_area .input {
     flex: 1;
-    padding: 10px 15px;
-    border: 1px solid #ddd;
     border-radius: 20px;
     outline: none;
     font-size: 14px;
   }
 
   .input_area button {
-    padding: 0 15px;
+    width: 20%;
+    height: 35px;
     background: #409eff;
     color: white;
     border: none;
