@@ -327,6 +327,7 @@ const backToList = (): void => {
 const sendMsg = async () => {
   if (!inputContent.value.trim()) return
   const temp = inputContent.value
+  const id = currentChat.value.conversation_id
   // 添加用户消息
   currentChat.value.messages.push({
     content: inputContent.value,
@@ -346,11 +347,26 @@ const sendMsg = async () => {
         console.log(JSON.parse((res as any).Data.new_map_json).root)
 
         LayoutStore.aidata = JSON.parse((res as any).Data.new_map_json)
+        LayoutStore.data = JSON.parse((res as any).Data.new_map_json)
       }
-      currentChat.value.messages.push({
-        content: (res as any).Data.content,
-        role: 'assistant'
-      })
+      if (currentChatId.value === id) {
+        //判断当前是否在发送消息的那个会话，防止用户发完消息去到别的会话
+        currentChat.value.messages.push({
+          content: (res as any).Data.content,
+          role: 'assistant'
+        })
+      } else {
+        console.log(1)
+
+        const index: number = chat.value.findIndex(
+          item => item.conversation_id === id
+        )
+        chat.value[index]?.messages.push({
+          content: (res as any).Data.content,
+          role: 'assistant'
+        })
+      }
+
       scrollToBottom()
     } else {
       const message = (res as any).Message
@@ -359,18 +375,6 @@ const sendMsg = async () => {
   } catch (error) {
     console.log(error)
   }
-
-  // // 模拟系统回复
-  // setTimeout(() => {
-  //   currentChat.value.messages.push({
-  //     // content:
-  //     //   '该思维导图以“Eino大模型应用开发框架”为核心，从开源背景、解决痛点、核心优势、应用与未来四个维度系统展开，具体内容如下：  \n\n### **一、开源背景与目标**  \n作为字节跳动开源的Go语言大模型应用开发框架，其开源背景基于**内部半年使用迭代经验**，核心目标包括：  \n- 依托Go语言特性覆盖开发全流程  \n- 帮助开发者快速实现深度大模型应用  \n\n### **二、解决的开发痛点**  \n针对当前大模型开发中的典型难题，框架聚焦解决：  \n1. **入门门槛高**：降低大模型领域新手学习难度  \n2. **框架滞后性**：避免传统框架更新缓慢问题  \n3. **Python维护复杂**：对比解决Python代码冗长、维护成本高的痛点  \n4. **效果评估难**：简化模型效果量化评估流程  \n5. **工具链碎片化**：减少配套工具额外学习成本  \n\n### **三、核心特点与优势**  \n框架竞争力体现在四大核心维度：  \n\n#### **1. 内核稳定易用**  \n- **API设计**：简单易懂，降低使用复杂度  \n- **上手路径**：提供明确学习路线，实现平滑学习曲线  \n\n#### **2. 扩展性与可持续**  \n- **极致扩展能力**：支持灵活定制与功能扩展  \n- **研发活跃度**：团队开发高度活跃，保障框架持续迭代  \n- **长期发展**：定位可持续演进的开源项目  \n\n#### **3. 强类型语言优势**  \n- **基于Golang**：利用Go语言强类型特性，提升代码可读性与维护性  \n- **可靠性保障**：静态类型检查减少运行时错误，增强系统稳定性  \n\n#### **4. 实践与配套工具**  \n- **字节业务验证**：已在字节核心业务（如豆包、抖音）中实践验证  \n- **开箱即用工具**：提供配套工具链，无需额外学习第三方组件  \n\n### **四、应用情况与未来**  \n#### **1. 内部应用现状**  \n- 字节内部首选大模型开发框架  \n- 已接入豆包、抖音、扣子等核心产品，服务数百个业务场景  \n\n#### **2. 开源项目地址**  \n- 核心框架：github.com/cloudwego/eino  \n- 扩展组件：github.com/cloudwego/eino-ext  \n\n#### **3. 未来发展规划**  \n- 实现“内外一套代码”，统一内部与开源版本  \n- 推动社区共建，目标成为行业优秀开源框架  \n\n### **整体逻辑**  \n导图从“背景-痛点-方案-落地”闭环展开，先阐述开源必要性，再通过痛点分析凸显框架价值，最后以核心优势与应用案例佐证实用性，未来规划进一步强化长期发展信心，完整呈现Eino框架的技术定位与生态愿景。',
-  //     content: '1.四道口附近',
-  //     role: 'system',
-  //     timestamp: createid()
-  //   })
-  //   scrollToBottom()
-  // }, 1000)
 }
 
 // 创建新对话
