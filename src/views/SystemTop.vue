@@ -46,7 +46,8 @@ const handleToLogin = () => {
     confirmButtonText: '确定',
     cancelButtonText: '取消',
     type: 'warning'
-  }).then(() => {
+  }).then(async () => {
+    await LayoutStore.saveMap() //先向后端保存数据
     userStore.clearUserInfo()
     LayoutStore.clearMap() //清除导图和对话数据
     router.push('/login')

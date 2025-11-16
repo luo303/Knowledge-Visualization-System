@@ -675,18 +675,7 @@ const pasteNode = () => {
 }
 //组件销毁前更新思维导图
 onBeforeUnmount(async () => {
-  if (LayoutStore.data.mapId) {
-    try {
-      const res = await UpdateMap(LayoutStore.data)
-      if ((res as any).Code === 200) {
-      } else {
-        const message = (res as any).Message
-        ElMessage.error(`${message}`)
-      }
-    } catch (error) {
-      console.log(error)
-    }
-  }
+  LayoutStore.saveMap()
 })
 watch(
   () => LayoutStore.aidata,

@@ -3,6 +3,8 @@ import { defineStore } from 'pinia'
 import { ref, watch } from 'vue'
 import type { ChatList, Chat } from '@/stores/modules/type'
 import type { MindMapOptions } from '@/utils/type'
+import { UpdateMap } from '@/api/user'
+import { ElMessage } from 'element-plus'
 export const useLayoutStore = defineStore(
   'layout',
   () => {
@@ -70,6 +72,22 @@ export const useLayoutStore = defineStore(
     const needget = ref(false)
     //是否AI正在思考中
     const isloading = ref(false)
+    //后端保存导图数据
+    const saveMap = async () => {
+      if (data.value.mapId) {
+        try {
+          const res = await UpdateMap(data.value)
+          if ((res as any).Code === 200) {
+          } else {
+            const message = (res as any).Message
+            ElMessage.error(`${message}`)
+          }
+        } catch (error) {
+          ElMessage.error('保存导图失败')
+          console.log(error)
+        }
+      }
+    }
     //退出登录清除数据
     const clearMap = () => {
       data.value = {
@@ -147,7 +165,8 @@ export const useLayoutStore = defineStore(
       currentChatId,
       needget,
       isloading,
-      clearMap
+      clearMap,
+      saveMap
     }
   },
   {

@@ -195,7 +195,7 @@ import { ref, nextTick, onMounted } from 'vue'
 import { EditPen } from '@element-plus/icons-vue'
 import { useLayoutStore } from '@/stores'
 import { storeToRefs } from 'pinia'
-import type { Chat, ChatList, Message } from '@/stores/modules/type'
+import type { ChatList, Message } from '@/stores/modules/type'
 import {
   NewChat,
   GetChat,
@@ -247,7 +247,7 @@ const form = ref({
 const formRef = ref()
 //判断标题是否重复
 const detect = (rule: any, value: any, callback: any) => {
-  if (chat.value.every((item: Chat) => item.title !== value)) callback()
+  if (chatlist.value.every((item: ChatList) => item.title !== value)) callback()
   else callback('标题已使用')
 }
 const rules = ref({
@@ -396,8 +396,6 @@ const sendMsg = async () => {
     )
     if ((res as any).Code === 200) {
       if ((res as any).Data.new_map_json) {
-        console.log(JSON.parse((res as any).Data.new_map_json).root)
-
         LayoutStore.aidata = JSON.parse((res as any).Data.new_map_json)
         LayoutStore.data = JSON.parse((res as any).Data.new_map_json)
       }
@@ -408,8 +406,6 @@ const sendMsg = async () => {
           role: 'assistant'
         })
       } else {
-        console.log(1)
-
         const index: number = chat.value.findIndex(
           item => item.conversation_id === id
         )
@@ -462,7 +458,7 @@ const createNewChat = async () => {
 
 // 删除对话
 const openDel = (id: string) => {
-  if (chat.value.length <= 1) {
+  if (chatlist.value.length <= 1) {
     ElMessage.error('至少保留一个对话')
     return
   }
@@ -482,7 +478,9 @@ const deleteChat = async (id: string) => {
             const index = chat.value.findIndex(
               item => item.conversation_id === id
             )
-            chat.value.splice(index, 1)
+            if (index) {
+              chat.value.splice(index, 1)
+            }
           } else {
             const message = (res as any).Message
             ElMessage.error(`${message}`)
