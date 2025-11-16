@@ -70,6 +70,59 @@ export const useLayoutStore = defineStore(
     const needget = ref(false)
     //是否AI正在思考中
     const isloading = ref(false)
+    //退出登录清除数据
+    const clearMap = () => {
+      data.value = {
+        mapId: '',
+        userId: '',
+        title: '',
+        desc: '',
+        layout: '',
+        root: {
+          data: {
+            text: ''
+          },
+          children: [
+            {
+              data: {
+                text: ''
+              },
+              children: []
+            }
+          ]
+        },
+        createdAt: '',
+        updatedAt: ''
+      }
+      aidata.value = {
+        mapId: '',
+        userId: '',
+        title: '',
+        desc: '',
+        layout: '',
+        root: {
+          data: {
+            text: ''
+          },
+          children: [
+            {
+              data: {
+                text: ''
+              },
+              children: []
+            }
+          ]
+        },
+        createdAt: '',
+        updatedAt: ''
+      }
+      chatlist.value = []
+      chat.value = []
+      currentChatId.value = ''
+      currentChat.value = { title: '', conversation_id: '', messages: [] }
+      needget.value = false
+      isloading.value = false
+    }
     watch(
       () => currentChatId.value,
       async newId => {
@@ -93,7 +146,8 @@ export const useLayoutStore = defineStore(
       currentChat,
       currentChatId,
       needget,
-      isloading
+      isloading,
+      clearMap
     }
   },
   {
