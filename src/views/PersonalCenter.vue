@@ -50,7 +50,7 @@
           <!-- 用户名 -->
           <div class="username-wrapper">
             <span class="label">用户名:</span>
-            <span class="username">{{ userInfo.username }}</span>
+            <span class="username">{{ userInfo.user_name }}</span>
             <button class="edit-btn" @click="openUsernameDialog">
               <el-icon><Edit /></el-icon>修改用户名
             </button>
@@ -82,14 +82,14 @@
             <span class="label">手机号码：</span>
             <span class="userphone">{{ userInfo.phone }}</span>
             <span class="status">{{
-              userInfo.phoneBound ? '已绑定' : '未绑定'
+              userInfo.phone ? '已绑定' : '未绑定'
             }}</span>
           </div>
 
           <div class="security-item">
             <span class="label">账号密码：</span>
             <span class="status">{{
-              userInfo.passwordSet ? '已设置' : '未设置'
+              userInfo.has_password ? '已设置' : '未设置'
             }}</span>
             <button class="edit-btn" @click="openPasswordDialog">
               修改密码
@@ -173,7 +173,7 @@
             <span class="label">邮箱绑定：</span>
             <span class="useremail">{{ userInfo.email }}</span>
             <span class="status">{{
-              userInfo.emailBound ? '已绑定' : '未绑定'
+              userInfo.email ? '已绑定' : '未绑定'
             }}</span>
           </div>
         </div>
@@ -199,18 +199,52 @@ import {
   ElMessageBox
 } from 'element-plus'
 import type { UploadProps } from 'element-plus'
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import defaultAvatar from '@/assets/images/personal.png' // 默认头像
 import { useUserStore } from '@/stores/modules/user'
 import { useRouter } from 'vue-router'
 import { Forgetpwd, Getcode } from '@/api/user'
-import { ChangeAvatar } from '@/api/user'
+import { ChangeAvatar, getHome } from '@/api/user'
 import { storeToRefs } from 'pinia'
+import type { HomeResponse } from '@/api/user/type'
 
 // 初始化用户仓库：
 const userStore = useUserStore()
 const router = useRouter()
 const { userInfo } = storeToRefs(userStore)
+
+onMounted(() => {
+  fetchHomeData()
+})
+
+// 获取个人中心数据：
+const fetchHomeData = async () => {
+  try {
+    const axiosResponse = await getHome()
+    if (!axiosResponse) {
+      ElMessage.error('接口未返回任何数据')
+      return
+    }
+    const response: HomeResponse = axiosResponse.data
+
+    if (!response) {
+      console.error('接口返回数据为空')
+      ElMessage.error('获取个人信息失败')
+      return
+    }
+
+    console.log('getHome接口返回的完整响应:', response)
+
+    if (response.Code === 200) {
+      userStore.setUserInfo(response.Data)
+    } else {
+      ElMessage.error(response.Message || '获取个人信息失败！')
+    }
+  } catch (error) {
+    console.error('获取个人信息错误：', error)
+    ElMessage.error('获取个人中心失败,请重试...')
+  }
+}
 
 const formRef = ref()
 const formdata = ref({
@@ -340,7 +374,7 @@ const newUsername = ref('')
 
 // 打开用户名弹窗：
 const openUsernameDialog = () => {
-  newUsername.value = userInfo.value.username // 显示当前用户名
+  newUsername.value = userInfo.value.user_name // 显示当前用户名
   usernameDialogOpen.value = true
 }
 
@@ -352,7 +386,7 @@ const handleUpdateUsername = () => {
   }
 
   // 刷新本地状态：
-  userInfo.value.username = newUsername.value
+  userInfo.value.user_name = newUsername.value
   userStore.updateUsername(newUsername.value)
   ElMessage.success('用户名修改成功！')
   usernameDialogOpen.value = false
