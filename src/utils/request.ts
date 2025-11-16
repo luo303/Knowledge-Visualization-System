@@ -20,7 +20,7 @@ request.interceptors.request.use((config: any) => {
 //响应拦截器
 request.interceptors.response.use(
   (response: any) => {
-    return response.data
+    return response
   },
   (error: any) => {
     //处理网络错误或跨域报错
