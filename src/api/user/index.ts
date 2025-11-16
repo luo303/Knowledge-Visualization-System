@@ -1,6 +1,6 @@
 //用于放置接口
 import request from '@/utils/request'
-import type { loginData, forgetpwd, code } from './type'
+import type { loginData, forgetpwd, code, HomeResponse } from './type'
 import type {
   MindMapOptions,
   MindMapResponse
@@ -100,6 +100,11 @@ export const getMindMapList = (params?: {
   sort?: string
 }) => {
   return request.get<MindMapResponse>('/api/biz/v1/mindmap/list', { params })
+}
+
+// 个人中心
+export const getHome = () => {
+  return request.get<HomeResponse>('/api/biz/v1/user/home')
 }
 
 // 测试数据

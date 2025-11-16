@@ -38,15 +38,19 @@ export interface MindMapResponse {
   }
 }
 
-// 个人主页类型接口
+// 个人信息类型接口
 export interface UserInfo {
-  username: string // 用户名
-  avatar_url: string // 头像
-  phone: string
+  token?: string
+  user_id?: string
+  user_name: string
+  phone?: string
   email: string
-  passwordSet: boolean // 是否设置过密码
-  phoneBound: boolean // 是否绑定过手机
-  emailBound: boolean // 是否绑定过邮箱
+  avatar?: string
+  avatar_url?: string
+  success?: string
+  has_password?: boolean
+  has_github?: boolean
+  has_wechat?: boolean
 }
 
 // 创建导图的请求参数类型：

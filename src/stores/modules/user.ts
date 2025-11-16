@@ -13,7 +13,7 @@ export const useUserStore = defineStore(
     const token = ref('')
 
     // 动作：登录成功后设置用户信息
-    const setUserInfo = (data: UserInfo) => {
+    const setUserInfo = (data: Partial<UserInfo>) => {
       userInfo.value = { ...userInfo.value, ...data } // 合并数据
     }
 
@@ -23,7 +23,7 @@ export const useUserStore = defineStore(
 
     // 动作：修改用户名
     const updateUsername = (newUsername: string) => {
-      userInfo.value.username = newUsername
+      userInfo.value.user_name = newUsername
     }
 
     // 动作：修改头像
