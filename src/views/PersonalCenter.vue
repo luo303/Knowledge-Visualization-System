@@ -206,6 +206,8 @@ import { useRouter } from 'vue-router'
 import { Forgetpwd, Getcode } from '@/api/user'
 import { ChangeAvatar } from '@/api/user'
 import { storeToRefs } from 'pinia'
+import { useLayoutStore } from '@/stores'
+const LayoutStore = useLayoutStore()
 
 // 初始化用户仓库：
 const userStore = useUserStore()
@@ -483,6 +485,7 @@ const handleSwitchAccount = async () => {
     })
 
     userStore.clearUserInfo()
+    LayoutStore.clearMap() //清除导图和对话数据
     ElMessage.success('已退出登录！')
     router.push('/login')
   } catch (error) {

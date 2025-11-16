@@ -37,6 +37,8 @@
 import { ElMessageBox } from 'element-plus'
 import { useRouter } from 'vue-router'
 import { useUserStore } from '@/stores/modules/user'
+import { useLayoutStore } from '@/stores'
+const LayoutStore = useLayoutStore()
 const userStore = useUserStore()
 const router = useRouter()
 const handleToLogin = () => {
@@ -46,6 +48,7 @@ const handleToLogin = () => {
     type: 'warning'
   }).then(() => {
     userStore.clearUserInfo()
+    LayoutStore.clearMap() //清除导图和对话数据
     router.push('/login')
   })
 }
