@@ -41,7 +41,7 @@ export interface MindMapResponse {
 // 个人主页类型接口
 export interface UserInfo {
   username: string // 用户名
-  avatar: string // 头像
+  avatar_url: string // 头像
   phone: string
   email: string
   passwordSet: boolean // 是否设置过密码
