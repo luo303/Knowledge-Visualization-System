@@ -233,22 +233,42 @@ const avatarDialogOpen = ref(false)
 const avatarFileList = ref<UploadProps['fileList']>([])
 const showUploadComponent = ref(false)
 
-const handleFileChange: UploadProps['onChange'] = (uploadFile, uploadFiles) => {
-  avatarFileList.value = uploadFiles
+const handleFileChange: UploadProps['onChange'] = uploadFile => {
+  avatarFileList.value = [uploadFile]
 
-  // 文件校验：
   const file = uploadFile.raw
-  if (file) {
-    if (!file.type.startsWith('image/')) {
-      ElMessage.error('请上传图片文件！')
-      avatarFileList.value = []
-      return
-    }
-    if (file.size / 1024 / 1024 > 5) {
-      ElMessage.error('图片文件大小不能超过 5MB！')
-      avatarFileList.value = []
-      return
-    }
+
+  if (!file) return
+
+  // 文件类型和对应的后缀名：
+  const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp']
+  const allowedExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.webp']
+
+  const fileExtension = file.name
+    .substring(file.name.lastIndexOf('.'))
+    .toLowerCase()
+
+  // 校验文件类型
+  if (!allowedTypes.includes(file.type)) {
+    ElMessage.error(`请上传 ${allowedExtensions.join(', ')} 格式的图片！`)
+    avatarFileList.value = []
+    return
+  }
+
+  // 校验文件后缀名
+  if (!allowedExtensions.includes(fileExtension)) {
+    ElMessage.error(
+      `文件后缀名不允许，请使用 ${allowedExtensions.join(', ')}！`
+    )
+    avatarFileList.value = []
+    return
+  }
+
+  // 校验文件大小
+  if (file.size / 1024 / 1024 > 5) {
+    ElMessage.error('图片文件大小不能超过 5MB！')
+    avatarFileList.value = []
+    return
   }
 }
 
@@ -266,9 +286,6 @@ const handleUpdateAvatar = async () => {
       return
     }
 
-    // 测试 临时本地图片路径：
-    // const localImageUrl = URL.createObjectURL(selectedFile)
-
     // FormData 对象
     const formData = new FormData()
     formData.append('avatar', selectedFile)
@@ -279,18 +296,6 @@ const handleUpdateAvatar = async () => {
 
     // 调用真实 API
     const response = await ChangeAvatar(formData)
-
-    // 模拟 API 响应
-    // const response = {
-    //   data: {
-    //     Code: 200,
-    //     Message: '头像上传成功',
-    //     Data: {
-    //       // 使用一个随机的网络图片作为模拟的返回头像 URL
-    //       avatar_url: localImageUrl
-    //     }
-    //   }
-    // }
 
     console.log(response)
 
