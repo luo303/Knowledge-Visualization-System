@@ -220,43 +220,75 @@
       class="help"
       v-model="drawer"
       direction="rtl"
-      size="40%"
-      title="快捷键"
+      size="60%"
+      title="使用方法"
       resizable
     >
-      <p>复制节点:Ctrl + C</p>
-      <el-divider>
-        <el-icon><star-filled /></el-icon>
-      </el-divider>
-      <p>剪切节点:Ctrl + X</p>
-      <el-divider>
-        <el-icon><star-filled /></el-icon>
-      </el-divider>
-      <p>删除节点:Backspace</p>
-      <el-divider>
-        <el-icon><star-filled /></el-icon>
-      </el-divider>
-      <p>添加子节点:Tab</p>
-      <p>添加同级节点:Enter</p>
-      <el-divider>
-        <el-icon><star-filled /></el-icon>
-      </el-divider>
-      <p>文本换行:Shitf + Enter</p>
-      <el-divider>
-        <el-icon><star-filled /></el-icon>
-      </el-divider>
-      <p>缩放思维导图:既可以通过底部按钮也可以鼠标滚轮</p>
-      <el-divider>
-        <el-icon><star-filled /></el-icon>
-      </el-divider>
-      <p>多选:Ctrl + 左键</p>
-      <el-divider>
-        <el-icon><star-filled /></el-icon>
-      </el-divider>
-      <p>回退:Ctrl + Z</p>
-      <el-divider>
-        <el-icon><star-filled /></el-icon>
-      </el-divider>
+      <div class="demo-collapse">
+        <el-collapse v-model="activeName" accordion>
+          <el-collapse-item title="大致使用流程" name="1">
+            <el-steps
+              style="max-width: 900px"
+              :active="active"
+              finish-status="success"
+            >
+              <el-step
+                title="第一步"
+                description="在生成导图页上传文件生成导图或从我的导图中选择一个导图编辑"
+              />
+              <el-step title="第二步" description="在手动编辑页进行编辑" />
+              <el-step
+                title="第三步"
+                description="编辑过程中使用右侧对话框进行AI辅助编辑"
+              />
+              <el-step
+                title="第四步"
+                description="编辑完成后保存，然后可选底部按钮导出"
+              />
+            </el-steps>
+
+            <el-button style="margin-top: 12px" @click="next">下一步</el-button>
+          </el-collapse-item>
+          <el-collapse-item title="编辑快捷键" name="2">
+            <div>
+              <p>复制节点:Ctrl + C</p>
+              <el-divider>
+                <el-icon><star-filled /></el-icon>
+              </el-divider>
+              <p>剪切节点:Ctrl + X</p>
+              <el-divider>
+                <el-icon><star-filled /></el-icon>
+              </el-divider>
+              <p>删除节点:Backspace</p>
+              <el-divider>
+                <el-icon><star-filled /></el-icon>
+              </el-divider>
+              <p>添加子节点:Tab</p>
+              <p>添加同级节点:Enter</p>
+              <el-divider>
+                <el-icon><star-filled /></el-icon>
+              </el-divider>
+              <p>文本换行:Shitf + Enter</p>
+              <el-divider>
+                <el-icon><star-filled /></el-icon>
+              </el-divider>
+
+              <p>多选:Ctrl + 左键</p>
+              <el-divider>
+                <el-icon><star-filled /></el-icon>
+              </el-divider>
+              <p>回退:Ctrl + Z</p>
+              <el-divider>
+                <el-icon><star-filled /></el-icon>
+              </el-divider>
+              <p>缩放思维导图:既可以通过底部按钮也可以鼠标滚轮</p>
+              <el-divider>
+                <el-icon><star-filled /></el-icon>
+              </el-divider>
+            </div>
+          </el-collapse-item>
+        </el-collapse>
+      </div>
     </el-drawer>
   </div>
 </template>
@@ -280,6 +312,13 @@ import {
 import { useLayoutStore } from '@/stores'
 import { ElMessage } from 'element-plus'
 import { UpdateMap } from '@/api/user'
+//步骤条
+const active = ref(0)
+
+const next = () => {
+  if (active.value++ > 2) active.value = 0
+}
+const activeName = ref('1')
 //是否保存
 const status = ref('未保存')
 //控制帮助页是否打开
