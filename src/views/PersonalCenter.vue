@@ -206,7 +206,6 @@ import { useRouter } from 'vue-router'
 import { Forgetpwd, Getcode } from '@/api/user'
 import { ChangeAvatar, getHome } from '@/api/user'
 import { storeToRefs } from 'pinia'
-import type { HomeResponse } from '@/api/user/type'
 import { useLayoutStore } from '@/stores'
 const LayoutStore = useLayoutStore()
 
@@ -222,18 +221,8 @@ onMounted(() => {
 // 获取个人中心数据：
 const fetchHomeData = async () => {
   try {
-    const axiosResponse = await getHome()
-    if (!axiosResponse) {
-      ElMessage.error('接口未返回任何数据')
-      return
-    }
-    const response: HomeResponse = axiosResponse.data
-
-    if (!response) {
-      console.error('接口返回数据为空')
-      ElMessage.error('获取个人信息失败')
-      return
-    }
+    const res = await getHome()
+    const response = res as any
 
     console.log('getHome接口返回的完整响应:', response)
 

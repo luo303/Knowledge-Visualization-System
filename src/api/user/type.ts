@@ -1,6 +1,5 @@
 //接口请求和返回数据的类型定义
 // 用户信息
-import type { UserInfo } from '@/utils/type'
 
 // 登录
 export interface loginData {
@@ -36,11 +35,4 @@ export interface registerData {
 export interface GenerateMindMapData {
   success: boolean
   map_json: string // 导图的 json 数据
-}
-
-// 个人中心
-export interface HomeResponse {
-  Code: number
-  Message: string
-  Data: UserInfo
 }
