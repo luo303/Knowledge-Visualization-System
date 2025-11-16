@@ -1,7 +1,6 @@
 // stores/modules/user.ts
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
-import { ElMessage } from 'element-plus'
 import type { UserInfo } from '@/utils/type'
 
 export const useUserStore = defineStore(
@@ -12,27 +11,6 @@ export const useUserStore = defineStore(
 
     // 2. 单独存储 token
     const token = ref('')
-
-    // 动作：初始化用户信息（在应用启动时调用）
-    const initUserInfo = () => {
-      try {
-        const storedUserInfo = localStorage.getItem('user-userInfo') // pinia-plugin-persist 默认的存储键是 "storeId-key"
-        const storedToken = localStorage.getItem('user-token')
-
-        if (storedUserInfo) {
-          userInfo.value = JSON.parse(storedUserInfo)
-        }
-        if (storedToken) {
-          token.value = storedToken
-        }
-      } catch (err) {
-        ElMessage.error('解析用户信息失败，请重新登录。')
-        console.error(err)
-        // 清除错误的存储
-        localStorage.removeItem('user-userInfo')
-        localStorage.removeItem('user-token')
-      }
-    }
 
     // 动作：登录成功后设置用户信息
     const setUserInfo = (data: UserInfo) => {
@@ -63,7 +41,6 @@ export const useUserStore = defineStore(
     return {
       userInfo,
       token,
-      initUserInfo,
       setUserInfo,
       saveToken,
       updateUsername,
