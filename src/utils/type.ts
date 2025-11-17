@@ -26,18 +26,6 @@ export interface MindMapOptions {
   [key: string]: any
 }
 
-// 思维导图列表接口的响应类型：
-export interface MindMapResponse {
-  Code: number
-  Message: string
-  Data: {
-    list: MindMapOptions[]
-    total: number
-    page: number
-    page_size: number
-  }
-}
-
 // 个人信息类型接口
 export interface UserInfo {
   token?: string

@@ -1,11 +1,7 @@
 //用于放置接口
 import request from '@/utils/request'
 import type { loginData, forgetpwd, code, changecontact } from './type'
-import type {
-  MindMapOptions,
-  MindMapResponse,
-  CreateMindMapParams
-} from '@/utils/type'
+import type { MindMapOptions, CreateMindMapParams } from '@/utils/type'
 import type { registerData } from './type'
 
 // 登录接口
@@ -94,14 +90,8 @@ export const createMindMap = async (data: CreateMindMapParams) => {
 }
 
 // 获取思维导图列表
-export const getMindMapList = (params?: {
-  page?: number
-  pageP_size?: number
-  keyword?: string
-  layout?: string
-  sort?: string
-}) => {
-  return request.get<MindMapResponse>('/api/biz/v1/mindmap/list', { params })
+export const getMindMapList = () => {
+  return request.get('/api/biz/v1/mindmap/list')
 }
 
 // 个人中心
