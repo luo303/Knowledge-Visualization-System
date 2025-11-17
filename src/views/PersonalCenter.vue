@@ -81,8 +81,8 @@
           <div class="security-item">
             <span class="label">手机号码：</span>
             <span class="userphone">{{ userInfo.phone }}</span>
-            <span class="status">{{
-              userInfo.phone ? '已绑定' : '未绑定'
+            <span class="status" @click="openchange()">{{
+              userInfo.phone ? '已绑定(点击可换绑)' : '未绑定(点击进行绑定)'
             }}</span>
           </div>
 
@@ -96,7 +96,12 @@
             </button>
           </div>
 
-          <ElDialog v-model="passwordDialogOpen" title="修改密码" width="35%">
+          <ElDialog
+            v-model="passwordDialogOpen"
+            title="修改密码"
+            width="35%"
+            @close="closePasswordDialog"
+          >
             <el-form
               style="width: 100%"
               size="large"
@@ -130,15 +135,14 @@
               <el-form-item prop="code" class="parent">
                 <el-input
                   v-model="formdata.code"
-                  type="password"
+                  type="text"
                   placeholder="请输入验证码"
-                  :show-password="showCode"
                   class="password-input"
                 />
                 <el-button
                   v-if="show"
                   type="primary"
-                  @click="getCode"
+                  @click="getCode('resetpassword')"
                   text
                   class="getCode-btn"
                   >获取验证码</el-button
@@ -146,8 +150,9 @@
                 <el-button
                   v-else
                   type="default"
-                  @click="getCode"
+                  @click="getCode('resetPassword')"
                   text
+                  disabled
                   class="getCode-btn"
                   >{{ countdown }}s</el-button
                 >
@@ -168,12 +173,85 @@
               >
             </template>
           </ElDialog>
+          <ElDialog
+            v-model="changedDialogOpen"
+            title="联系方式"
+            width="35%"
+            @close="closechange"
+          >
+            <el-form
+              style="width: 100%"
+              size="large"
+              :model="changeForm"
+              :rules="changerules"
+              ref="changeRef"
+              :hide-required-asterisk="true"
+              label-width="auto"
+              class="password-form"
+            >
+              <el-form-item prop="account">
+                <el-input
+                  v-model="changeForm.account"
+                  placeholder="请输入新的联系方式"
+                  class="password-input"
+                />
+              </el-form-item>
+
+              <el-form-item prop="password">
+                <el-input
+                  v-model="changeForm.password"
+                  type="pasword"
+                  placeholder="请输入密码"
+                  show-password
+                  class="password-input"
+                />
+              </el-form-item>
+
+              <el-form-item prop="code" class="parent">
+                <el-input
+                  v-model="changeForm.code"
+                  type="text"
+                  placeholder="请输入验证码"
+                  class="password-input"
+                />
+                <el-button
+                  v-if="show"
+                  type="primary"
+                  @click="getCode('changeaccount')"
+                  text
+                  class="getCode-btn"
+                  >获取验证码</el-button
+                >
+                <el-button
+                  v-else
+                  type="default"
+                  @click="getCode('changeaccount')"
+                  text
+                  disabled
+                  class="getCode-btn"
+                  >{{ countdown }}s</el-button
+                >
+              </el-form-item>
+            </el-form>
+
+            <template #footer>
+              <el-button class="newpassword-cancel-btn" @click="closechange"
+                >取消</el-button
+              >
+              <el-button
+                type="primary"
+                class="newpassword-confirm-btn"
+                @click="changecontact"
+                >确定</el-button
+              >
+            </template>
+          </ElDialog>
 
           <div class="security-item">
             <span class="label">邮箱绑定：</span>
             <span class="useremail">{{ userInfo.email }}</span>
-            <span class="status">{{
-              userInfo.email ? '已绑定' : '未绑定'
+            <span class="status" @click="openchange()">{{
+              userInfo.email ? '已绑定(点击可换绑)' : '未绑定(点击进行绑定)'
             }}</span>
           </div>
         </div>
@@ -203,7 +281,7 @@ import { ref, computed, onMounted } from 'vue'
 import defaultAvatar from '@/assets/images/personal.png' // 默认头像
 import { useUserStore } from '@/stores/modules/user'
 import { useRouter } from 'vue-router'
-import { Forgetpwd, Getcode } from '@/api/user'
+import { Forgetpwd, Getcode, GetForChangecode, ChangeContact } from '@/api/user'
 import { ChangeAvatar, getHome } from '@/api/user'
 import { storeToRefs } from 'pinia'
 import { useLayoutStore } from '@/stores'
@@ -236,18 +314,115 @@ const fetchHomeData = async () => {
     ElMessage.error('获取个人中心失败,请重试...')
   }
 }
+// 修改用户名：
+const usernameDialogOpen = ref(false)
+const newUsername = ref('')
+// 修改密码弹窗
+const passwordDialogOpen = ref(false)
+//换绑或绑定弹窗
+const changedDialogOpen = ref(false)
 
+const phoneReg = /^1[3-9]\d{9}$/
+const emailReg =
+  /^[a-zA-Z0-9_-]+(?:\.[a-zA-Z0-9_-]+)*@(?:[a-zA-Z0-9](?:[a-zA-Z0-9-]*[a-zA-Z0-9])?\.)+[a-zA-Z0-9](?:[a-zA-Z0-9-]*[a-zA-Z0-9])?$/
+const pwdReg =
+  /^(?![a-zA-Z]+$)(?![a-z0-9]+$)(?![A-Z0-9]+$)(?![a-zA-Z!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]+$)(?![a-z0-9!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]+$)(?![A-Z0-9!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]+$).{8,16}$/
+const rules = ref({
+  confirm_password: [
+    { required: true, message: '请输入密码', trigger: 'blur' },
+    {
+      validator: (rule: any, value: any, cb: any) => {
+        if (value !== formdata.value.new_password) {
+          cb('两次密码不一致')
+        } else {
+          cb()
+        }
+      },
+      trigger: 'blur'
+    }
+  ],
+  new_password: [
+    { required: true, message: '请输入密码', trigger: 'blur' },
+    {
+      validator: (rule: any, value: any, cb: any) => {
+        if (pwdReg.test(value)) {
+          cb()
+        } else {
+          cb('长度需为8-16位,含大小写字母、数字、特殊字符中的至少3种')
+        }
+      },
+      trigger: 'blur'
+    }
+  ],
+  code: [{ required: true, message: '请输入验证码', trigger: 'blur' }]
+})
+const changeRef = ref()
+//换绑或绑定校验规则
+const changerules = ref({
+  password: [
+    { required: true, message: '请输入密码', trigger: 'blur' },
+    {
+      validator: (rule: any, value: any, cb: any) => {
+        if (pwdReg.test(value)) {
+          cb()
+        } else {
+          cb('长度需为8-16位,含大小写字母、数字、特殊字符中的至少3种')
+        }
+      },
+      trigger: 'blur'
+    }
+  ],
+  account: [
+    { required: true, message: '请输入正确的电话号码或邮箱', trigger: 'blur' },
+    {
+      validator: (rule: any, value: any, cb: any) => {
+        if (phoneReg.test(value)) {
+          changeForm.value.account_type = 'phone'
+          cb()
+        } else if (emailReg.test(value)) {
+          changeForm.value.account_type = 'email'
+          cb()
+        } else {
+          cb('请输入正确的电话号码或邮箱')
+        }
+      },
+      trigger: 'blur'
+    }
+  ],
+  code: [{ required: true, message: '请输入验证码', trigger: 'blur' }]
+})
+//换绑或绑定表单
+const changeForm = ref({
+  account: '',
+  account_type: '',
+  code: '',
+  password: ''
+})
+//换绑或绑定验证码
+const ForChangeCode = computed(() => ({
+  account: changeForm.value.account,
+  account_type: changeForm.value.account_type,
+  purpose: 'change_account'
+}))
+
+//修改密码
 const formRef = ref()
+//修改密码表单（默认用邮箱发送验证码，如果只有手机号就用手机号）
 const formdata = ref({
   confirm_password: '',
   new_password: '',
-  account: '',
-  account_type: '',
+  account: userStore.userInfo?.email
+    ? userStore.userInfo.email
+    : userStore.userInfo.phone!,
+  account_type: userStore.userInfo?.email ? 'email' : 'phone'!,
   code: ''
 })
+//修改密码验证码
 const Code = computed(() => ({
-  account: formdata.value.account,
-  account_type: formdata.value.account_type,
+  account: userStore.userInfo?.email
+    ? userStore.userInfo.email
+    : userStore.userInfo.phone!,
+  account_type: userStore.userInfo?.email ? 'email' : 'phone'!,
   purpose: 'reset_password'
 }))
 
@@ -322,12 +497,12 @@ const handleUpdateAvatar = async () => {
 
     console.log(response)
 
-    if (response.data.Code === 200 && response.data.Data.avatar_url) {
-      userStore.updateAvatar(response.data.Data.avatar_url)
+    if ((response as any).Code === 200 && (response as any).Data.avatar_url) {
+      userStore.updateAvatar((response as any).Data.avatar_url)
       ElMessage.success('头像更新成功！')
       avatarDialogOpen.value = false
     } else {
-      ElMessage.error(response.data.Message || '更新头像失败！')
+      ElMessage.error((response as any).Message || '更新头像失败！')
     }
   } catch (error) {
     console.error('更新头像失败：', error)
@@ -359,10 +534,6 @@ const handleAvatarError = (e: Event) => {
   img.src = new URL(defaultAvatar, import.meta.url).href
 }
 
-// 修改用户名：
-const usernameDialogOpen = ref(false)
-const newUsername = ref('')
-
 // 打开用户名弹窗：
 const openUsernameDialog = () => {
   newUsername.value = userInfo.value.user_name // 显示当前用户名
@@ -384,46 +555,27 @@ const handleUpdateUsername = () => {
 }
 
 // 修改密码：
-// 弹窗：
-const passwordDialogOpen = ref(false)
-// 密码：
-const oldPassword = ref('')
-const newPassword = ref('')
-const confirmPassword = ref('')
-// 显示/隐藏密码开关：
-const showOldPwd = ref(false)
-const showNewPwd = ref(false)
-const showConfirmPwd = ref(false)
-const showCode = ref(false)
 
 // 打开弹窗：
 const openPasswordDialog = () => {
   passwordDialogOpen.value = true
-  resetPasswordForm()
 }
 
 // 关闭弹窗：
 const closePasswordDialog = () => {
   passwordDialogOpen.value = false
-  resetPasswordForm()
-}
-
-// 重置密码表单：
-const resetPasswordForm = () => {
-  oldPassword.value = ''
-  newPassword.value = ''
-  confirmPassword.value = ''
-  showOldPwd.value = false
-  showNewPwd.value = false
-  showConfirmPwd.value = false
+  formRef.value.resetFields()
 }
 
 //获取验证码
 const countdown = ref(60)
 const show = ref(true)
 let timer: any = null
-const getCode = async () => {
-  await formRef.value.validateField(['account'])
+const getCode = async (type: string) => {
+  if (type === 'resetpassword') {
+  } else {
+    await changeRef.value.validateField(['account'])
+  }
   clearInterval(timer)
   countdown.value = 60
   show.value = !show.value
@@ -437,7 +589,10 @@ const getCode = async () => {
     }
   }, 1000)
   try {
-    const res = await Getcode(Code.value)
+    const res =
+      type === 'resetpassword'
+        ? await Getcode(Code.value)
+        : await GetForChangecode(ForChangeCode.value)
     if ((res as any).Code === 200) {
       ElMessage.success('验证码发送成功')
     } else {
@@ -448,39 +603,6 @@ const getCode = async () => {
     ElMessage.error('发送请求失败')
   }
 }
-
-// 校验：
-const pwdReg =
-  /^(?![a-zA-Z]+$)(?![a-z0-9]+$)(?![A-Z0-9]+$)(?![a-zA-Z!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]+$)(?![a-z0-9!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]+$)(?![A-Z0-9!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]+$).{8,16}$/
-const rules = ref({
-  confirm_password: [
-    { required: true, message: '请输入密码', trigger: 'blur' },
-    {
-      validator: (rule: any, value: any, cb: any) => {
-        if (value !== formdata.value.new_password) {
-          cb('两次密码不一致')
-        } else {
-          cb()
-        }
-      },
-      trigger: 'blur'
-    }
-  ],
-  new_password: [
-    { required: true, message: '请输入密码', trigger: 'blur' },
-    {
-      validator: (rule: any, value: any, cb: any) => {
-        if (pwdReg.test(value)) {
-          cb()
-        } else {
-          cb('长度需为8-16位,含大小写字母、数字、特殊字符中的至少3种')
-        }
-      },
-      trigger: 'blur'
-    }
-  ],
-  code: [{ required: true, message: '请输入验证码', trigger: 'blur' }]
-})
 
 // 提交修改密码：（waiting for 后 端）
 //确认按钮
@@ -500,9 +622,43 @@ const handleUpdatePassword = async () => {
   } catch (error) {
     console.log(error)
     ElMessage.error('发送请求失败')
+  } finally {
+    passwordDialogOpen.value = false
   }
 }
 
+//点击文字打开换绑弹框
+const openchange = () => {
+  changedDialogOpen.value = true
+}
+//取消换绑弹框
+const closechange = () => {
+  changedDialogOpen.value = false
+  changeRef.value.resetFields()
+}
+//确认换绑
+const changecontact = async () => {
+  await changeRef.value.validate()
+  try {
+    const res = await ChangeContact(changeForm.value)
+    if ((res as any).Code === 200) {
+      if (changeForm.value.account_type === 'email') {
+        userStore.userInfo.email = (res as any).Data.account
+      } else if (changeForm.value.account_type === 'phone') {
+        userStore.userInfo.phone = (res as any).Data.account
+      } else {
+        ElMessage.error('系统错误，没有这种联系方式')
+      }
+    } else {
+      ElMessage.error(`${(res as any).Message}`)
+    }
+  } catch (error) {
+    console.log(error)
+    ElMessage.error('系统错误')
+  } finally {
+    changedDialogOpen.value = false
+  }
+}
 // 切换账号：
 const handleSwitchAccount = async () => {
   try {
@@ -652,6 +808,7 @@ const handleSwitchAccount = async () => {
     }
 
     .status {
+      cursor: pointer;
       font-size: 16px;
       padding: 2px 8px;
       color: #5a6edf;

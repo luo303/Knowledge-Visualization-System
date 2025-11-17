@@ -1,6 +1,6 @@
 //用于放置接口
 import request from '@/utils/request'
-import type { loginData, forgetpwd, code } from './type'
+import type { loginData, forgetpwd, code, changecontact } from './type'
 import type {
   MindMapOptions,
   MindMapResponse
@@ -18,10 +18,12 @@ export const Register = (data: registerData) =>
 //忘记密码
 export const Forgetpwd = (data: forgetpwd) =>
   request.post('/api/biz/v1/user/reset_password', data)
-//发送验证码
+//发送验重置密码证码
 export const Getcode = (data: code) =>
   request.post('/api/biz/v1/user/send_code', data)
-
+//发送换绑或绑定验证码
+export const GetForChangecode = (data: code) =>
+  request.post('/api/biz/v1/user/send_code_for_change', data)
 // 更改头像
 export const ChangeAvatar = (formdata: FormData) => {
   return request.post('/api/biz/v1/user/avatar', formdata)
@@ -105,6 +107,10 @@ export const getMindMapList = (params?: {
 // 个人中心
 export const getHome = () => {
   return request.get('/api/biz/v1/user/home')
+}
+//更改联系方式
+export const ChangeContact = (data: changecontact) => {
+  return request.post('/api/biz/v1/user/account', data)
 }
 
 // 测试数据
