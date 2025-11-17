@@ -3,7 +3,7 @@ import { ElMessage } from 'element-plus'
 import { useUserStore } from '@/stores'
 import router from '@/router'
 //创建axios实例
-const baseURL = 'https://frp-ski.com:46285' //等后续接口
+const baseURL = 'http://111.228.15.67:8080'
 const request = axios.create({
   baseURL,
   timeout: 10000000 //对话获取时间有点久，时间限制调大
