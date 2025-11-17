@@ -1,7 +1,7 @@
 //思维导图的ts类型
 
 //思维导图节点类型
-interface MindMapNode {
+export interface MindMapNode {
   data: {
     text: string // 节点文本内容
     uid?: string
