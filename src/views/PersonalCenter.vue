@@ -81,7 +81,7 @@
           <div class="security-item">
             <span class="label">手机号码：</span>
             <span class="userphone">{{ userInfo.phone }}</span>
-            <span class="status" @click="openchange()">{{
+            <span class="status" @click="openchange('phone')">{{
               userInfo.phone ? '已绑定(点击可换绑)' : '未绑定(点击进行绑定)'
             }}</span>
           </div>
@@ -189,10 +189,17 @@
               label-width="auto"
               class="password-form"
             >
-              <el-form-item prop="account">
+              <el-form-item prop="account" v-if="type === 'phone'">
                 <el-input
                   v-model="changeForm.account"
-                  placeholder="请输入新的联系方式"
+                  placeholder="请输入新的手机号"
+                  class="password-input"
+                />
+              </el-form-item>
+              <el-form-item prop="account" v-else>
+                <el-input
+                  v-model="changeForm.account"
+                  placeholder="请输入新的邮箱"
                   class="password-input"
                 />
               </el-form-item>
@@ -200,7 +207,7 @@
               <el-form-item prop="password">
                 <el-input
                   v-model="changeForm.password"
-                  type="pasword"
+                  type="password"
                   placeholder="请输入密码"
                   show-password
                   class="password-input"
@@ -250,7 +257,7 @@
           <div class="security-item">
             <span class="label">邮箱绑定：</span>
             <span class="useremail">{{ userInfo.email }}</span>
-            <span class="status" @click="openchange()">{{
+            <span class="status" @click="openchange('email')">{{
               userInfo.email ? '已绑定(点击可换绑)' : '未绑定(点击进行绑定)'
             }}</span>
           </div>
@@ -358,6 +365,8 @@ const rules = ref({
 })
 const changeRef = ref()
 //换绑或绑定校验规则
+//换绑类型（手机还是邮箱）
+const type = ref('')
 const changerules = ref({
   password: [
     { required: true, message: '请输入密码', trigger: 'blur' },
@@ -373,17 +382,26 @@ const changerules = ref({
     }
   ],
   account: [
-    { required: true, message: '请输入正确的电话号码或邮箱', trigger: 'blur' },
     {
       validator: (rule: any, value: any, cb: any) => {
-        if (phoneReg.test(value)) {
-          changeForm.value.account_type = 'phone'
-          cb()
-        } else if (emailReg.test(value)) {
-          changeForm.value.account_type = 'email'
-          cb()
+        if (type.value === 'phone') {
+          if (userStore.userInfo?.phone && value === userStore.userInfo.phone) {
+            cb('请输入新的电话号码')
+          } else if (phoneReg.test(value)) {
+            changeForm.value.account_type = 'phone'
+            cb()
+          } else {
+            cb('请输入正确的电话号码')
+          }
         } else {
-          cb('请输入正确的电话号码或邮箱')
+          if (userStore.userInfo?.email && value === userStore.userInfo.email) {
+            cb('请输入新的邮箱')
+          } else if (emailReg.test(value)) {
+            changeForm.value.account_type = 'email'
+            cb()
+          } else {
+            cb('请输入正确的邮箱')
+          }
         }
       },
       trigger: 'blur'
@@ -391,6 +409,7 @@ const changerules = ref({
   ],
   code: [{ required: true, message: '请输入验证码', trigger: 'blur' }]
 })
+
 //换绑或绑定表单
 const changeForm = ref({
   account: '',
@@ -628,8 +647,9 @@ const handleUpdatePassword = async () => {
 }
 
 //点击文字打开换绑弹框
-const openchange = () => {
+const openchange = (name: string) => {
   changedDialogOpen.value = true
+  type.value = name
 }
 //取消换绑弹框
 const closechange = () => {
