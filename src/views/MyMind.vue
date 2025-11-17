@@ -427,23 +427,20 @@ const fetchMyMindMaps = async () => {
       sort: currentSort.value === 'latest' ? 'updatedAt,desc' : 'updatedAt,asc'
     }
     // 调用接口：
-    const response = await getMindMapList(requestParams)
+    const res = await getMindMapList(requestParams)
+    const response = res as any
 
-    if (response.data.Code === 200 && response.data.Data) {
-      console.log('接口返回数据：', response.data.Data)
-      const mapWithSelected = response.data.Data.list.map(
-        (map: MindMapOptions) => ({
-          ...map,
-          selected: false
-        })
-      ) as MindMapOptions[]
+    if (response.Code === 200 && response.Data) {
+      console.log('接口返回数据：', response.Data)
+      const mapWithSelected = response.Data.list.map((map: MindMapOptions) => ({
+        ...map,
+        selected: false
+      })) as MindMapOptions[]
 
       mindmaps.value = mapWithSelected
-      totalCount.value = response.data.Data.total
+      totalCount.value = response.Data.total
     } else {
-      ElMessage.error(
-        `获取思维导图失败：${response.data.Message || '未知错误'}`
-      )
+      ElMessage.error(`获取思维导图失败：${response.Message || '未知错误'}`)
     }
   } catch (error) {
     console.error('获取导图数据失败', error)
