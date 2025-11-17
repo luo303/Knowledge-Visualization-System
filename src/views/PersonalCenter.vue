@@ -288,7 +288,13 @@ import { ref, computed, onMounted } from 'vue'
 import defaultAvatar from '@/assets/images/personal.png' // 默认头像
 import { useUserStore } from '@/stores/modules/user'
 import { useRouter } from 'vue-router'
-import { Forgetpwd, Getcode, GetForChangecode, ChangeContact } from '@/api/user'
+import {
+  Forgetpwd,
+  Getcode,
+  GetForChangecode,
+  ChangeContact,
+  ChangeName
+} from '@/api/user'
 import { ChangeAvatar, getHome } from '@/api/user'
 import { storeToRefs } from 'pinia'
 import { useLayoutStore } from '@/stores'
@@ -558,17 +564,24 @@ const openUsernameDialog = () => {
 }
 
 // 提交用户名修改：// 等待后端
-const handleUpdateUsername = () => {
+const handleUpdateUsername = async () => {
   if (!newUsername.value.trim()) {
     ElMessage.warning('用户名不能为空！')
     return
   }
-
-  // 刷新本地状态：
-  userInfo.value.user_name = newUsername.value
-  userStore.updateUsername(newUsername.value)
-  ElMessage.success('用户名修改成功！')
-  usernameDialogOpen.value = false
+  try {
+    const res = await ChangeName(newUsername.value)
+    if ((res as any).Code === 200) {
+      userStore.userInfo.user_name = (res as any).Data.user_name
+      ElMessage.success('更改用户名成功')
+    } else {
+      ElMessage.error('更改失败')
+    }
+  } catch (error) {
+    console.log(error)
+  } finally {
+    usernameDialogOpen.value = false
+  }
 }
 
 // 修改密码：

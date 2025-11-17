@@ -112,3 +112,6 @@ export const getHome = () => {
 export const ChangeContact = (data: changecontact) => {
   return request.post('/api/biz/v1/user/account', data)
 }
+export const ChangeName = (user_name: string) => {
+  return request.post('/api/biz/v1/user/username', { user_name })
+}
