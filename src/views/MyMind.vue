@@ -202,6 +202,7 @@ import { ElMessageBox, ElMessage } from 'element-plus'
 import { exports } from '@/utils/export.ts'
 // import { getMindMapList } from '@/api/user/index'
 import { useLayoutStore } from '@/stores/modules/layout'
+import { getMap } from '@/api/user/index'
 
 // 搜索相关状态
 const searchQuery = ref('')
@@ -610,10 +611,24 @@ const formatTime = (time: string): string => {
 }
 
 // 卡片点击事件：
-const handleCardClick = (map: any, e: MouseEvent): void => {
+const handleCardClick = async (map: any, e: MouseEvent) => {
   const target = e.target as HTMLElement
   if (!target.closest('.batch-checkbox') && !target.closest('.map-actions')) {
-    router.push(`/edit/${map.mapId}`)
+    try {
+      console.log(`准备加载导图卡片数据：${map.mapId}`)
+      const res = await getMap()
+      const response = res as any
+      console.log('导图卡片数据加载成功:', response)
+      const mapId = LayoutStore.data?.mapId
+      if (mapId && mapId !== 'xxx') {
+        router.push({ name: 'handedit', query: { mapId } }) // 携带 mapId
+      } else {
+        ElMessage.warning('导图数据未找到或未生成正式ID，无法跳转')
+      }
+    } catch (error) {
+      console.error('加载导图卡片数据失败', error)
+      ElMessage.error('加载导图卡片数据失败，请稍后再试...')
+    }
   }
 }
 

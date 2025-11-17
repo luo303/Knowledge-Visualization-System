@@ -94,6 +94,11 @@ export const getMindMapList = () => {
   return request.get('/api/biz/v1/mindmap/list')
 }
 
+// 查询 map
+export const getMap = () => {
+  return request.get('/api/biz/v1/mindmap/1984685015081947136')
+}
+
 // 个人中心
 export const getHome = () => {
   return request.get('/api/biz/v1/user/home')
