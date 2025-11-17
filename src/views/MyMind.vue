@@ -202,7 +202,7 @@ import { ElMessageBox, ElMessage } from 'element-plus'
 import { exports } from '@/utils/export.ts'
 // import { getMindMapList } from '@/api/user/index'
 import { useLayoutStore } from '@/stores/modules/layout'
-import { getMap } from '@/api/user/index'
+import { getMap, delMap } from '@/api/user/index'
 
 // 搜索相关状态
 const searchQuery = ref('')
@@ -806,18 +806,23 @@ const handleBatchDeleteConfirm = () => {
 }
 
 // 批量删除逻辑：
-const handleBatchDelete = () => {
+const handleBatchDelete = async () => {
   statusMessage.value = '正在删除...'
   statusType.value = 'loading'
   showStatusToast.value = true
-
-  // 模拟删除请求：
-  setTimeout(() => {
-    mindmaps.value = mindmaps.value.filter(map => !map.selected)
-    statusMessage.value = `已删除${selectedCount.value}个导图`
-    statusType.value = 'success'
-    hideToast()
-  }, 1500)
+  try {
+    console.log('准备删除导图卡片数据：')
+    const res = await delMap()
+    const response = res as any
+    console.log('导图卡片数据删除成功:', response)
+  } catch (error) {
+    console.error('删除导图卡片数据失败', error)
+    ElMessage.error('删除导图卡片数据失败，请稍后再试...')
+  }
+  mindmaps.value = mindmaps.value.filter(map => !map.selected)
+  statusMessage.value = `已删除${selectedCount.value}个导图`
+  statusType.value = 'success'
+  hideToast()
 }
 
 // 隐藏状态显示：

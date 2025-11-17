@@ -99,6 +99,11 @@ export const getMap = () => {
   return request.get('/api/biz/v1/mindmap/1984685015081947136')
 }
 
+// 删除 map
+export const delMap = () => {
+  return request.delete('/api/biz/v1/mindmap/1984681293757026304/')
+}
+
 // 个人中心
 export const getHome = () => {
   return request.get('/api/biz/v1/user/home')
