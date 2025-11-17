@@ -201,6 +201,7 @@ import type { MindMapOptions } from '@/utils/type'
 import { ElMessageBox, ElMessage } from 'element-plus'
 import { exports } from '@/utils/export.ts'
 import { getMindMapList } from '@/api/user/index'
+import { useLayoutStore } from '@/stores/modules/layout'
 
 // 搜索相关状态
 const searchQuery = ref('')
@@ -209,6 +210,7 @@ const showSuggestions = ref(false)
 const showNoResult = ref(false)
 const searchInput = ref<HTMLInputElement | null>(null)
 const mindmaps = ref<MindMapOptions[]>([])
+const LayoutStore = useLayoutStore()
 
 // 处理输入事件 - 智能联想
 const handleInput = (e: Event) => {
@@ -419,17 +421,9 @@ onMounted(() => {
 const fetchMyMindMaps = async () => {
   try {
     console.log('开始请求导图数据')
-    const requestParams = {
-      page: currentPage.value,
-      page_size: pageSize.value,
-      keyword: searchKeyword.value.trim() || undefined,
-      layout: currentType.value === 'all' ? undefined : currentType.value,
-      sort: currentSort.value === 'latest' ? 'updatedAt,desc' : 'updatedAt,asc'
-    }
     // 调用接口：
-    const res = await getMindMapList(requestParams)
+    const res = await getMindMapList()
     const response = res as any
-
     if (response.Code === 200 && response.Data) {
       console.log('接口返回数据：', response.Data)
       const mapWithSelected = response.Data.list.map((map: MindMapOptions) => ({
@@ -471,8 +465,14 @@ const handleSelect3 = (map: MindMapOptions): void => {
 }
 
 // 新建导图：
-const handleCreateNew = (): void => {
-  router.push({ name: 'handedit' })
+const handleCreateNew = () => {
+  const mapId = LayoutStore.data?.mapId
+  if (mapId && mapId !== 'xxx') {
+    router.push({ name: 'handedit', query: { mapId } }) // 携带 mapId
+    console.log('真实接口更新后的仓库数据：', LayoutStore.data)
+  } else {
+    ElMessage.warning('导图数据未找到或未生成正式ID，无法跳转')
+  }
 }
 
 // 根据布局类型layout获取对应中文名称：
