@@ -197,11 +197,10 @@
 import { ref, onMounted, onUnmounted, computed, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import PreviewPage from '@/components/PreviewPage.vue'
-import type { MindMapOptions, MindMapResponse } from '@/utils/type'
+import type { MindMapOptions } from '@/utils/type'
 import { ElMessageBox, ElMessage } from 'element-plus'
 import { exports } from '@/utils/export.ts'
 import { getMindMapList } from '@/api/user/index'
-import { type AxiosResponse } from 'axios'
 
 // 搜索相关状态
 const searchQuery = ref('')
@@ -428,8 +427,7 @@ const fetchMyMindMaps = async () => {
       sort: currentSort.value === 'latest' ? 'updatedAt,desc' : 'updatedAt,asc'
     }
     // 调用接口：
-    const response: AxiosResponse<MindMapResponse> =
-      await getMindMapList(requestParams)
+    const response = await getMindMapList(requestParams)
 
     if (response.data.Code === 200 && response.data.Data) {
       console.log('接口返回数据：', response.data.Data)

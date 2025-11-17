@@ -3,8 +3,8 @@ import request from '@/utils/request'
 import type { loginData, forgetpwd, code } from './type'
 import type {
   MindMapOptions,
-  MindMapResponse
-  // CreateMindMapParams
+  MindMapResponse,
+  CreateMindMapParams
 } from '@/utils/type'
 import type { registerData } from './type'
 
@@ -74,22 +74,22 @@ export const UpdateTitle = (conversation_id: string, title: string) =>
     title
   })
 
-// // 生成思维导图
-// export const generateMindMap = (file: File) => {
-//   const formData = new FormData()
-//   formData.append('file', file)
-//   return request.post('/api/biz/v1/aichat/generate_mind_map', formData, {
-//     headers: { 'Content-Type': 'multipart/form-data' }
-//   })
-// }
+// 生成思维导图
+export const generateMindMap = (file: File) => {
+  const formData = new FormData()
+  formData.append('file', file)
+  return request.post('/api/biz/v1/aichat/generate_mind_map', formData, {
+    headers: { 'Content-Type': 'multipart/form-data' }
+  })
+}
 
-// // 创建正式思维导图
-// export const createMindMap = async (data: CreateMindMapParams) => {
-//   const response = await request.post('api/biz/v1/mindmap', data, {
-//     headers: { 'Current-Type': 'application/json' }
-//   })
-//   return response.data
-// }
+// 创建正式思维导图
+export const createMindMap = async (data: CreateMindMapParams) => {
+  const response = await request.post('api/biz/v1/mindmap', data, {
+    headers: { 'Current-Type': 'application/json' }
+  })
+  return response.data
+}
 
 // 获取思维导图列表
 export const getMindMapList = (params?: {
@@ -105,48 +105,4 @@ export const getMindMapList = (params?: {
 // 个人中心
 export const getHome = () => {
   return request.get('/api/biz/v1/user/home')
-}
-
-// 测试数据
-const mockSuccessResponse = {
-  Code: 200,
-  Message: '生成导图成功',
-  Data: {
-    success: true,
-    map_json: JSON.stringify({
-      mapId: 'mock_map_123',
-      userId: '1985883604252626944',
-      title: '测试导图',
-      desc: '这是一个模拟的导图数据',
-      layout: 'mindMap',
-      root: {
-        data: { text: '根节点' },
-        children: [{ data: { text: '子节点1' }, children: [] }]
-      }
-    })
-  }
-}
-
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-export const generateMindMap = (file: File): Promise<any> => {
-  return new Promise(resolve => {
-    // 模拟网络延迟 2 秒
-    setTimeout(() => {
-      // 返回预定义的成功响应
-      resolve(mockSuccessResponse)
-    }, 2000)
-  })
-}
-
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-export const createMindMap = (params: any): Promise<any> => {
-  return new Promise(resolve => {
-    setTimeout(() => {
-      resolve({
-        Code: 200,
-        Message: '创建导图成功',
-        Data: { mapId: 'formal_map_456' } // 模拟正式 mapId
-      })
-    }, 1000)
-  })
 }
