@@ -14,12 +14,17 @@
                 alt="通知"
               />
             </div>
-            <router-link
-              class="icon-item"
-              active-class="active"
-              to="/layout/personalcenter"
-            >
-              <img src="@/assets/images/personal.png" class="icon" alt="个人" />
+            <router-link active-class="active" to="/layout/personalcenter">
+              <div class="avatar">
+                <img
+                  :src="
+                    userStore.userInfo?.avatar_url ||
+                    '@/assets/images/personal.png'
+                  "
+                  class="avatar-img"
+                  alt="个人"
+                />
+              </div>
             </router-link>
           </div>
         </nav>
@@ -186,5 +191,19 @@ nav a:hover {
 .logout-text:hover {
   box-shadow: 0 2px 1px rgb(175, 173, 173);
   transform: translateY(-2px);
+}
+.avatar {
+  cursor: pointer;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  overflow: hidden;
+  border: 1px solid #ddd;
+
+  .avatar-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
 }
 </style>

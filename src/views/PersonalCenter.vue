@@ -309,8 +309,6 @@ const fetchHomeData = async () => {
     const res = await getHome()
     const response = res as any
 
-    console.log('getHome接口返回的完整响应:', response)
-
     if (response.Code === 200) {
       userStore.setUserInfo(response.Data)
     } else {
