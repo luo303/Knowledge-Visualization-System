@@ -140,7 +140,9 @@
             maxlength="100"
             word-limit-position="outside"
           />
-          <el-button @click="sendMsg" class="button">发送</el-button>
+          <el-button @click="sendMsg" class="button" :disabled="isloading"
+            >发送</el-button
+          >
         </div>
       </div>
     </div>

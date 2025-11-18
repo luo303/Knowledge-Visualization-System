@@ -510,20 +510,14 @@ const handleUpdateAvatar = async () => {
     // FormData 对象
     const formData = new FormData()
     formData.append('avatar', selectedFile)
-
-    console.log('正在上传并更新头像...')
-    console.log('准备上传的文件:', selectedFile)
-    console.log('FormData 内容:', formData)
-
     // 调用真实 API
+    avatarDialogOpen.value = false
+    ElMessage.success('更新中，请稍等')
     const response = await ChangeAvatar(formData)
-
-    console.log(response)
 
     if ((response as any).Code === 200 && (response as any).Data.avatar_url) {
       userStore.updateAvatar((response as any).Data.avatar_url)
       ElMessage.success('头像更新成功！')
-      avatarDialogOpen.value = false
     } else {
       ElMessage.error((response as any).Message || '更新头像失败！')
     }
@@ -563,7 +557,7 @@ const openUsernameDialog = () => {
   usernameDialogOpen.value = true
 }
 
-// 提交用户名修改：// 等待后端
+// 提交用户名修改：
 const handleUpdateUsername = async () => {
   if (!newUsername.value.trim()) {
     ElMessage.warning('用户名不能为空！')
