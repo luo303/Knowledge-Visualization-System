@@ -467,9 +467,10 @@ const handleCardClick = async (map: any, e: MouseEvent) => {
       const res = await getMap(map.mapId)
       const response = res as any
       console.log('导图卡片数据加载成功:', response)
-      const mapId = LayoutStore.data?.mapId
-      if (mapId && mapId !== 'xxx') {
-        router.push({ name: 'handedit', query: { mapId } }) // 携带 mapId
+      const currentMapId = map.mapId
+      if (currentMapId && currentMapId !== 'xxx') {
+        LayoutStore.data = response.Data
+        router.push({ name: 'handedit', query: { mapId: currentMapId } })
       } else {
         ElMessage.warning('导图数据未找到或未生成正式ID，无法跳转')
       }
