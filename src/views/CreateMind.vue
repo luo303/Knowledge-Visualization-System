@@ -98,6 +98,7 @@ import { ElMessage } from 'element-plus'
 import { generateMindMap, createMindMap } from '@/api/user/index'
 import type { CreateMindMapParams } from '@/utils/type'
 import JSON5 from 'json5'
+import { useUserStore } from '@/stores'
 
 const uploadedFileName = ref('') // 存储上传的文件名
 const LayoutStore = useLayoutStore()
@@ -206,10 +207,12 @@ const handleFileUpload = async (e: Event) => {
         throw new Error(errorMsg)
       }
 
+      const userStore = useUserStore()
       // 用正式数据更新全局状态：
       const formalMapData = {
         ...draftMapData,
-        mapId: createResp.Data.mapId
+        mapId: createResp.Data.mapId,
+        userId: userStore.userInfo?.user_id || ''
       }
       LayoutStore.data = formalMapData
 

@@ -851,7 +851,7 @@ watch(
   [searchKeyword, currentSort, currentType],
   () => {
     resetPagination() // 重置页码
-    // fetchMyMindMaps() // 获取数据
+    fetchMyMindMaps() // 获取数据
   },
   { deep: true }
 )
