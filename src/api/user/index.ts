@@ -100,8 +100,10 @@ export const getMap = () => {
 }
 
 // 删除 map
-export const delMap = () => {
-  return request.delete('/api/biz/v1/mindmap/1984681293757026304/')
+export const delMap = (mapIds: string[]) => {
+  return request.post('/api/biz/v1/mindmap/batch_delete', {
+    mapIds: mapIds
+  })
 }
 
 // 个人中心

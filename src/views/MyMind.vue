@@ -422,7 +422,7 @@ onMounted(() => {
     // 模拟数据：
     mindmaps.value = [
       {
-        mapId: 'test01',
+        mapId: '1990156346913198080',
         userId: 'user01',
         title: '测试导图01',
         desc: '这是一条测试数据',
@@ -444,7 +444,7 @@ onMounted(() => {
         selected: false
       },
       {
-        mapId: 'test02',
+        mapId: '1990174096209481728',
         userId: 'user02',
         title: '测试导图02',
         desc: '这是另一条测试数据',
@@ -460,7 +460,7 @@ onMounted(() => {
         selected: false
       },
       {
-        mapId: 'test03',
+        mapId: '1990174875657965568',
         userId: 'user03',
         title: '测试导图03',
         desc: '这是第三条测试数据',
@@ -476,7 +476,7 @@ onMounted(() => {
         selected: false
       },
       {
-        mapId: 'test04',
+        mapId: '1990174875657965561',
         userId: 'user04',
         title: '测试导图04',
         desc: '这是第四条测试数据',
@@ -492,7 +492,7 @@ onMounted(() => {
         selected: false
       },
       {
-        mapId: 'test05',
+        mapId: '1990174875657965578',
         userId: 'user05',
         title: '测试导图05',
         desc: '这是第五条测试数据',
@@ -508,7 +508,7 @@ onMounted(() => {
         selected: false
       },
       {
-        mapId: 'test06',
+        mapId: '1990174875657965562',
         userId: 'user06',
         title: '测试导图06',
         desc: '这是第六条测试数据',
@@ -524,7 +524,7 @@ onMounted(() => {
         selected: false
       },
       {
-        mapId: 'test07',
+        mapId: '1990174875657965452',
         userId: 'user07',
         title: '测试导图07',
         desc: '这是第七条测试数据',
@@ -540,7 +540,7 @@ onMounted(() => {
         selected: false
       },
       {
-        mapId: 'test08',
+        mapId: '1990174875657965563',
         userId: 'user08',
         title: '测试导图08',
         desc: '这是第八条测试数据',
@@ -556,7 +556,7 @@ onMounted(() => {
         selected: false
       },
       {
-        mapId: 'test09',
+        mapId: '1990174875657967778',
         userId: 'user09',
         title: '测试导图09',
         desc: '这是第九条测试数据',
@@ -807,22 +807,36 @@ const handleBatchDeleteConfirm = () => {
 
 // 批量删除逻辑：
 const handleBatchDelete = async () => {
+  const countToDelete = selectedCount.value
+  const selectedMapIds = mindmaps.value
+    .filter(map => map.selected)
+    .map(map => map.mapId)
   statusMessage.value = '正在删除...'
   statusType.value = 'loading'
   showStatusToast.value = true
   try {
-    console.log('准备删除导图卡片数据：')
-    const res = await delMap()
+    console.log(`准备删除${countToDelete}导图卡片数据：`)
+    const res = await delMap(selectedMapIds)
     const response = res as any
-    console.log('导图卡片数据删除成功:', response)
+    if (response.Code === 200) {
+      mindmaps.value = mindmaps.value.filter(
+        map => !selectedMapIds.includes(map.mapId)
+      )
+      statusMessage.value = `已删除${countToDelete}个导图`
+      statusType.value = 'success'
+    } else {
+      ElMessage.error(response.Message || '删除失败，请稍后再试...')
+      statusMessage.value = response.Message || '删除失败111'
+      statusType.value = 'error'
+    }
   } catch (error) {
     console.error('删除导图卡片数据失败', error)
     ElMessage.error('删除导图卡片数据失败，请稍后再试...')
+    statusMessage.value = '删除失败222'
+    statusType.value = 'error'
+  } finally {
+    hideToast()
   }
-  mindmaps.value = mindmaps.value.filter(map => !map.selected)
-  statusMessage.value = `已删除${selectedCount.value}个导图`
-  statusType.value = 'success'
-  hideToast()
 }
 
 // 隐藏状态显示：
