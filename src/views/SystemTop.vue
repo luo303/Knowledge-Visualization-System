@@ -7,12 +7,13 @@
       <div class="box2">
         <nav>
           <div class="icon-container">
-            <div class="icon-item" active-class="active">
+            <div class="icon-item" active-class="active" @click="goToAiChat">
               <img
                 src="@/assets/images/notification.png"
                 class="icon"
                 alt="通知"
               />
+              <span class="notification-badge" v-if="hasNewAiMessage"></span>
             </div>
             <router-link active-class="active" to="/layout/personalcenter">
               <div class="avatar">
@@ -39,13 +40,15 @@
 </template>
 
 <script lang="ts" setup>
-import { ElMessageBox } from 'element-plus'
+import { ElMessageBox, ElMessage } from 'element-plus'
 import { useRouter } from 'vue-router'
 import { useUserStore } from '@/stores/modules/user'
 import { useLayoutStore } from '@/stores'
+import { ref } from 'vue'
 const LayoutStore = useLayoutStore()
 const userStore = useUserStore()
 const router = useRouter()
+const hasNewAiMessage = ref(false)
 const handleToLogin = () => {
   ElMessageBox.confirm('是否要退出登录？', '确认退出', {
     confirmButtonText: '确定',
@@ -57,6 +60,13 @@ const handleToLogin = () => {
     LayoutStore.clearMap() //清除导图和对话数据
     router.push('/login')
   })
+}
+
+// 通知跳转
+const goToAiChat = () => {
+  router.push({ name: 'handedit' })
+  hasNewAiMessage.value = false
+  ElMessage.success('已进入AI编辑页面')
 }
 </script>
 
@@ -122,6 +132,21 @@ h1 {
   align-items: center;
   justify-content: center;
   transition: background-color 0.2s;
+  position: relative;
+}
+
+.notification-badge {
+  position: absolute;
+  top: -2px;
+  right: -4px;
+
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+
+  background-color: #ff4d4f;
+
+  box-shadow: 2px 2px 2px rgba(0, 0, 0, 0.2);
 }
 
 .icon-item:hover {
