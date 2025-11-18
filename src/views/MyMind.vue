@@ -606,7 +606,14 @@ const router = useRouter()
 
 // 时间格式化：
 const formatTime = (time: string): string => {
-  const [date = ' ', hour] = time.split(' ')
+  if (!time) {
+    return '未知时间'
+  }
+
+  const parts = time.split(' ')
+
+  const date = parts[0] || ''
+  const hour = parts[1] || ''
   return `${hour}/${date.slice(5)}`
 }
 
