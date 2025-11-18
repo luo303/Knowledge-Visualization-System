@@ -95,8 +95,8 @@ export const getMindMapList = () => {
 }
 
 // 查询 map
-export const getMap = () => {
-  return request.get('/api/biz/v1/mindmap/1984685015081947136')
+export const getMap = (mapId: string) => {
+  return request.get(`/api/biz/v1/mindmap/${mapId}`)
 }
 
 // 删除 map

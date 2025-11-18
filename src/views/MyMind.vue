@@ -119,7 +119,7 @@
           <h3 class="map-name">{{ map.title }}</h3>
           <div class="map-meta">
             <span class="map-type">{{ getTypeName(map.layout) }}</span>
-            <span class="map-time">{{ formatTime(map.createTime) }}</span>
+            <span class="map-time">{{ formatTime(map.createdAt) }}</span>
           </div>
         </div>
       </div>
@@ -212,7 +212,7 @@ const showNoResult = ref(false)
 const searchInput = ref<HTMLInputElement | null>(null)
 const mindmaps = ref<MindMapOptions[]>([])
 const LayoutStore = useLayoutStore()
-const usingMockData = false
+const router = useRouter()
 
 // 处理输入事件 - 智能联想
 const handleInput = (e: Event) => {
@@ -415,165 +415,8 @@ const shouldShowNoResult = computed(() => {
 
 // 页面加载时获取导图数据：
 onMounted(() => {
-  if (!usingMockData) {
-    // 接口请求：
-    fetchMyMindMaps()
-  } else {
-    // 模拟数据：
-    mindmaps.value = [
-      {
-        mapId: '1990156346913198080',
-        userId: 'user01',
-        title: '测试导图01',
-        desc: '这是一条测试数据',
-        layout: 'mindMap',
-        root: {
-          data: {
-            text: '根节点'
-          },
-          children: [
-            {
-              data: {
-                text: '二级节点'
-              },
-              children: []
-            }
-          ]
-        },
-        createTime: '2024-06-01 10:00:00',
-        selected: false
-      },
-      {
-        mapId: '1990174096209481728',
-        userId: 'user02',
-        title: '测试导图02',
-        desc: '这是另一条测试数据',
-        layout: 'logicalStructure',
-        root: {
-          data: { text: '根节点', uid: 'root02' },
-          children: [
-            { data: { text: '子节点A', uid: 'cA' }, children: [] },
-            { data: { text: '子节点A', uid: 'cA' }, children: [] }
-          ]
-        },
-        createTime: '2024-06-02 14:30:00',
-        selected: false
-      },
-      {
-        mapId: '1990174875657965568',
-        userId: 'user03',
-        title: '测试导图03',
-        desc: '这是第三条测试数据',
-        layout: 'timeline',
-        root: {
-          data: { text: '根节点', uid: 'root03' },
-          children: [
-            { data: { text: '子节点A', uid: 'cA' }, children: [] },
-            { data: { text: '子节点A', uid: 'cA' }, children: [] }
-          ]
-        },
-        createTime: '2024-06-03 09:15:00',
-        selected: false
-      },
-      {
-        mapId: '1990174875657965561',
-        userId: 'user04',
-        title: '测试导图04',
-        desc: '这是第四条测试数据',
-        layout: 'organizationStructure',
-        root: {
-          data: { text: '根节点', uid: 'root04' },
-          children: [
-            { data: { text: '子节点A', uid: 'cA' }, children: [] },
-            { data: { text: '子节点A', uid: 'cA' }, children: [] }
-          ]
-        },
-        createTime: '2024-06-04 12:00:00',
-        selected: false
-      },
-      {
-        mapId: '1990174875657965578',
-        userId: 'user05',
-        title: '测试导图05',
-        desc: '这是第五条测试数据',
-        layout: 'catalogOrganization',
-        root: {
-          data: { text: '根节点', uid: 'root05' },
-          children: [
-            { data: { text: '子节点A', uid: 'cA' }, children: [] },
-            { data: { text: '子节点A', uid: 'cA' }, children: [] }
-          ]
-        },
-        createTime: '2024-06-05 15:30:00',
-        selected: false
-      },
-      {
-        mapId: '1990174875657965562',
-        userId: 'user06',
-        title: '测试导图06',
-        desc: '这是第六条测试数据',
-        layout: 'fishbone',
-        root: {
-          data: { text: '根节点', uid: 'root06' },
-          children: [
-            { data: { text: '子节点A', uid: 'cA' }, children: [] },
-            { data: { text: '子节点A', uid: 'cA' }, children: [] }
-          ]
-        },
-        createTime: '2024-06-06 10:00:00',
-        selected: false
-      },
-      {
-        mapId: '1990174875657965452',
-        userId: 'user07',
-        title: '测试导图07',
-        desc: '这是第七条测试数据',
-        layout: '时间轴2',
-        root: {
-          data: { text: '根节点', uid: 'root07' },
-          children: [
-            { data: { text: '子节点A', uid: 'cA' }, children: [] },
-            { data: { text: '子节点A', uid: 'cA' }, children: [] }
-          ]
-        },
-        createTime: '2024-06-07 13:30:00',
-        selected: false
-      },
-      {
-        mapId: '1990174875657965563',
-        userId: 'user08',
-        title: '测试导图08',
-        desc: '这是第八条测试数据',
-        layout: 'verticalTimeline',
-        root: {
-          data: { text: '根节点', uid: 'root08' },
-          children: [
-            { data: { text: '子节点A', uid: 'cA' }, children: [] },
-            { data: { text: '子节点A', uid: 'cA' }, children: [] }
-          ]
-        },
-        createTime: '2024-06-08 08:00:00',
-        selected: false
-      },
-      {
-        mapId: '1990174875657967778',
-        userId: 'user09',
-        title: '测试导图09',
-        desc: '这是第九条测试数据',
-        layout: 'logicalStructure',
-        root: {
-          data: { text: '根节点', uid: 'root09' },
-          children: [
-            { data: { text: '子节点A', uid: 'cA' }, children: [] },
-            { data: { text: '子节点A', uid: 'cA' }, children: [] }
-          ]
-        },
-        createTime: '2024-06-09 11:30:00',
-        selected: false
-      }
-    ]
-    totalCount.value = mindmaps.value.length
-  }
+  // 接口请求：
+  fetchMyMindMaps()
 })
 
 // 获取数据：
@@ -587,7 +430,8 @@ const fetchMyMindMaps = async () => {
       console.log('接口返回数据：', response.Data)
       const mapWithSelected = response.Data.list.map((map: MindMapOptions) => ({
         ...map,
-        selected: false
+        selected: false,
+        createTime: map.createAt || ''
       })) as MindMapOptions[]
 
       mindmaps.value = mapWithSelected
@@ -601,20 +445,17 @@ const fetchMyMindMaps = async () => {
   }
 }
 
-// 方法：
-const router = useRouter()
-
 // 时间格式化：
-const formatTime = (time: string): string => {
+const formatTime = (time: string | undefined) => {
   if (!time) {
     return '未知时间'
   }
-
-  const parts = time.split(' ')
-
-  const date = parts[0] || ''
-  const hour = parts[1] || ''
-  return `${hour}/${date.slice(5)}`
+  const n = time.replace('T', ' ').split('+')[0]
+  const normalizedTime = n as any
+  const [date, hour] = normalizedTime.split(' ')
+  const monthDay = date.slice(5)
+  const hourMinute = hour.slice(0, 5)
+  return `${hourMinute}/${monthDay}`
 }
 
 // 卡片点击事件：
@@ -623,7 +464,7 @@ const handleCardClick = async (map: any, e: MouseEvent) => {
   if (!target.closest('.batch-checkbox') && !target.closest('.map-actions')) {
     try {
       console.log(`准备加载导图卡片数据：${map.mapId}`)
-      const res = await getMap()
+      const res = await getMap(map.mapId)
       const response = res as any
       console.log('导图卡片数据加载成功:', response)
       const mapId = LayoutStore.data?.mapId
