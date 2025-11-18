@@ -97,6 +97,7 @@ import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import { generateMindMap, createMindMap } from '@/api/user/index'
 import type { CreateMindMapParams } from '@/utils/type'
+import JSON5 from 'json5'
 
 const uploadedFileName = ref('') // 存储上传的文件名
 const LayoutStore = useLayoutStore()
@@ -150,10 +151,14 @@ const handleFileUpload = async (e: Event) => {
         }
       }, 200)
 
+      console.group('=== 调用`生成导图`接口 ===')
+      console.log('文件名:', file.name)
+      console.log('文件大小:', file.size)
       console.log('开始调用生成导图接口...')
       const Resp = await generateMindMap(file)
       const generateResp = Resp as any
       console.log('生成导图接口调用完成，收到响应：', generateResp)
+      console.groupEnd()
 
       if (
         !generateResp ||
@@ -161,11 +166,23 @@ const handleFileUpload = async (e: Event) => {
         !generateResp.Data.success ||
         !generateResp.Data.map_json
       ) {
-        throw new Error(generateResp?.Message || '生成导图(草稿)失败!')
+        const errorMsg = generateResp?.Message || '生成导图(草稿)失败!'
+        console.error('"生成导图" 接口业务逻辑失败:', errorMsg)
+        throw new Error(errorMsg)
       }
 
       // 将草稿的map_json解析为对象：
-      const draftMapData = JSON.parse(generateResp.Data.map_json)
+      const mapJsonString = generateResp.Data.map_json
+      console.log('原始map_json字符串:', mapJsonString)
+      console.log('字符串长度:', mapJsonString.length)
+      console.log('末尾50个字符:', mapJsonString.slice(-50))
+      let draftMapData
+      try {
+        draftMapData = JSON5.parse(mapJsonString)
+      } catch (parseError) {
+        console.error('生成导图 JSON 解析失败:', parseError)
+        throw new Error('生成导图 JSON 解析失败，请检查文件内容！')
+      }
       // 构造创建导图的请求参数：
       const createParams: CreateMindMapParams = {
         title: draftMapData.title || '未命名导图',
@@ -175,13 +192,18 @@ const handleFileUpload = async (e: Event) => {
       }
 
       // 调用创建导图接口：
-      status.value = 'saving'
+      console.group('===调用`创建导图`接口===')
+      console.log('请求参数：', createParams)
       console.log('开始调用创建导图接口...')
+      status.value = 'saving'
       const createResp = await createMindMap(createParams)
+      console.log('"创建导图" 接口调用完成，收到响应：', createResp)
+      console.groupEnd()
       if (!createResp || createResp.Code !== 200 || !createResp.Data?.mapId) {
-        throw new Error(createResp?.Message || '创建正式导图失败！')
+        const errorMsg = createResp?.Message || '创建正式导图失败！'
+        console.error('"创建导图" 接口业务逻辑失败:', errorMsg)
+        throw new Error(errorMsg)
       }
-      console.log('createMindMap 接口原始返回值:', createResp)
 
       // 用正式数据更新全局状态：
       const formalMapData = {
@@ -195,14 +217,18 @@ const handleFileUpload = async (e: Event) => {
       progress.value = 100
       await new Promise(resolve => setTimeout(resolve, 1000))
       status.value = 'success'
+      console.log('导图创建流程全部成功！最终数据:', formalMapData)
       ElMessage.success('导图创建成功！')
     } catch (error) {
       clearInterval(progressInterval)
       progress.value = 100
       await new Promise(resolve => setTimeout(resolve, 1000))
-      const errorMessage = (error as Error).message || '文件处理失败，请重试！'
-      console.error('文件处理失败:', errorMessage)
-      ElMessage.error(errorMessage)
+      if ((error as Error).message.includes('JSON')) {
+        ElMessage.error('文件解析失败，文件内容不符合 JSON 格式！')
+      } else {
+        ElMessage.error((error as Error).message || '文件处理失败，请重试！')
+      }
+      console.error('文件处理失败:', error)
       status.value = 'error'
     }
   }

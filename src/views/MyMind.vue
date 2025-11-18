@@ -200,7 +200,7 @@ import PreviewPage from '@/components/PreviewPage.vue'
 import type { MindMapOptions } from '@/utils/type'
 import { ElMessageBox, ElMessage } from 'element-plus'
 import { exports } from '@/utils/export.ts'
-// import { getMindMapList } from '@/api/user/index'
+import { getMindMapList } from '@/api/user/index'
 import { useLayoutStore } from '@/stores/modules/layout'
 import { getMap, delMap } from '@/api/user/index'
 
@@ -212,7 +212,7 @@ const showNoResult = ref(false)
 const searchInput = ref<HTMLInputElement | null>(null)
 const mindmaps = ref<MindMapOptions[]>([])
 const LayoutStore = useLayoutStore()
-const usingMockData = true
+const usingMockData = false
 
 // 处理输入事件 - 智能联想
 const handleInput = (e: Event) => {
@@ -417,7 +417,7 @@ const shouldShowNoResult = computed(() => {
 onMounted(() => {
   if (!usingMockData) {
     // 接口请求：
-    // fetchMyMindMaps()
+    fetchMyMindMaps()
   } else {
     // 模拟数据：
     mindmaps.value = [
@@ -577,29 +577,29 @@ onMounted(() => {
 })
 
 // 获取数据：
-// const fetchMyMindMaps = async () => {
-//   try {
-//     console.log('开始请求导图数据')
-//     // 调用接口：
-//     const res = await getMindMapList()
-//     const response = res as any
-//     if (response.Code === 200 && response.Data) {
-//       console.log('接口返回数据：', response.Data)
-//       const mapWithSelected = response.Data.list.map((map: MindMapOptions) => ({
-//         ...map,
-//         selected: false
-//       })) as MindMapOptions[]
+const fetchMyMindMaps = async () => {
+  try {
+    console.log('开始请求导图数据')
+    // 调用接口：
+    const res = await getMindMapList()
+    const response = res as any
+    if (response.Code === 200 && response.Data) {
+      console.log('接口返回数据：', response.Data)
+      const mapWithSelected = response.Data.list.map((map: MindMapOptions) => ({
+        ...map,
+        selected: false
+      })) as MindMapOptions[]
 
-//       mindmaps.value = mapWithSelected
-//       totalCount.value = response.Data.total
-//     } else {
-//       ElMessage.error(`获取思维导图失败：${response.Message || '未知错误'}`)
-//     }
-//   } catch (error) {
-//     console.error('获取导图数据失败', error)
-//     ElMessage.error('网络错误，获取导图列表失败，请稍后再试...')
-//   }
-// }
+      mindmaps.value = mapWithSelected
+      totalCount.value = response.Data.total
+    } else {
+      ElMessage.error(`获取思维导图失败：${response.Message || '未知错误'}`)
+    }
+  } catch (error) {
+    console.error('获取导图数据失败', error)
+    ElMessage.error('网络错误，获取导图列表失败，请稍后再试...')
+  }
+}
 
 // 方法：
 const router = useRouter()
