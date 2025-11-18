@@ -9,7 +9,7 @@
           <div class="avatar-wrapper">
             <div class="avatar">
               <img
-                :src="getAvatarUrl(userInfo.avatar_url)"
+                :src="getAvatarUrl(userInfo.avatar)"
                 alt="personal"
                 class="avatar-img"
                 @error="handleAvatarError"

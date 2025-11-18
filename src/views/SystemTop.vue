@@ -19,8 +19,7 @@
               <div class="avatar">
                 <img
                   :src="
-                    userStore.userInfo?.avatar_url ||
-                    '@/assets/images/personal.png'
+                    userStore.userInfo?.avatar || '@/assets/images/personal.png'
                   "
                   class="avatar-img"
                   alt="个人"

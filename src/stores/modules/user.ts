@@ -30,6 +30,7 @@ export const useUserStore = defineStore(
     const updateAvatar = (newAvatarUrl: string) => {
       // 现在直接修改响应式对象的属性，会触发所有依赖它的组件重新渲染
       userInfo.value.avatar_url = newAvatarUrl
+      userInfo.value.avatar = newAvatarUrl
     }
 
     // 动作：退出登录
