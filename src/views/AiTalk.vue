@@ -198,7 +198,7 @@
 // @ts-expect-error 忽略 simple-mind-map 无类型声明的报错
 import Markdown from 'vue3-markdown-it'
 import { ElMessage } from 'element-plus'
-import { ref, nextTick, onMounted } from 'vue'
+import { ref, nextTick, onMounted, watch } from 'vue'
 import { EditPen } from '@element-plus/icons-vue'
 import { useLayoutStore } from '@/stores'
 import { storeToRefs } from 'pinia'
@@ -223,20 +223,20 @@ const sortByUpdate = (
   conversations: ChatList[],
   ascending: boolean = false
 ): ChatList[] => {
-  return [...conversations].sort((a, b) => {
-    const dateA = new Date(a.updated_at).getTime()
-    const dateB = new Date(b.updated_at).getTime()
-    return ascending ? dateA - dateB : dateB - dateA
-  })
+  if (conversations) {
+    return [...conversations].sort((a, b) => {
+      const dateA = new Date(a.updated_at).getTime()
+      const dateB = new Date(b.updated_at).getTime()
+      return ascending ? dateA - dateB : dateB - dateA
+    })
+  } else return []
 }
 const getconlist = async () => {
   try {
     const res = await GetMapChatList(LayoutStore.data.mapId)
     if ((res as any).Code === 200) {
-      if ((res as any).Data.list) {
-        LayoutStore.chatlist = []
-        LayoutStore.chatlist = sortByUpdate((res as any).Data.list, false)
-      }
+      LayoutStore.chatlist = []
+      LayoutStore.chatlist = sortByUpdate((res as any).Data.list, false)
     } else {
       const message = (res as any).Message
       ElMessage.error(`${message}`)
@@ -515,6 +515,16 @@ const deleteChat = async (id: string) => {
     DelDialogVisible.value = false
   }
 }
+watch(
+  () => LayoutStore.data.mapId,
+  async newId => {
+    if (newId) {
+      console.log(1)
+
+      getconlist()
+    }
+  }
+)
 </script>
 
 <style lang="scss" scoped>

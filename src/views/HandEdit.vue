@@ -291,11 +291,28 @@
       </div>
     </el-drawer>
   </div>
+  <el-dialog
+    v-model="backvisible"
+    title="提示"
+    width="500"
+    align-center
+    @close="goback()"
+  >
+    <span
+      >请先上传文件生成导图，若已有导图，请前往我的导图页选择导图进行编辑</span
+    >
+    <template #footer>
+      <div class="dialog-footer">
+        <el-button type="primary" @click="goback()"> 知道啦 </el-button>
+      </div>
+    </template>
+  </el-dialog>
 </template>
 
 <script lang="ts" setup>
 import AiTalk from './AiTalk.vue'
 import { onMounted, onBeforeUnmount, ref, shallowRef, watch } from 'vue'
+import { useRouter } from 'vue-router'
 import MindMap from 'simple-mind-map'
 import {
   Close,
@@ -312,6 +329,7 @@ import {
 import { useLayoutStore } from '@/stores'
 import { ElMessage } from 'element-plus'
 import { UpdateMap } from '@/api/user'
+const router = useRouter()
 //步骤条
 const active = ref(0)
 
@@ -327,6 +345,8 @@ const drawer = ref(false)
 const dialogFormVisible = ref(false)
 //控制删除确认框
 const centerDialogVisible = ref(false)
+//没有导图，返回上传文件的弹框
+const backvisible = ref(false)
 //导出页宽度
 const formLabelWidth = '140px'
 const form = ref({
@@ -385,8 +405,16 @@ const hide = () => {
 const search_content = ref('')
 const searchRef = ref()
 let confirmResolve: ((value: boolean) => void) | null = null
+//没有导图关闭弹框并返回上传文件页
+const goback = () => {
+  router.push('/layout/createmind')
+  backvisible.value = false
+}
 
 onMounted(async () => {
+  if (!LayoutStore.data.mapId) {
+    backvisible.value = true
+  }
   mindMap = new MindMap({
     el: document.getElementById('mindMapContainer'),
     data: LayoutStore.data.root || baseMap.root,
