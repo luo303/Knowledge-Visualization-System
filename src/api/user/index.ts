@@ -84,9 +84,9 @@ export const generateMindMap = (file: File) => {
 // 创建正式思维导图
 export const createMindMap = async (data: CreateMindMapParams) => {
   const response = await request.post('api/biz/v1/mindmap', data, {
-    headers: { 'Current-Type': 'application/json' }
+    headers: { 'Content-Type': 'application/json' }
   })
-  return response.data
+  return response
 }
 
 // 获取思维导图列表

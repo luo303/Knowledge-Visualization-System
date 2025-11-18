@@ -196,7 +196,8 @@ const handleFileUpload = async (e: Event) => {
       console.log('请求参数：', createParams)
       console.log('开始调用创建导图接口...')
       status.value = 'saving'
-      const createResp = await createMindMap(createParams)
+      const cr = await createMindMap(createParams)
+      const createResp = cr as any
       console.log('"创建导图" 接口调用完成，收到响应：', createResp)
       console.groupEnd()
       if (!createResp || createResp.Code !== 200 || !createResp.Data?.mapId) {
