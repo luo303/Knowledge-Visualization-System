@@ -151,6 +151,17 @@
         </ul>
       </div>
     </div>
+    <p class="footer">
+      备案号：
+      <a
+        style="color: #666"
+        target="_blank"
+        rel="noopener"
+        href="https://beian.miit.gov.cn"
+      >
+        粤ICP备2025494220号-1
+      </a>
+    </p>
   </div>
 </template>
 
@@ -255,6 +266,7 @@ const resetPassword = () => {
 <style lang="scss" scoped>
 // 登录页面
 .login {
+  position: relative;
   background-image: $before_login_background;
   height: 100vh;
   width: 100%;
@@ -389,5 +401,9 @@ const resetPassword = () => {
 .icon {
   width: 35px;
   height: 35px;
+}
+.footer {
+  position: absolute;
+  top: 90%;
 }
 </style>
