@@ -18,9 +18,7 @@
             <router-link active-class="active" to="/layout/personalcenter">
               <div class="avatar">
                 <img
-                  :src="
-                    userStore.userInfo?.avatar || '@/assets/images/personal.png'
-                  "
+                  :src="getAvatarUrl(userInfo.avatar)"
                   class="avatar-img"
                   alt="个人"
                 />
@@ -44,10 +42,24 @@ import { useRouter } from 'vue-router'
 import { useUserStore } from '@/stores/modules/user'
 import { useLayoutStore } from '@/stores'
 import { ref } from 'vue'
+import { storeToRefs } from 'pinia'
+import defaultAvatar from '@/assets/images/personal.png' // 默认头像
 const LayoutStore = useLayoutStore()
 const userStore = useUserStore()
+const { userInfo } = storeToRefs(userStore)
 const router = useRouter()
 const hasNewAiMessage = ref(false)
+// 处理本地静态资源路径：
+const getAvatarUrl = (avatarUrl: string | undefined) => {
+  if (!avatarUrl) return defaultAvatar
+  // 是否是本地路径：
+  if (avatarUrl.startsWith('@/') || avatarUrl.startsWith('./')) {
+    return new URL(avatarUrl, import.meta.url).href
+  }
+  // 网络路径：
+  return avatarUrl
+}
+
 const handleToLogin = () => {
   ElMessageBox.confirm('是否要退出登录？', '确认退出', {
     confirmButtonText: '确定',

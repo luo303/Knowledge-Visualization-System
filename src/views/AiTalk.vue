@@ -173,7 +173,12 @@
       </div>
     </template>
   </el-dialog>
-  <el-dialog v-model="DelDialogVisible" title="提示" width="400">
+  <el-dialog
+    v-model="DelDialogVisible"
+    title="提示"
+    width="400"
+    @close="canceldel"
+  >
     <span> 是否要删除该会话 </span>
     <template #footer>
       <div class="dialog-footer">
@@ -228,8 +233,10 @@ const getconlist = async () => {
   try {
     const res = await GetMapChatList(LayoutStore.data.mapId)
     if ((res as any).Code === 200) {
-      LayoutStore.chatlist = []
-      LayoutStore.chatlist = sortByUpdate((res as any).Data.list, false)
+      if ((res as any).Data.list) {
+        LayoutStore.chatlist = []
+        LayoutStore.chatlist = sortByUpdate((res as any).Data.list, false)
+      }
     } else {
       const message = (res as any).Message
       ElMessage.error(`${message}`)
@@ -297,10 +304,16 @@ const open = (item: boolean) => {
     ElMessage.error('请先上传文件生成导图')
   }
 }
-//取消
+//取消修改标题
 const cancel = () => {
   dialogFormVisible.value = false
+  currentChatId.value = ''
   formRef.value.resetFields()
+}
+//取消删除会话
+const canceldel = () => {
+  DelDialogVisible.value = false
+  currentChatId.value = ''
 }
 //确认
 const confirm = async () => {
