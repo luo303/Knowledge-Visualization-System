@@ -1,6 +1,7 @@
 import { createRouter, createWebHashHistory } from 'vue-router'
 import AuthPage from '@/views/auth/SystemLogin.vue'
-
+import { useUserStore } from '@/stores'
+import { ElMessage } from 'element-plus'
 const router = createRouter({
   history: createWebHashHistory(import.meta.env.BASE_URL),
   routes: [
@@ -58,5 +59,17 @@ const router = createRouter({
     }
   ]
 })
-
+//添加路由前置守卫
+router.beforeEach((to, from, next) => {
+  const userstore = useUserStore()
+  if (
+    !userstore.token &&
+    to.path !== '/login' &&
+    to.path !== '/register' &&
+    to.path !== '/forgetpwd'
+  ) {
+    next('/login')
+    ElMessage.error('请先登录')
+  } else next()
+})
 export default router
