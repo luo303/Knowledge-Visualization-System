@@ -1,31 +1,28 @@
 <template>
   <div class="createmind-container">
-    <div class="createmind-title">请选择想要生成的导图</div>
+    <div class="createmind-title">请点击底部按钮选择想要生成的导图</div>
     <div class="generatemap-container">
-      <div
-        class="singlemindmap-container"
-        v-for="map in maps"
-        :key="map.mapId"
-        @click="handleCardClick(map)"
-      >
-        <div class="map-picture">
-          <PreviewPage :Map="map" class="preview-img" />
-        </div>
+      <div class="singlemindmap-container" v-for="map in maps" :key="map.mapId">
         <div class="map-info">
           <h3 class="map-name">{{ map.root.data.text }}</h3>
           <div class="map-meta">
-            <span class="map-type">{{
-              map.layout === 'mindMap'
-                ? '思维导图'
-                : map.layout === 'fishBone'
-                  ? '鱼骨图'
-                  : map.layout === 'orgChart'
-                    ? '组织结构图'
-                    : '未知类型'
-            }}</span>
             <span class="map-time">{{ map.createTime }}</span>
           </div>
         </div>
+        <div class="map-picture">
+          <PreviewPage :Map="map" class="preview-img" />
+        </div>
+        <button class="btn" @click="handleCardClick(map)">
+          <span class="map-type">{{
+            map.layout === 'mindMap'
+              ? '思维导图'
+              : map.layout === 'fishBone'
+                ? '鱼骨图'
+                : map.layout === 'orgChart'
+                  ? '组织结构图'
+                  : '未知类型'
+          }}</span>
+        </button>
       </div>
     </div>
   </div>
@@ -102,6 +99,7 @@ const handleCardClick = (map: any) => {
 
 <style lang="scss" scoped>
 .createmind-container {
+  margin-left: 10px;
   width: 95%;
   height: 90%;
   display: flex;
@@ -112,7 +110,7 @@ const handleCardClick = (map: any) => {
   flex-direction: column;
 
   .createmind-title {
-    font-size: 15px;
+    font-size: 17px;
     font-weight: bold;
     margin-bottom: 20px;
   }
@@ -138,26 +136,12 @@ const handleCardClick = (map: any) => {
       display: flex;
       justify-content: center;
       align-items: center;
-      gap: 10px;
+      gap: 5px;
       box-shadow: 7px 14px 12px rgba(0, 0, 0, 0.15);
       transition: all 0.2s;
       &:hover {
         transform: translateY(-7px);
         box-shadow: 10px 17px 12px rgba(0, 0, 0, 0.15);
-      }
-
-      .map-picture {
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        height: 80%;
-        width: 95%;
-        border-radius: 20px;
-        background-color: #f8f8f9;
-
-        .preview-img {
-          width: 100%;
-        }
       }
 
       .map-info {
@@ -171,15 +155,52 @@ const handleCardClick = (map: any) => {
           font-weight: bold;
           display: flex;
           white-space: nowrap;
-          margin-right: 55px;
+          margin-right: 120px;
         }
 
         .map-meta {
           display: flex;
-          gap: 15px;
           justify-content: space-between;
           color: #585757;
           white-space: nowrap;
+        }
+      }
+
+      .map-picture {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 90%;
+        width: 95%;
+        border-radius: 20px;
+        background-color: #f8f8f9;
+        flex-direction: column;
+        position: relative;
+
+        .preview-img {
+          width: 100%;
+        }
+      }
+
+      .btn {
+        background-color: #9ac6f3;
+        cursor: pointer;
+        color: white;
+        border-radius: 10px;
+        border: none;
+        width: 95%;
+        height: 12%;
+        font-size: 20px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        margin: 15px;
+        letter-spacing: 15px;
+        transform: all 0.2s;
+        &:hover {
+          background-color: #b9d9fc;
+          transform: translateY(-2px);
+          box-shadow: 6px 6px 6px rgba(0, 0, 0, 0.15);
         }
       }
     }
