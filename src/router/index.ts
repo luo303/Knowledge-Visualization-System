@@ -37,6 +37,11 @@ const router = createRouter({
             {
               path: 'personalcenter',
               component: () => import('@/views/PersonalCenter.vue')
+            },
+            {
+              path: 'generate-pro',
+              component: () => import('@/views/Generate-pro.vue'),
+              name: 'generate-pro'
             }
           ]
         }

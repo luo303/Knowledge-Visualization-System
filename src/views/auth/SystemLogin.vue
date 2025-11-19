@@ -264,6 +264,9 @@ const resetPassword = () => {
 </script>
 
 <style lang="scss" scoped>
+.el-form-item:not(:last-child) {
+  margin-bottom: 30px;
+}
 // 登录页面
 .login {
   position: relative;

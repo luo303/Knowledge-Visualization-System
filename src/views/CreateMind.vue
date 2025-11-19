@@ -242,7 +242,7 @@ const handleFileUpload = async (e: Event) => {
 const viewMindmap = () => {
   const mapId = LayoutStore.data?.mapId
   if (mapId && mapId !== 'xxx') {
-    router.push({ name: 'handedit', query: { mapId } }) // 携带 mapId
+    router.push({ name: 'generate-pro', query: { mapId } }) // 携带 mapId
   } else {
     ElMessage.warning('导图数据未找到或未生成正式ID，无法跳转')
   }
