@@ -2,7 +2,12 @@
   <div class="createmind-container">
     <div class="createmind-title">请选择想要生成的导图</div>
     <div class="generatemap-container">
-      <div class="singlemindmap-container" v-for="map in maps" :key="map.mapId">
+      <div
+        class="singlemindmap-container"
+        v-for="map in maps"
+        :key="map.mapId"
+        @click="handleCardClick(map)"
+      >
         <div class="map-picture">
           <PreviewPage :Map="map" class="preview-img" />
         </div>
@@ -30,6 +35,9 @@
 import PreviewPage from '@/components/PreviewPage.vue'
 import { ref } from 'vue'
 import type { MindMapOptions } from '@/utils/type'
+import { useRouter } from 'vue-router'
+
+const router = useRouter()
 
 const maps = ref<MindMapOptions[]>([
   {
@@ -82,6 +90,14 @@ const maps = ref<MindMapOptions[]>([
     createTime: '2022-01-03 12:00:00'
   }
 ])
+
+// 卡片点击事件
+const handleCardClick = (map: any) => {
+  const currentMapId = map.mapId
+  if (currentMapId && currentMapId !== 'xxx') {
+    router.push({ name: 'handedit' })
+  }
+}
 </script>
 
 <style lang="scss" scoped>
