@@ -2,33 +2,23 @@
   <div class="createmind-container">
     <div class="createmind-title">请选择想要生成的导图</div>
     <div class="generatemap-container">
-      <div class="singlemindmap-container">
-        <div class="map-picture"></div>
-        <div class="map-info">
-          <h3 class="map-name">第一个导图</h3>
-          <div class="map-meta">
-            <span class="map-type">树形图</span>
-            <span class="map-time">2025-05-15</span>
-          </div>
+      <div class="singlemindmap-container" v-for="map in maps" :key="map.mapId">
+        <div class="map-picture">
+          <PreviewPage :Map="map" class="preview-img" />
         </div>
-      </div>
-      <div class="singlemindmap-container">
-        <div class="map-picture"></div>
         <div class="map-info">
-          <h3 class="map-name">第二个导图</h3>
+          <h3 class="map-name">{{ map.root.data.text }}</h3>
           <div class="map-meta">
-            <span class="map-type">鱼骨图</span>
-            <span class="map-time">2025-07-12</span>
-          </div>
-        </div>
-      </div>
-      <div class="singlemindmap-container">
-        <div class="map-picture"></div>
-        <div class="map-info">
-          <h3 class="map-name">第三个导图</h3>
-          <div class="map-meta">
-            <span class="map-type">时间轴</span>
-            <span class="map-time">2025-09-28</span>
+            <span class="map-type">{{
+              map.layout === 'mindMap'
+                ? '思维导图'
+                : map.layout === 'fishBone'
+                  ? '鱼骨图'
+                  : map.layout === 'orgChart'
+                    ? '组织结构图'
+                    : '未知类型'
+            }}</span>
+            <span class="map-time">{{ map.createTime }}</span>
           </div>
         </div>
       </div>
@@ -36,7 +26,63 @@
   </div>
 </template>
 
-<script lang="ts" setup></script>
+<script lang="ts" setup>
+import PreviewPage from '@/components/PreviewPage.vue'
+import { ref } from 'vue'
+import type { MindMapOptions } from '@/utils/type'
+
+const maps = ref<MindMapOptions[]>([
+  {
+    mapId: 'map-1001',
+    root: {
+      data: { text: '项目规划' },
+      children: [
+        { data: { text: '需求分析' } },
+        { data: { text: '技术选型' } },
+        { data: { text: '开发计划' } }
+      ]
+    },
+    title: '项目规划',
+    userId: '12313245646',
+    desc: '这是一个项目规划',
+    layout: 'mindMap',
+    createTime: '2022-01-01 12:00:00'
+  },
+  {
+    mapId: 'map-1002',
+    root: {
+      data: { text: '问题排查' },
+      children: [
+        { data: { text: '前端问题' } },
+        { data: { text: '后端问题' } },
+        { data: { text: '网络问题' } }
+      ]
+    },
+    title: '问题排查',
+    userId: '12313245646',
+    desc: '这是一个问题排查',
+    layout: 'fishBone',
+    createTime: '2022-01-02 12:00:00'
+  },
+  {
+    mapId: 'map-1003',
+    root: {
+      data: { text: '团队成员' },
+      children: [
+        { data: { text: '产品经理' } },
+        { data: { text: 'UI设计师' } },
+        { data: { text: '前端开发' } },
+        { data: { text: '后端开发' } }
+      ]
+    },
+    title: '团队成员',
+    userId: '12313245646',
+    desc: '这是一个团队成员',
+    layout: 'orgChart',
+    createTime: '2022-01-03 12:00:00'
+  }
+])
+</script>
 
 <style lang="scss" scoped>
 .createmind-container {
@@ -81,7 +127,6 @@
       transition: all 0.2s;
       &:hover {
         transform: translateY(-7px);
-        background-color: #eaf2fb;
         box-shadow: 10px 17px 12px rgba(0, 0, 0, 0.15);
       }
 
@@ -93,19 +138,24 @@
         width: 95%;
         border-radius: 20px;
         background-color: #f8f8f9;
+
+        .preview-img {
+          width: 100%;
+        }
       }
 
       .map-info {
         display: flex;
-        justify-content: center;
+        justify-content: space-between;
         align-items: center;
-        flex-direction: row;
-        gap: 110px;
+        padding: 15px;
 
         .map-name {
           font-size: 16px;
           font-weight: bold;
           display: flex;
+          white-space: nowrap;
+          margin-right: 55px;
         }
 
         .map-meta {
@@ -113,6 +163,7 @@
           gap: 15px;
           justify-content: space-between;
           color: #585757;
+          white-space: nowrap;
         }
       }
     }
