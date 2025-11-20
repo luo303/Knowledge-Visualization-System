@@ -7,7 +7,7 @@
       <div class="box2">
         <nav>
           <div class="icon-container">
-            <router-link active-class="active" to="/layout/hanedit"
+            <router-link active-class="active" to="/layout/handedit"
               ><div class="avatar">
                 <img
                   src="@/assets/images/notification.png"

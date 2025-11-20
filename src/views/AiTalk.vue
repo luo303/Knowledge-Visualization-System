@@ -5,7 +5,13 @@
       <div v-if="!isChatting" class="list_container">
         <div class="header">
           <span class="title">AI编辑模式</span>
-          <button @click="open(true)" class="NewBtn">+ 新对话</button>
+          <el-button
+            type="primary"
+            size="large"
+            :icon="Plus"
+            @click="open(true)"
+            >新对话</el-button
+          >
         </div>
 
         <div class="chat_list">
@@ -200,7 +206,7 @@
 import Markdown from 'vue3-markdown-it'
 import { ElMessage } from 'element-plus'
 import { ref, nextTick, onMounted, watch } from 'vue'
-import { EditPen } from '@element-plus/icons-vue'
+import { EditPen, Plus } from '@element-plus/icons-vue'
 import { useLayoutStore } from '@/stores'
 import { storeToRefs } from 'pinia'
 import type { ChatList, Message } from '@/stores/modules/type'
