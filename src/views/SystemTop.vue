@@ -8,32 +8,28 @@
         <nav>
           <div class="icon-container">
             <router-link active-class="active" to="/layout/handedit"
-              ><div class="avatar">
-                <img
-                  src="@/assets/images/notification.png"
-                  class="notification-img"
-                  alt="通知"
-                />
+              ><div class="notification">
+                <el-avatar
+                  ><el-icon><Bell /></el-icon
+                ></el-avatar>
                 <span
                   class="notification-badge"
                   v-if="hasNewAiMessage"
                 ></span></div
             ></router-link>
-            <router-link active-class="active" to="/layout/personalcenter">
-              <div class="avatar">
-                <img
-                  :src="getAvatarUrl(userInfo.avatar)"
-                  class="avatar-img"
-                  alt="个人"
-                />
-              </div>
-            </router-link>
+
+            <router-link active-class="active" to="/layout/personalcenter"
+              ><div>
+                <el-avatar :src="getAvatarUrl(userInfo.avatar)"
+                  ><el-icon><User /></el-icon
+                ></el-avatar></div
+            ></router-link>
           </div>
         </nav>
         <nav>
-          <div class="logout" active-class="active" @click="handleToLogin">
-            <el-button type="primary" class="logout-text">退出登录</el-button>
-          </div>
+          <el-button type="primary" size="large" @click="handleToLogin"
+            >退出登录</el-button
+          >
         </nav>
       </div>
     </div>
@@ -48,6 +44,7 @@ import { useLayoutStore } from '@/stores'
 import { ref } from 'vue'
 import { storeToRefs } from 'pinia'
 import defaultAvatar from '@/assets/images/personal.png' // 默认头像
+import { Bell, User } from '@element-plus/icons-vue'
 const LayoutStore = useLayoutStore()
 const userStore = useUserStore()
 const { userInfo } = storeToRefs(userStore)
@@ -182,53 +179,16 @@ nav a:hover {
   height: 1400px;
   /*background-color: #f0f2f3;*/
 }
-.logout {
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: background-color 0.2s;
-}
 
-.logout-text {
-  height: 45px;
-  font-size: 20px;
-  border-radius: 10px;
-}
+.icon-container {
+  :deep(.el-avatar) {
+    background-color: transparent;
+    border: solid 1px black;
 
-.logout-text:hover {
-  box-shadow: 0 2px 1px rgb(175, 173, 173);
-  transform: translateY(-2px);
-}
-.avatar {
-  cursor: pointer;
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  overflow: hidden;
-  border: 1px solid rgb(134, 133, 133);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: background-color 0.2s;
-  position: relative;
-
-  &:hover {
-    background-color: #fff;
-    box-shadow: 0 2px 1px rgb(115, 114, 114);
-    transform: translateY(-2px);
-  }
-
-  .notification-img {
-    width: 70%;
-    height: 70%;
-    object-fit: cover;
-  }
-
-  .avatar-img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
+    .el-icon {
+      color: black;
+      font-size: 25px;
+    }
   }
 }
 </style>
