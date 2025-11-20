@@ -3,16 +3,17 @@ import { ElMessage } from 'element-plus'
 import { useUserStore } from '@/stores'
 import router from '@/router'
 //创建axios实例
-const baseURL = 'http://' //等后续接口
+const baseURL = 'http://111.228.15.67:8080'
 const request = axios.create({
   baseURL,
-  timeout: 5000
+  timeout: 10000000 //对话获取时间有点久，时间限制调大
 })
 //请求拦截器
 request.interceptors.request.use((config: any) => {
   const userstore = useUserStore()
-  if (userstore.token) {
-    config.headers.Authorization = userstore.token
+  const token = userstore.token
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`
   }
   return config
 })
@@ -22,33 +23,28 @@ request.interceptors.response.use(
     return response.data
   },
   (error: any) => {
-    //处理网络错误
-    let msg = ''
-    const status = error.response.status
-    switch (status) {
-      case 401:
-        msg = 'token过期'
-        break
-      case 403:
-        msg = '无权访问'
-        break
-      case 404:
-        msg = '请求地址错误'
-        break
-      case 500:
-        msg = '图片文件过大'
-        break
-      default:
-        msg = '无网络'
-    }
-    ElMessage({
-      type: 'error',
-      message: msg
-    })
-    if (status !== 500) {
+    //处理网络错误或跨域报错
+    if (!error.response) {
+      const networkError = new Error('网络错误，请检查网络连接或跨域配置')
+      ;(networkError as any).isNetworkError = true
+      return Promise.reject(networkError)
+    } else {
+      let msg = ''
+      const status = error.response.status
+      switch (status) {
+        case -2:
+          msg = 'token过期'
+          break
+        default:
+          msg = `${error.response.data.Message}`
+      }
+      ElMessage({
+        type: 'error',
+        message: msg
+      })
       router.push('/login')
+      return Promise.reject(error)
     }
-    return Promise.reject(error)
   }
 )
 export default request

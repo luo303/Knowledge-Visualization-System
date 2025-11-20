@@ -1,4 +1,13 @@
 //接口请求和返回数据的类型定义
+// 用户信息
+
+// 登录
+export interface loginData {
+  account: string
+  password: string
+  account_type: string
+}
+
 //验证码
 export interface code {
   account: string
@@ -20,4 +29,16 @@ export interface registerData {
   account: string
   code: string
   account_type: string
+}
+//更改联系方式
+export interface changecontact {
+  password: string
+  account: string
+  code: string
+  account_type: string
+}
+// 生成导图的响应数据类型
+export interface GenerateMindMapData {
+  success: boolean
+  map_json: string // 导图的 json 数据
 }
