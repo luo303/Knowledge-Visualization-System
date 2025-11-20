@@ -73,86 +73,14 @@
       <div class="content-right">
         <div class="image"></div>
         <h1>知识可视化系统</h1>
-        <ul>
-          <li>
-            <svg
-              t="1761804560082"
-              class="icon"
-              viewBox="0 0 1024 1024"
-              version="1.1"
-              xmlns="http://www.w3.org/2000/svg"
-              p-id="6367"
-              width="30"
-              height="30"
-            >
-              <path
-                d="M480 480m-160 0a2.5 2.5 0 1 0 320 0 2.5 2.5 0 1 0-320 0Z"
-                p-id="6368"
-                fill="#1296db"
-              ></path></svg
-            >支持上传多种文件格式
-          </li>
-          <li>
-            <svg
-              t="1761804560082"
-              class="icon"
-              viewBox="0 0 1024 1024"
-              version="1.1"
-              xmlns="http://www.w3.org/2000/svg"
-              p-id="6367"
-              width="30"
-              height="30"
-            >
-              <path
-                d="M480 480m-160 0a2.5 2.5 0 1 0 320 0 2.5 2.5 0 1 0-320 0Z"
-                p-id="6368"
-                fill="#1296db"
-              ></path></svg
-            >AI问答及自动逻辑优化
-          </li>
-          <li>
-            <svg
-              t="1761804560082"
-              class="icon"
-              viewBox="0 0 1024 1024"
-              version="1.1"
-              xmlns="http://www.w3.org/2000/svg"
-              p-id="6367"
-              width="30"
-              height="30"
-            >
-              <path
-                d="M480 480m-160 0a2.5 2.5 0 1 0 320 0 2.5 2.5 0 1 0-320 0Z"
-                p-id="6368"
-                fill="#1296db"
-              ></path></svg
-            >一键保存及导出
-          </li>
-          <li>
-            <svg
-              t="1761804560082"
-              class="icon"
-              viewBox="0 0 1024 1024"
-              version="1.1"
-              xmlns="http://www.w3.org/2000/svg"
-              p-id="6367"
-              width="30"
-              height="30"
-            >
-              <path
-                d="M480 480m-160 0a2.5 2.5 0 1 0 320 0 2.5 2.5 0 1 0-320 0Z"
-                p-id="6368"
-                fill="#1296db"
-              ></path></svg
-            >通过对话修改导图内容及结构
-          </li>
-        </ul>
+        <FeatureList></FeatureList>
       </div>
     </div>
   </div>
 </template>
 
 <script lang="ts" setup>
+import FeatureList from '@/components/FeatureList.vue'
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { Register, Getcode } from '@/api/user'
