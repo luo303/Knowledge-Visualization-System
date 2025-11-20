@@ -560,9 +560,10 @@ watch(
 <style lang="scss" scoped>
 .talk {
   height: 90%;
-  border-radius: 20px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-  background-color: white;
+  border-radius: 24px;
+  box-shadow: 0 10px 24px rgba(31, 38, 135, 0.12);
+  background-color: #ffffff;
+  backdrop-filter: saturate(120%);
   .container {
     width: 100%;
     max-width: 100%;
@@ -570,9 +571,9 @@ watch(
     margin: 0 auto;
 
     box-sizing: border-box;
-    border-radius: 20px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-    background-color: white;
+    border-radius: 24px;
+    box-shadow: 0 6px 20px rgba(31, 38, 135, 0.08);
+    background-color: #ffffff;
   }
 
   // 列表视图
@@ -592,26 +593,37 @@ watch(
 
   // 通用头部
   .header {
-    padding: 15px;
+    padding: 18px 20px;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    border-radius: 20px 20px 0 0;
-    border-bottom: 1px solid #eee;
+    border-radius: 24px 24px 0 0;
+    border-bottom: 1px solid #eef2f6;
+    background: linear-gradient(180deg, #ffffff, #fafbff);
     .icon {
       cursor: pointer;
+      transition:
+        transform 0.12s ease,
+        opacity 0.2s;
+    }
+    .icon:hover {
+      transform: translateY(-1px);
+      opacity: 0.9;
     }
   }
 
   .title {
-    font-weight: 500;
-    font-size: 16px;
+    font-weight: 600;
+    font-size: 18px;
+    color: #1f2937;
+    letter-spacing: 0.2px;
   }
 
   /* 列表项样式 */
   .chat_list {
     flex: 1;
     overflow-y: auto;
+    padding: 6px 8px 8px;
     // 滚动条整体样式
     &::-webkit-scrollbar {
       width: 6px; // 滚动条宽度
@@ -643,17 +655,21 @@ watch(
   }
 
   .chat_item {
-    padding: 15px;
+    padding: 14px 16px;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    border-bottom: 1px solid #f0f0f0;
+    border-bottom: 1px solid #f3f4f6;
     cursor: pointer;
-    transition: background 0.2s;
+    transition:
+      background 0.2s,
+      transform 0.12s ease;
+    border-radius: 12px;
   }
 
   .chat_item:hover {
-    background: #f5f5f5;
+    background: #f7fafc;
+    transform: translateY(-1px);
   }
 
   .chat_info .last_msg {
@@ -670,25 +686,29 @@ watch(
   .actions button {
     border: none;
     background: transparent;
-    color: #f44336;
+    color: #6b7280;
     cursor: pointer;
-    opacity: 0.7;
-    transition: opacity 0.2s;
+    opacity: 0.8;
+    transition:
+      opacity 0.2s,
+      color 0.2s;
   }
 
   .actions button:hover {
     opacity: 1;
+    color: #374151;
   }
 
   /* 消息区域样式 */
   .talk_area {
     flex: 1;
-    padding: 15px;
+    padding: 18px;
     overflow-y: auto;
-    background: #f9f9f9;
+    background: #f6f8fb;
     display: flex;
     flex-direction: column;
-    gap: 12px;
+    gap: 14px;
+    scroll-padding-bottom: 80px;
     // 滚动条整体样式
     &::-webkit-scrollbar {
       width: 6px; // 滚动条宽度
@@ -720,10 +740,13 @@ watch(
   }
 
   .msg {
-    max-width: 70%;
-    padding: 10px 15px;
-    border-radius: 12px;
+    max-width: 68%;
+    padding: 12px 16px;
+    border-radius: 14px;
     word-break: break-word;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.06);
+    position: relative;
+    line-height: 1.6;
   }
   .load {
     display: flex;
@@ -741,29 +764,90 @@ watch(
     }
   }
   .system_msg {
-    background: #e9ecef;
+    background: #eef2f7;
     align-self: flex-start;
+    color: #374151;
+    border: 1px solid #e5e7eb;
+  }
+  .system_msg::before {
+    content: '';
+    position: absolute;
+    left: -6px;
+    top: 16px;
+    width: 0;
+    height: 0;
+    border-top: 6px solid transparent;
+    border-bottom: 6px solid transparent;
+    border-right: 6px solid #eef2f7;
   }
 
   .user-msg {
-    background: #409eff;
-    color: white;
+    background: linear-gradient(135deg, #409eff, #66b1ff);
+    color: #ffffff;
     align-self: flex-end;
+    box-shadow: 0 4px 12px rgba(64, 158, 255, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.25);
+  }
+  .user-msg::after {
+    content: '';
+    position: absolute;
+    right: -6px;
+    top: 16px;
+    width: 0;
+    height: 0;
+    border-top: 6px solid transparent;
+    border-bottom: 6px solid transparent;
+    border-left: 6px solid #66b1ff;
   }
 
   .input_area {
     display: flex;
-    padding: 15px;
+    padding: 16px 18px;
     gap: 10px;
     align-items: center;
-    border-top: 1px solid #eee;
+    border-top: 1px solid #eef2f6;
+    background: #ffffff;
+    border-radius: 0 0 24px 24px;
   }
 
   .input_area .input {
     flex: 1;
-    border-radius: 20px;
+    border-radius: 14px;
     outline: none;
     font-size: 14px;
+  }
+
+  :deep(.el-textarea__inner) {
+    border-radius: 14px;
+    border-color: #e5e7eb;
+    background: #fbfbfd;
+    box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.03);
+    padding: 10px 12px;
+    transition:
+      border-color 0.15s ease,
+      box-shadow 0.15s ease;
+  }
+  :deep(.el-textarea__inner:focus) {
+    border-color: #90c2ff;
+    box-shadow: 0 0 0 3px rgba(64, 158, 255, 0.15);
+  }
+  :deep(.el-input__count) {
+    color: #6b7280;
+    font-weight: 500;
+  }
+
+  :deep(.el-button--primary) {
+    border-radius: 14px;
+    padding: 10px 18px;
+    box-shadow: 0 6px 14px rgba(64, 158, 255, 0.18);
+    transition: transform 0.1s ease;
+  }
+  :deep(.el-button--primary:hover) {
+    transform: translateY(-1px);
+  }
+  :deep(.el-button.is-disabled) {
+    box-shadow: none;
+    opacity: 0.7;
   }
 
   // .input_area button {
@@ -788,6 +872,19 @@ watch(
     border: none;
     border-radius: 4px;
     cursor: pointer;
+  }
+  :deep(.el-dialog) {
+    border-radius: 16px;
+    box-shadow: 0 14px 28px rgba(31, 38, 135, 0.12);
+  }
+  :deep(.el-dialog__header) {
+    font-weight: 600;
+    border-bottom: 1px solid #eef2f7;
+    margin-bottom: 12px;
+  }
+  :deep(.el-dialog__footer) {
+    padding-top: 8px;
+    border-top: 1px solid #eef2f7;
   }
 }
 </style>
