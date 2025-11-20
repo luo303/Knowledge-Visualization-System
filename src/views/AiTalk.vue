@@ -135,12 +135,13 @@
             type="textarea"
             placeholder="输入消息..."
             @keyup.enter="sendMsg"
+            @keydown.tab="complete"
             :autosize="{ minRows: 1, maxRows: 2 }"
             show-word-limit
             maxlength="100"
             word-limit-position="outside"
           />
-          <el-button @click="sendMsg" class="button" :disabled="isloading"
+          <el-button @click="sendMsg" type="primary" :disabled="isloading"
             >发送</el-button
           >
         </div>
@@ -209,7 +210,8 @@ import {
   DelChat,
   UpdateTitle,
   SendMessage,
-  GetMapChatList
+  GetMapChatList,
+  TabComplete
 } from '@/api/user'
 const LayoutStore = useLayoutStore()
 // 所有对话数据（指定类型为Chat数组）
@@ -392,6 +394,10 @@ const backToList = (): void => {
 // 发送消息
 const sendMsg = async () => {
   if (!inputContent.value.trim()) return
+  if (isloading.value) {
+    ElMessage.warning('AI努力中,请等待思考完')
+    return
+  }
   const temp = inputContent.value
   const id = currentChat.value.conversation_id
   // 添加用户消息
@@ -431,8 +437,7 @@ const sendMsg = async () => {
       }
       scrollToBottom()
     } else {
-      const message = (res as any).Message
-      ElMessage.error(`${message}`)
+      ElMessage.error('发送失败，AI有点宕机了')
     }
   } catch (error) {
     console.log(error)
@@ -513,6 +518,24 @@ const deleteChat = async (id: string) => {
     console.log(error)
   } finally {
     DelDialogVisible.value = false
+  }
+}
+//tab键智能补全
+const complete = async (e: any) => {
+  e.preventDefault()
+  try {
+    const res = await TabComplete(
+      currentChatId.value,
+      inputContent.value,
+      LayoutStore.data
+    )
+    if ((res as any).Code === 200) {
+      inputContent.value = (res as any).Data.completed_text
+    } else {
+      ElMessage.error('补全失败')
+    }
+  } catch (error) {
+    console.log(error)
   }
 }
 watch(
@@ -736,20 +759,20 @@ watch(
     font-size: 14px;
   }
 
-  .input_area button {
-    width: 20%;
-    height: 35px;
-    background: #409eff;
-    color: white;
-    border: none;
-    border-radius: 20px;
-    cursor: pointer;
-    transition: background 0.2s;
-  }
+  // .input_area button {
+  //   width: 20%;
+  //   height: 35px;
+  //   background: #409eff;
+  //   color: white;
+  //   border: none;
+  //   border-radius: 20px;
+  //   cursor: pointer;
+  //   transition: background 0.2s;
+  // }
 
-  .input_area button:hover {
-    background: #3086e8;
-  }
+  // .input_area button:hover {
+  //   background: #3086e8;
+  // }
 
   .NewBtn {
     padding: 5px 10px;

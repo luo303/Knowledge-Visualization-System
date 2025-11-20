@@ -35,6 +35,7 @@ declare module 'vue' {
     ElTooltip: typeof import('element-plus/es')['ElTooltip']
     FeatureList: typeof import('./src/components/FeatureList.vue')['default']
     PreviewPage: typeof import('./src/components/PreviewPage.vue')['default']
+    ProPreview: typeof import('./src/components/ProPreview.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
   }

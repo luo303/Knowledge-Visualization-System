@@ -117,3 +117,17 @@ export const ChangeContact = (data: changecontact) => {
 export const ChangeName = (user_name: string) => {
   return request.post('/api/biz/v1/user/username', { user_name })
 }
+//AI对话框tab键补全
+export const TabComplete = (
+  conversation_id: string,
+  user_input: string,
+  map_data: MindMapOptions
+) => {
+  return request.post('/api/biz/v1/aichat/tab_complete', {
+    params: {
+      conversation_id,
+      user_input,
+      map_data: JSON.stringify(map_data)
+    }
+  })
+}
