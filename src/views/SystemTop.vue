@@ -7,14 +7,18 @@
       <div class="box2">
         <nav>
           <div class="icon-container">
-            <div class="icon-item" active-class="active" @click="goToAiChat">
-              <img
-                src="@/assets/images/notification.png"
-                class="icon"
-                alt="通知"
-              />
-              <span class="notification-badge" v-if="hasNewAiMessage"></span>
-            </div>
+            <router-link active-class="active" to="/layout/hanedit"
+              ><div class="avatar">
+                <img
+                  src="@/assets/images/notification.png"
+                  class="notification-img"
+                  alt="通知"
+                />
+                <span
+                  class="notification-badge"
+                  v-if="hasNewAiMessage"
+                ></span></div
+            ></router-link>
             <router-link active-class="active" to="/layout/personalcenter">
               <div class="avatar">
                 <img
@@ -37,7 +41,7 @@
 </template>
 
 <script lang="ts" setup>
-import { ElMessageBox, ElMessage } from 'element-plus'
+import { ElMessageBox } from 'element-plus'
 import { useRouter } from 'vue-router'
 import { useUserStore } from '@/stores/modules/user'
 import { useLayoutStore } from '@/stores'
@@ -71,13 +75,6 @@ const handleToLogin = () => {
     LayoutStore.clearMap() //清除导图和对话数据
     router.push('/login')
   })
-}
-
-// 通知跳转
-const goToAiChat = () => {
-  router.push({ name: 'handedit' })
-  hasNewAiMessage.value = false
-  ElMessage.success('已进入AI编辑页面')
 }
 </script>
 
@@ -132,20 +129,6 @@ h1 {
   gap: 20px;
 }
 
-/* 图标样式 */
-.icon-item {
-  cursor: pointer;
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  border: 1px solid rgb(134, 133, 133);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: background-color 0.2s;
-  position: relative;
-}
-
 .notification-badge {
   position: absolute;
   top: -2px;
@@ -158,17 +141,6 @@ h1 {
   background-color: #ff4d4f;
 
   box-shadow: 2px 2px 2px rgba(0, 0, 0, 0.2);
-}
-
-.icon-item:hover {
-  background-color: #fff;
-  box-shadow: 0 2px 1px rgb(115, 114, 114);
-  transform: translateY(-2px);
-}
-
-.icon {
-  width: 22px;
-  height: 22px;
 }
 
 nav {
@@ -234,7 +206,24 @@ nav a:hover {
   height: 40px;
   border-radius: 50%;
   overflow: hidden;
-  border: 1px solid #ddd;
+  border: 1px solid rgb(134, 133, 133);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 0.2s;
+  position: relative;
+
+  &:hover {
+    background-color: #fff;
+    box-shadow: 0 2px 1px rgb(115, 114, 114);
+    transform: translateY(-2px);
+  }
+
+  .notification-img {
+    width: 70%;
+    height: 70%;
+    object-fit: cover;
+  }
 
   .avatar-img {
     width: 100%;

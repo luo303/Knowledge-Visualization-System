@@ -92,11 +92,10 @@ const maps = ref<MindMapOptions[]>([
 const handleCardClick = (map: any) => {
   const currentMapId = map.mapId
   if (currentMapId && currentMapId !== 'xxx') {
-    router.push({ name: 'handedit' })
+    router.push({ name: 'handedit', query: { mapId: currentMapId } })
   }
 }
 </script>
-
 <style lang="scss" scoped>
 .createmind-container {
   margin-left: 10px;
