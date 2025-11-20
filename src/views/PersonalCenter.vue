@@ -49,8 +49,10 @@
 
           <!-- 用户名 -->
           <div class="username-wrapper">
-            <span class="label">用户名:</span>
-            <span class="username">{{ userInfo.user_name }}</span>
+            <div class="username-container">
+              <span class="label">用户名:</span>
+              <span class="username">{{ userInfo.user_name }}</span>
+            </div>
             <button class="edit-btn" @click="openUsernameDialog">
               <el-icon><Edit /></el-icon>修改用户名
             </button>
@@ -71,6 +73,12 @@
               >
             </template>
           </ElDialog>
+
+          <footer>
+            <button class="switch-account-btn" @click="handleSwitchAccount">
+              切换账号
+            </button>
+          </footer>
         </div>
       </div>
 
@@ -263,12 +271,6 @@
           </div>
         </div>
       </div>
-
-      <footer class="section">
-        <button class="switch-account-btn" @click="handleSwitchAccount">
-          切换账号
-        </button>
-      </footer>
     </div>
   </div>
 </template>
@@ -284,7 +286,7 @@ import {
   ElMessageBox
 } from 'element-plus'
 import type { UploadProps } from 'element-plus'
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
 import defaultAvatar from '@/assets/images/personal.png' // 默认头像
 import { useUserStore } from '@/stores/modules/user'
 import { useRouter } from 'vue-router'
@@ -307,6 +309,11 @@ const { userInfo } = storeToRefs(userStore)
 
 onMounted(() => {
   fetchHomeData()
+  LayoutStore.isCollapse = false
+})
+
+onUnmounted(() => {
+  LayoutStore.isCollapse = true
 })
 
 // 获取个人中心数据：
@@ -707,163 +714,207 @@ const handleSwitchAccount = async () => {
 <style lang="scss">
 .personal-info-container {
   width: 100%;
-  max-height: 800px;
-  padding: 20px;
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: row;
 }
 
 // 通用区域样式:
 .section {
-  font-size: 18px;
+  height: 100%;
+  width: 50%;
+  font-size: 25px;
   font-weight: 600;
   color: #4e4e4e;
-  margin-bottom: 16px;
-  padding-bottom: 16px;
-}
+  background-color: #fff;
+  border-radius: 20px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  padding: 40px;
+  position: relative;
+  min-height: 513px;
+  margin: 0px 50px;
 
-// 基本信息:
-.basic-info {
-  display: flex;
-  align-items: center;
-  gap: 50px;
-  padding: 10px 0;
-
-  .avatar-wrapper {
-    margin-left: 6%;
-    display: flex;
-    flex-direction: column;
-    align-items: center; // 修改头像 "按钮" y 轴居中
-    gap: 10px; // 头像与按钮之间的间距
-
-    .avatar {
-      width: 70px;
-      height: 70px;
-      border-radius: 50%;
-      overflow: hidden;
-      border: 1px solid #ddd;
-
-      .avatar-img {
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
-      }
-    }
-
-    .edit-avatar-btn {
-      font-size: 14px;
-      background-color: transparent;
-      border: none;
-      cursor: pointer;
-
-      &:hover {
-        color: #409eff;
-      }
-    }
-  }
-
-  .avatar-upload-container {
-    display: flex;
-    justify-content: center;
-    padding: 20px 0;
-  }
-
-  .upload-btn {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    width: 100px;
-    height: 100px;
-    border: 1px dashed #999;
-    border-radius: 50%;
-    transition: border-color 0.3s;
-
-    &:hover {
-      border-color: #409eff;
-    }
-  }
-
-  .username-wrapper {
+  .section-title {
+    font-size: 24px;
     display: flex;
     align-items: center;
-    gap: 10px;
-    font-size: 16px;
+    justify-content: center;
+    position: absolute;
+    left: 5%;
+    top: 5%;
+  }
 
-    .label {
-      color: #666;
-    }
+  // 基本信息:
+  .basic-info {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    gap: 50px;
+    padding: 10px;
 
-    .username {
-      color: #333;
-      font-weight: 500;
-    }
-
-    .edit-btn {
-      font-size: 14px;
-      background-color: transparent;
-      border: none;
-      cursor: pointer;
-      align-items: center;
+    .avatar-wrapper {
       display: flex;
-      gap: 5px;
+      justify-content: center;
+      align-items: center;
+      flex-direction: column;
+      align-items: center; // 修改头像 "按钮" y 轴居中
+      gap: 10px; // 头像与按钮之间的间距
+      margin-top: 30px;
 
-      &:hover {
-        color: #409eff;
+      .avatar {
+        width: 70px;
+        height: 70px;
+        border-radius: 50%;
+        overflow: hidden;
+        border: 1px solid #ddd;
+
+        .avatar-img {
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
+        }
+      }
+
+      .edit-avatar-btn {
+        font-size: 16px;
+        background-color: transparent;
+        border: none;
+        cursor: pointer;
+
+        &:hover {
+          color: #409eff;
+        }
       }
     }
-  }
-}
 
-// 账号安全：
-.security-info {
-  padding: 20px 70px;
-  display: flex;
-  flex-direction: column;
-  gap: 15px;
+    .avatar-upload-container {
+      display: flex;
+      justify-content: center;
+      padding: 20px 0;
+    }
 
-  .security-item {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-
-    .label {
-      font-size: 18px;
-      color: #666;
+    .upload-btn {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
       width: 100px;
-      text-align: right;
-    }
-
-    .status {
-      cursor: pointer;
-      font-size: 16px;
-      padding: 2px 8px;
-      color: #5a6edf;
-      font-weight: 500;
-    }
-
-    .edit-btn {
-      margin-left: 10px;
-      padding: 2px 8px;
-      font-size: 16px;
-      border: none;
-      border-radius: 4px;
-      background-color: transparent;
-      cursor: pointer;
-      color: #3687d8;
-      display: flex;
-      align-items: center;
-      gap: 5px;
+      height: 100px;
+      border: 1px dashed #999;
+      border-radius: 50%;
+      transition: border-color 0.3s;
 
       &:hover {
-        color: #409eff;
+        border-color: #409eff;
       }
     }
 
-    .userphone,
-    .useremail {
+    .username-wrapper {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      gap: 20px;
+      font-size: 20px;
+
+      .username-container {
+        .label {
+          color: #666;
+          margin: 10px;
+        }
+
+        .username {
+          color: #333;
+          font-weight: 500;
+        }
+      }
+
+      .edit-btn {
+        font-size: 16px;
+        background-color: transparent;
+        border: none;
+        cursor: pointer;
+        align-items: center;
+        display: flex;
+        gap: 5px;
+
+        &:hover {
+          color: #409eff;
+        }
+      }
+    }
+
+    // 切换账号按钮：
+    .switch-account-btn {
+      padding: 8px 20px;
+      border-radius: 8px;
+      border: none;
+      background-color: #409eff;
+      color: #fff;
       font-size: 16px;
-      color: #333;
-      font-weight: 500;
-      padding: 2px 8px;
+      cursor: pointer;
+      transition: all 0.3s;
+
+      &:hover {
+        background-color: #5cb3ff;
+      }
+    }
+  }
+
+  // 账号安全：
+  .security-info {
+    display: flex;
+    align-items: start;
+    justify-content: center;
+    flex-direction: column;
+    gap: 70px;
+    margin-top: 60px;
+    padding: 20px;
+
+    .security-item {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+
+      .label {
+        font-size: 18px;
+        color: #666;
+      }
+
+      .status {
+        cursor: pointer;
+        font-size: 16px;
+        padding: 2px 8px;
+        color: #5a6edf;
+        font-weight: 500;
+      }
+
+      .edit-btn {
+        padding: 2px 8px;
+        font-size: 16px;
+        border: none;
+        background-color: transparent;
+        cursor: pointer;
+        color: #3687d8;
+        display: flex;
+        align-items: center;
+        gap: 5px;
+
+        &:hover {
+          color: #409eff;
+        }
+      }
+
+      .userphone,
+      .useremail {
+        font-size: 16px;
+        color: #333;
+        font-weight: 500;
+        padding: 2px 8px;
+      }
     }
   }
 }
@@ -886,26 +937,6 @@ const handleSwitchAccount = async () => {
       color: #409eff;
       cursor: pointer;
     }
-  }
-}
-
-// 切换账号按钮：
-.switch-account-btn {
-  position: absolute;
-  margin-left: 10px;
-  margin-top: 10px;
-  bottom: 10%;
-  padding: 8px 20px;
-  border-radius: 8px;
-  border: none;
-  background-color: #409eff;
-  color: #fff;
-  font-size: 16px;
-  cursor: pointer;
-  transition: all 0.3s;
-
-  &:hover {
-    background-color: #5cb3ff;
   }
 }
 
