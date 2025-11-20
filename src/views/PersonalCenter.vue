@@ -285,7 +285,6 @@ import {
   ElIcon,
   ElMessageBox
 } from 'element-plus'
-import type { UploadProps } from 'element-plus'
 import { ref, computed, onMounted, onUnmounted } from 'vue'
 import defaultAvatar from '@/assets/images/personal.png' // 默认头像
 import { useUserStore } from '@/stores/modules/user'
@@ -301,6 +300,7 @@ import { ChangeAvatar, getHome } from '@/api/user'
 import { storeToRefs } from 'pinia'
 import { useLayoutStore } from '@/stores'
 const LayoutStore = useLayoutStore()
+type UploadProps = (typeof ElUpload)['props']
 
 // 初始化用户仓库：
 const userStore = useUserStore()
@@ -461,7 +461,7 @@ const avatarDialogOpen = ref(false)
 const avatarFileList = ref<UploadProps['fileList']>([])
 const showUploadComponent = ref(false)
 
-const handleFileChange: UploadProps['onChange'] = uploadFile => {
+const handleFileChange: UploadProps['onChange'] = (uploadFile: any) => {
   avatarFileList.value = [uploadFile]
 
   const file = uploadFile.raw

@@ -3,21 +3,19 @@
     <div class="search-container">
       <!-- 搜索框区域 -->
       <div class="search-box">
-        <div class="search-input-group">
-          <img
-            src="@/assets/images/search.png"
-            class="search-icon"
-            alt="搜索"
-          />
-          <input
+        <div>
+          <el-input
             v-model="searchQuery"
             type="text"
             placeholder="搜索导图名称或来源文件..."
             @input="handleInput"
             @keydown.enter="handleSearch"
             ref="searchInput"
-          />
-          <button class="search-btn" @click="handleSearch">搜索</button>
+          >
+            <template #prefix>
+              <el-icon><Search /></el-icon>
+            </template>
+          </el-input>
         </div>
 
         <!-- 智能联想下拉框 -->
@@ -42,50 +40,30 @@
       </div>
     </div>
 
-    <div class="filters-group">
-      <div class="sort-container">
-        <div class="sort-selector" @click="toggleDropdown1">
-          <!-- 显示当前选中的排序方式 -->
-          <span class="sort-text">{{ currentSortText }}</span>
-          <i class="sort-arrow" :class="{ rotate: isDropdownOpen1 }">▼</i>
-
-          <!-- 下拉选项列表（条件渲染） -->
-          <div class="dropdown-options" v-if="isDropdownOpen1">
-            <div
-              class="option-item"
-              v-for="option in sortOptions"
-              :key="option.value"
-              @click="handleSelect1(option)"
-              :class="{ active: option.value === currentSort }"
-            >
-              {{ option.text }}
-            </div>
-          </div>
-        </div>
-      </div>
-
+    <div>
       <div class="filter-container">
-        <div class="filter-selector" @click="toggleDropdown2">
-          <!-- 显示当前选中的类型 -->
-          <span class="filter-text">导图类型：{{ currentTypeText }}</span>
-          <!-- 下拉箭头（复用旋转动画） -->
-          <i class="filter-arrow" :class="{ rotate: isDropdownOpen2 }">▼</i>
-
-          <!-- 下拉选项列表 -->
-          <div class="dropdown-options" v-if="isDropdownOpen2">
-            <div
-              class="option-item"
-              v-for="option in typeOptions"
-              :key="option.value"
-              @click="handleSelect2(option)"
-              :class="{ active: option.value === currentType }"
-            >
-              {{ option.text }}
-            </div>
-            <!-- 清除筛选按钮 -->
-            <div class="clear-btn" @click="clearFilter">清除筛选</div>
-          </div>
-        </div>
+        <el-select
+          v-model="currentSort"
+          @change="handleSelect1"
+          class="filter-select"
+          placeholder="排序方式"
+        >
+          <el-option label="最近生成" value="latest" />
+          <el-option label="最早生成" value="earliest" />
+        </el-select>
+        <el-select
+          v-model="currentType"
+          @change="handleSelect2"
+          placeholder="请选择导图类型"
+          class="filter-select"
+        >
+          <el-option
+            v-for="option in typeOptions"
+            :key="option.value"
+            :label="option.text"
+            :value="option.value"
+          />
+        </el-select>
       </div>
     </div>
   </header>
@@ -131,7 +109,9 @@
           class="empty-img"
         />
         <p class="empty-text">暂无生成的导图，快去创建吧~</p>
-        <button class="create-btn" @click="handleCreateNew">+ 创建导图</button>
+        <el-button type="primary" size="large" @click="handleCreateNew"
+          >+ 创建导图</el-button
+        >
       </div>
     </div>
   </main>
@@ -175,14 +155,14 @@
 
     <!-- 批量操作区 -->
     <div class="batch-action-bar" v-show="selectedCount > 0">
-      <div class="selected-count">已选择{{ selectedCount }}个导图</div>
+      <span class="selected-count">已选择{{ selectedCount }}个导图</span>
       <div class="batch-buttons">
-        <button class="batch-btn export-btn" @click="handleBatchExport">
-          批量导出
-        </button>
-        <button class="batch-btn delete-btn" @click="handleBatchDeleteConfirm">
-          批量删除
-        </button>
+        <el-button type="primary" size="large" @click="handleBatchExport"
+          >批量导出</el-button
+        >
+        <el-button type="primary" size="large" @click="handleBatchDeleteConfirm"
+          >批量删除</el-button
+        >
       </div>
     </div>
 
@@ -194,7 +174,7 @@
 </template>
 
 <script lang="ts" setup>
-import { ref, onMounted, onUnmounted, computed, watch } from 'vue'
+import { ref, onMounted, computed, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import PreviewPage from '@/components/PreviewPage.vue'
 import type { MindMapOptions } from '@/utils/type'
@@ -203,6 +183,7 @@ import { exports } from '@/utils/export.ts'
 import { getMindMapList } from '@/api/user/index'
 import { useLayoutStore } from '@/stores/modules/layout'
 import { getMap, delMap } from '@/api/user/index'
+import { Search } from '@element-plus/icons-vue'
 
 // 搜索相关状态
 const searchQuery = ref('')
@@ -261,54 +242,20 @@ onMounted(() => {
 })
 
 // "最近生成" 模块：
-// 定义排序选项数据
-const sortOptions = [
-  { value: 'latest', text: '最近生成' },
-  { value: 'earliest', text: '最早生成' }
-]
-
-// 响应式状态：当前选中的排序值（默认最近生成）
-const currentSort = ref('latest')
-// 响应式状态：下拉框是否展开
-const isDropdownOpen1 = ref(false)
-// 响应式状态：当前排序的显示文本（用于模板渲染）
-const currentSortText = ref('最近生成')
-
-// 切换下拉框展开/收起
-const toggleDropdown1 = () => {
-  isDropdownOpen1.value = !isDropdownOpen1.value
-}
-
-// 选择排序选项
-const handleSelect1 = (option: { value: string; text: string }) => {
-  currentSort.value = option.value // 更新当前排序值
-  currentSortText.value = option.text // 更新显示文本
-  isDropdownOpen1.value = false // 选中后关闭下拉框
-  // 触发排序事件（父组件可监听此事件刷新列表）
-  emit('sortChange', currentSort.value)
-  resetPagination() // 原有逻辑变化时重置分页
-}
-
-// 监听点击外部区域，关闭下拉框
-const handleClickOutside1 = (e: MouseEvent) => {
-  const dropdown = document.querySelector('.sort-selector')
-  if (dropdown && !dropdown.contains(e.target as Node)) {
-    isDropdownOpen1.value = false
-  }
-}
-
-// 挂载时监听全局点击事件
-document.addEventListener('click', handleClickOutside1)
-// 组件卸载时移除监听（避免内存泄漏）
-onUnmounted(() => {
-  document.removeEventListener('click', handleClickOutside1)
-})
-
-// 定义自定义事件，用于向父组件传递排序变化
 const emit = defineEmits<{
   (e: 'sortChange', sortValue: string): void
   (e: 'typeChange', type: string): void
 }>()
+
+// 响应式状态：当前选中的排序值（默认最近生成）
+const currentSort = ref('latest')
+
+// 选择排序选项
+const handleSelect1 = (value: string) => {
+  currentSort.value = value
+  emit('sortChange', value)
+  resetPagination()
+}
 
 // "导图类型" 模块：
 const typeOptions = [
@@ -325,46 +272,11 @@ const typeOptions = [
 
 // 响应体状态：
 const currentType = ref('all') // 当前选中的类型，默认全部
-const currentTypeText = ref('全部')
-const isDropdownOpen2 = ref(false) // 类型下拉框展开状态
 
-// 切换下拉框：
-const toggleDropdown2 = () => {
-  isDropdownOpen2.value = !isDropdownOpen2.value
+const handleSelect2 = (value: string) => {
+  emit('typeChange', value)
+  resetPagination()
 }
-
-// 选择类型：
-const handleSelect2 = (option: { value: string; text: string }) => {
-  currentType.value = option.value // 更新当前类型
-  currentTypeText.value = option.text // 更新显示文本
-  isDropdownOpen2.value = false // 选中后关闭下拉框
-  emit('typeChange', currentType.value) // 通知父组件筛选变化
-  resetPagination() // 原有逻辑变化时重置分页
-}
-
-// 清除筛选：
-const clearFilter = () => {
-  currentType.value = 'all'
-  currentType.value = '全部'
-  isDropdownOpen2.value = false
-  emit('typeChange', 'all')
-}
-
-// 点击外部关闭下拉框：
-const handleClickOutside2 = (e: MouseEvent) => {
-  const dropdown = document.querySelector('.filter-selector') // 通过类名查找 "filter-selector" 元素
-  if (dropdown && !dropdown.contains(e.target as Node)) {
-    // 1. 下拉元素确实存在 2. 点击的位置不在下拉框内部
-    isDropdownOpen2.value = false // 若满足条件，就关闭下拉框
-  }
-}
-
-// 挂载时监听全局点击事件；
-document.addEventListener('click', handleClickOutside2)
-// 组件卸载时移除事件监听：
-onUnmounted(() => {
-  document.removeEventListener('click', handleClickOutside2)
-})
 
 // 导图数据：
 
@@ -730,25 +642,6 @@ watch(
   display: flex;
   position: relative;
 }
-
-.search-input-group {
-  display: flex;
-  align-items: center;
-  width: 300px;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  padding: 0 12px;
-  padding-right: 70px; // 输入框右边留出空间，用于放置搜索按钮
-  background: #fff;
-  position: relative;
-
-  &:focus-within {
-    border-color: #409eff;
-    box-shadow: 0 0 0 2px rgba(64, 158, 255, 0.2);
-    outline: none;
-  }
-}
-
 .search-icon {
   margin-right: 8px;
   height: 20px;
@@ -762,27 +655,6 @@ input {
   outline: none;
   font-size: 14px;
   padding: 0 8px;
-}
-
-.search-btn {
-  background: #409eff;
-  color: white;
-  border: none;
-  border-radius: 0 4px 4px 0;
-  padding: 6px 16px;
-  display: flex;
-  position: absolute;
-  right: 0px;
-  cursor: pointer;
-  transition: background 0.2s;
-
-  &:hover {
-    background: #66b1ff;
-  }
-
-  &:active {
-    background: #3a8ee6;
-  }
 }
 
 .suggestions-box {
@@ -819,124 +691,6 @@ input {
   font-size: 14px;
   padding: 8px 16px;
 }
-
-.filters-group {
-  display: flex;
-  align-items: center;
-  gap: 15px;
-}
-
-// "生成时间" 容器
-.sort-container {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  gap: 10px;
-}
-
-.sort-selector {
-  position: relative;
-  display: inline-flex;
-  align-items: center;
-  gap: 30px;
-  padding: 6px 10px;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  background: #fff;
-  cursor: pointer;
-  min-width: 100px;
-  min-height: 35px;
-
-  &:hover {
-    border-color: #409eff; /* hover时高亮边框 */
-  }
-}
-
-.sort-text {
-  font-size: 14px;
-  color: #333;
-}
-
-.sort-arrow {
-  font-size: 12px;
-  color: #666;
-  transition: transform 0.2s; /* 箭头旋转动画 */
-}
-
-/* 箭头旋转效果（下拉展开时） */
-.rotate {
-  transform: rotate(180deg);
-}
-
-.dropdown-options {
-  position: absolute;
-  top: 100%; /* 位于选择器正下方 */
-  left: 0;
-  right: 0;
-  margin-top: 2px;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  background: #fff;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  z-index: 10; /* 确保在其他内容上方 */
-}
-
-.option-item {
-  padding: 8px 12px;
-  font-size: 14px;
-  color: #333;
-  transition: background 0.2s;
-
-  &:hover {
-    background: #f5f7fa; /*  hover时背景高亮 */
-  }
-
-  &.active {
-    color: #409eff; /* 选中项文字高亮 */
-    font-weight: 500;
-  }
-}
-
-/* 响应式适配：小屏幕时调整位置 */
-@media (max-width: 768px) {
-  .sort-container {
-    right: 5%; /* 小屏幕时向右微调，避免超出边缘 */
-  }
-  .filter-container {
-    right: 5%;
-  }
-  .pagination-container {
-    gap: 4px;
-  }
-  .page-btn,
-  .page-number {
-    width: 30px;
-    height: 30px;
-    font-size: 12px;
-  }
-
-  .mindmap-preview-container {
-    width: 100%;
-    height: 70%;
-    left: 1%;
-  }
-  .mindmap-card {
-    height: 70%;
-  }
-}
-
-@media (max-width: 900px) {
-  .page-main {
-    max-height: calc(100vh - 180px); /* 小屏幕适当减小头部底部总高度 */
-  }
-}
-
-@media (max-width: 600px) {
-  .page-main {
-    max-height: calc(100vh - 160px); /* 手机屏幕进一步减小 */
-  }
-}
-
 // "导图类型" 容器：
 .filter-container {
   display: flex;
@@ -946,39 +700,9 @@ input {
   height: 35px;
 }
 
-.filter-selector {
-  position: relative;
-  display: flex;
-  align-items: center;
-  gap: 30px;
-  padding: 6px 12px;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  background-color: #fff;
-  cursor: pointer;
-  min-width: 160px;
-  min-height: 35px;
-
-  &:hover {
-    border-color: #409eff;
-  }
-
-  .filter-text {
-    font-size: 14px;
-    color: #333;
-  }
-
-  .filter-arrow {
-    font-size: 12px;
-    color: #666;
-    transition: transform 0.2s;
-  }
-
-  .rotate {
-    transform: rotate(180deg);
-  }
+.filter-select {
+  width: 160px;
 }
-
 // 清除筛选按钮：
 .clear-btn {
   margin: 4px;
@@ -1125,21 +849,6 @@ input {
   margin-bottom: 24px;
 }
 
-.create-btn {
-  padding: 8px 16px;
-  background-color: #409eff;
-  color: white;
-  border: none;
-  border-radius: 8px;
-  cursor: pointer;
-  font-size: 16px;
-  transition: background 0.2s;
-
-  &:hover {
-    background-color: #66b1ff;
-  }
-}
-
 //底部容器：
 .page-footer {
   position: fixed;
@@ -1261,21 +970,6 @@ input {
 .selected-count {
   font-size: 14px;
   color: #666;
-}
-
-.batch-btn {
-  padding: 6px 16px;
-  margin: 10px;
-  border-radius: 4px;
-  border: none;
-  color: #fff;
-  background-color: #409eff;
-  cursor: pointer;
-  transition: all 0.2s;
-
-  &:hover {
-    background-color: #3a8ee6;
-  }
 }
 
 // 状态反馈层：
