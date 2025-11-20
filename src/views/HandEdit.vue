@@ -830,6 +830,54 @@ watch(
   background: rgba(59, 130, 246, 0.03);
 }
 
+:deep(.el-overlay) {
+  background-color: rgba(17, 24, 39, 0.35);
+}
+
+:deep(.el-dialog) {
+  border-radius: 16px;
+  box-shadow: 0 14px 28px rgba(31, 38, 135, 0.12);
+}
+
+:deep(.el-dialog__header) {
+  font-weight: 600;
+  border-bottom: 1px solid #eef2f7;
+  margin-bottom: 8px;
+}
+
+:deep(.el-dialog__title) {
+  color: #1f2937;
+}
+
+:deep(.el-dialog__body) {
+  padding: 16px 20px;
+}
+
+:deep(.el-dialog__footer) {
+  padding-top: 10px;
+  border-top: 1px solid #eef2f7;
+}
+
+:deep(.el-dialog .el-button) {
+  border-radius: 12px;
+}
+
+:deep(.el-dialog .el-button--primary) {
+  background: linear-gradient(135deg, #409eff, #66b1ff);
+  border-color: transparent;
+  color: #ffffff;
+  box-shadow: 0 8px 18px rgba(64, 158, 255, 0.24);
+}
+
+:deep(.el-dialog .el-button--primary:hover) {
+  filter: brightness(1.05);
+}
+
+:deep(.el-dialog .el-button--default) {
+  color: #374151;
+  border-color: #e5e7eb;
+}
+
 .menu-item:hover::before {
   transform: translateX(0);
 }
