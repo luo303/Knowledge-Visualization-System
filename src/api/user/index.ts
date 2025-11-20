@@ -124,10 +124,8 @@ export const TabComplete = (
   map_data: MindMapOptions
 ) => {
   return request.post('/api/biz/v1/aichat/tab_complete', {
-    params: {
-      conversation_id,
-      user_input,
-      map_data: JSON.stringify(map_data)
-    }
+    conversation_id,
+    user_input,
+    map_data: JSON.stringify(map_data)
   })
 }

@@ -142,12 +142,16 @@
             placeholder="输入消息..."
             @keyup.enter="sendMsg"
             @keydown.tab="complete"
-            :autosize="{ minRows: 1, maxRows: 2 }"
+            :autosize="{ minRows: 2, maxRows: 4 }"
             show-word-limit
             maxlength="100"
             word-limit-position="outside"
           />
-          <el-button @click="sendMsg" type="primary" :disabled="isloading"
+          <el-button
+            @click="sendMsg"
+            type="primary"
+            size="large"
+            :disabled="isloading"
             >发送</el-button
           >
         </div>
@@ -190,10 +194,7 @@
     <template #footer>
       <div class="dialog-footer">
         <el-button @click="DelDialogVisible = false">取消删除</el-button>
-        <el-button
-          type="primary"
-          @click="deleteChat(currentChat.conversation_id)"
-        >
+        <el-button type="primary" @click="deleteChat(currentChatId)">
           确认删除
         </el-button>
       </div>
@@ -459,6 +460,7 @@ const createNewChat = async () => {
     const res = await NewChat(LayoutStore.data, form.value.name)
     if ((res as any).Code === 200) {
       currentChatId.value = (res as any).Data.conversation_id
+
       chat.value.push({
         title: form.value.name,
         conversation_id: (res as any).Data.conversation_id,
@@ -478,6 +480,7 @@ const createNewChat = async () => {
   } catch (error) {
     dialogFormVisible.value = false
     formRef.value.resetFields()
+    ElMessage.error('创建失败')
     console.log(error)
   }
 }
@@ -504,7 +507,7 @@ const deleteChat = async (id: string) => {
             const index = chat.value.findIndex(
               item => item.conversation_id === id
             )
-            if (index) {
+            if (index !== -1) {
               chat.value.splice(index, 1)
             }
           } else {
@@ -531,7 +534,7 @@ const complete = async (e: any) => {
   e.preventDefault()
   try {
     const res = await TabComplete(
-      currentChatId.value,
+      currentChat.value.conversation_id,
       inputContent.value,
       LayoutStore.data
     )
@@ -548,8 +551,6 @@ watch(
   () => LayoutStore.data.mapId,
   async newId => {
     if (newId) {
-      console.log(1)
-
       getconlist()
     }
   }
