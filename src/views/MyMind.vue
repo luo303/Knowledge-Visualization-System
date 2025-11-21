@@ -105,37 +105,18 @@
       <img src="@/assets/images/folder.png" alt="folder" class="folder-icon" />
       <span class="batch-text">批量操作</span>
     </div>
-    <!-- 分页 -->
+    <!-- 分页 - 使用Element Plus Pagination组件 -->
     <div class="pagination-wrapper">
-      <div class="pagination-container" v-if="totalPages > 1">
-        <button
-          class="page-btn prev-btn"
-          @click="changePage(currentPage - 1)"
-          :disabled="currentPage === 1"
-        >
-          &lt;
-        </button>
-        <div
-          class="page-number"
-          v-for="page in pageNumbers"
-          :key="page"
-          @click="changePage(page)"
-          :class="{ active: currentPage === page }"
-        >
-          {{ page }}
-        </div>
-        <button
-          class="page-btn next-btn"
-          @click="changePage(currentPage + 1)"
-          :disabled="currentPage == totalPages"
-        >
-          &gt;
-        </button>
-      </div>
+      <el-pagination
+        v-if="totalCount > 0"
+        background
+        layout="prev, pager, next"
+        :total="totalCount"
+        v-model:current-page="currentPage"
+        :page-size="pageSize"
+        @current-change="handleCurrentChange"
+      />
     </div>
-
-    <!-- 占位元素，用于平衡分页控件 -->
-    <div class="spacer"></div>
 
     <!-- 批量操作区 -->
     <div class="batch-action-bar" v-show="selectedCount > 0">
@@ -400,14 +381,6 @@ const getTypeName = (layout: string): string => {
 const currentPage = ref(1)
 const pageSize = ref(8)
 
-// 计算总页数：
-const totalPages = computed(() => {
-  if (totalCount.value === 0) {
-    return 1
-  }
-  return Math.ceil(totalCount.value / pageSize.value)
-})
-
 // 计算当前可显示的数据：
 const paginatedMindMaps = computed(() => {
   const startIndex = (currentPage.value - 1) * pageSize.value
@@ -415,29 +388,10 @@ const paginatedMindMaps = computed(() => {
   return filteredMindMaps.value.slice(startIndex, endIndex)
 })
 
-// 计算需要显示的页码 (最多显示 5 个)
-const pageNumbers = computed(() => {
-  const pages = []
-  const total = totalPages.value
-  const current = currentPage.value
-  // 总页数小于等于5，显示所有页码
-  if (total <= 5) {
-    for (let i = 1; i <= total; i++) pages.push(i)
-    return pages
-  }
-  // 总页数大于5 ，显示当前页得前后两页
-  if (current <= 3) {
-    return [1, 2, 3, 4, 5]
-  } else if (current >= total - 2) {
-    return [total - 4, total - 3, total - 2, total - 1, total]
-  } else {
-    return [current - 2, current - 1, current, current + 1, current + 2]
-  }
-})
+// Element Plus分页组件会自动处理页码显示逻辑，不再需要手动计算
 
-// 切换页码：
-const changePage = (page: number) => {
-  if (page < 1 || page > totalPages.value) return
+// 切换页码 - Element Plus分页组件使用
+const handleCurrentChange = (page: number) => {
   currentPage.value = page
   window.scrollTo({ top: 0, behavior: 'smooth' })
 }
@@ -713,7 +667,6 @@ watch(
   box-sizing: border-box;
   width: 100%;
   display: grid;
-  /* 响应式网格布局，根据屏幕宽度自动调整列数 */
   grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
   gap: 1.5rem;
   margin: 0 auto;
@@ -752,7 +705,7 @@ watch(
 // 导图缩略图
 .map-thumbnail {
   position: relative;
-  height: 90%;
+  height: 75%;
   border-radius: 20px;
   overflow: hidden;
   pointer-events: none;
@@ -820,7 +773,7 @@ watch(
 .pagination-wrapper {
   width: 100%;
   box-sizing: border-box;
-  padding: 2px;
+  padding: 10px 2px;
   margin: 0 auto;
   max-width: 1400px;
   border-top: 1px solid #f0f0f0;
@@ -828,19 +781,6 @@ watch(
   display: flex;
   justify-content: center;
   align-items: center;
-}
-
-.pagination-container {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-}
-
-// 分页样式 - 使用Element Plus分页组件的内置样式
-// 统一圆角为20px
-.pagination-container {
-  border-radius: 20px;
 }
 
 // 批量操作区：
