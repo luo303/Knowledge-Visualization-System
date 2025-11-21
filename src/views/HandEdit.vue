@@ -777,7 +777,11 @@ watch(
     flex-direction: column;
     justify-content: space-between;
     height: 90%;
-    width: 25%;
+    flex: 0 0 23%;
+    width: auto;
+    max-width: 360px;
+    min-width: 300px;
+    box-sizing: border-box;
     .search_input {
       border-radius: 10px;
       height: 7%;

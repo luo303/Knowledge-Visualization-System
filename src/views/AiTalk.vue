@@ -144,7 +144,6 @@
             @keydown.tab="complete"
             :autosize="{ minRows: 2, maxRows: 4 }"
             show-word-limit
-            maxlength="100"
             word-limit-position="outside"
           />
           <el-button
@@ -443,6 +442,8 @@ const sendMsg = async () => {
         })
       }
       scrollToBottom()
+    } else if ((res as any).Code === 5001) {
+      ElMessage.warning(`${(res as any).Message}`)
     } else {
       ElMessage.error('发送失败，AI有点宕机了')
     }
@@ -529,23 +530,29 @@ const deleteChat = async (id: string) => {
     DelDialogVisible.value = false
   }
 }
-//tab键智能补全
-const complete = async (e: any) => {
+// tab键智能补全（节流，立即执行）
+let completeTimer: number | null = null
+const complete = (e: any) => {
   e.preventDefault()
-  try {
-    const res = await TabComplete(
-      currentChat.value.conversation_id,
-      inputContent.value,
-      LayoutStore.data
-    )
-    if ((res as any).Code === 200) {
-      inputContent.value = (res as any).Data.completed_text
-    } else {
-      ElMessage.error('补全失败')
+  if (completeTimer) return
+  completeTimer = setTimeout(async () => {
+    try {
+      const res = await TabComplete(
+        currentChat.value.conversation_id,
+        inputContent.value,
+        LayoutStore.data
+      )
+      if ((res as any).Code === 200) {
+        inputContent.value = (res as any).Data.completed_text
+      } else {
+        ElMessage.error('补全失败')
+      }
+    } catch (error) {
+      console.log(error)
+    } finally {
+      completeTimer = null
     }
-  } catch (error) {
-    console.log(error)
-  }
+  }, 0)
 }
 watch(
   () => LayoutStore.data.mapId,
@@ -569,7 +576,6 @@ watch(
     max-width: 100%;
     height: 100%;
     margin: 0 auto;
-
     box-sizing: border-box;
     border-radius: 24px;
     box-shadow: 0 6px 20px rgba(31, 38, 135, 0.08);
@@ -708,6 +714,8 @@ watch(
     display: flex;
     flex-direction: column;
     gap: 14px;
+    align-items: flex-start;
+    max-width: 100%;
     scroll-padding-bottom: 80px;
     // 滚动条整体样式
     &::-webkit-scrollbar {
@@ -740,13 +748,38 @@ watch(
   }
 
   .msg {
-    max-width: 68%;
+    max-width: clamp(240px, 68%, 680px);
     padding: 12px 16px;
     border-radius: 14px;
     word-break: break-word;
     box-shadow: 0 1px 2px rgba(0, 0, 0, 0.06);
     position: relative;
+    overflow-wrap: anywhere;
+    box-sizing: border-box;
     line-height: 1.6;
+  }
+  .msg :deep(img) {
+    max-width: 100%;
+    height: auto;
+    display: block;
+    border-radius: 8px;
+  }
+  .msg :deep(pre) {
+    max-width: 100%;
+    overflow-x: auto;
+    background: #0f172a0d;
+    border: 1px solid #e5e7eb;
+    border-radius: 10px;
+    padding: 10px 12px;
+  }
+  .msg :deep(code) {
+    word-break: break-word;
+    white-space: pre-wrap;
+  }
+  .msg :deep(table) {
+    display: block;
+    max-width: 100%;
+    overflow-x: auto;
   }
   .load {
     display: flex;
@@ -850,21 +883,6 @@ watch(
     opacity: 0.7;
   }
 
-  // .input_area button {
-  //   width: 20%;
-  //   height: 35px;
-  //   background: #409eff;
-  //   color: white;
-  //   border: none;
-  //   border-radius: 20px;
-  //   cursor: pointer;
-  //   transition: background 0.2s;
-  // }
-
-  // .input_area button:hover {
-  //   background: #3086e8;
-  // }
-
   .NewBtn {
     padding: 5px 10px;
     background: #409eff;
@@ -876,6 +894,8 @@ watch(
   :deep(.el-dialog) {
     border-radius: 16px;
     box-shadow: 0 14px 28px rgba(31, 38, 135, 0.12);
+    /* 新增：限制对话框最大宽度，防止撑开父盒子 */
+    max-width: 90vw;
   }
   :deep(.el-dialog__header) {
     font-weight: 600;
