@@ -99,7 +99,7 @@ const handleToMessage = async () => {
   display: inline-block;
   width: 30px;
   height: 30px;
-  background: #608bd2;
+  background: #409eff;
   border-radius: 30%;
   margin-right: 8px;
 }
@@ -123,7 +123,7 @@ h1 {
 
 .box2 {
   display: flex;
-  margin-right: 2%;
+  margin-right: 1.2%;
 }
 
 .icon-container {
@@ -181,11 +181,10 @@ nav a:hover {
 
 .icon-container {
   :deep(.el-avatar) {
-    background-color: transparent;
-    border: solid 1px black;
+    background-color: #409eff;
 
     .el-icon {
-      color: black;
+      color: white;
       font-size: 25px;
     }
   }

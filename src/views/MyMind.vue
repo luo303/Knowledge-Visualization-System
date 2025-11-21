@@ -585,7 +585,7 @@ watch(
   display: flex;
   flex-direction: column;
   left: 8%;
-  margin-left: 20px;
+  margin-left: 1.1%;
   padding: 0px;
   box-sizing: border-box;
   width: 400px; /* 设置合适的宽度 */
@@ -648,6 +648,7 @@ watch(
   display: flex;
   justify-content: center;
   align-items: center;
+  margin-right: 8.5%;
   gap: 10px;
   height: 35px;
 }
@@ -798,7 +799,7 @@ watch(
   align-items: center;
   white-space: nowrap;
   font-size: 14px;
-  margin-left: 60%;
+  margin-left: 57%;
 }
 
 .icon-margin {
@@ -824,7 +825,7 @@ watch(
 .batch-action-bar {
   position: fixed;
   bottom: 0;
-  right: 3.5%;
+  right: 3.4%;
   display: flex;
   justify-content: space-between;
   align-items: center;
