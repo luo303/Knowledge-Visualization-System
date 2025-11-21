@@ -359,6 +359,9 @@ const confirm = async () => {
 // 进入聊天窗口（添加参数类型）
 const enterChat = async (id: string) => {
   currentChatId.value = id
+  if (currentChatId.value === newChatId.value) {
+    newChatId.value = ''
+  }
   await nextTick()
   if (needget.value) {
     try {
@@ -571,6 +574,16 @@ watch(
   async newId => {
     if (newId) {
       getconlist()
+    }
+  }
+)
+//监听进入会话就自动滚动到底部
+watch(
+  () => isChatting.value,
+  async newId => {
+    if (newId) {
+      await nextTick()
+      scrollToBottom()
     }
   }
 )
