@@ -1,6 +1,6 @@
 <template>
   <header class="header-constrols">
-    <div class="search-container">
+    <div class="search-container" style="border-radius: 20px">
       <!-- 搜索框区域 - 使用Element Plus的el-autocomplete组件 -->
       <div class="search-box">
         <el-autocomplete
@@ -12,6 +12,7 @@
           @clear="handleClear"
           clearable
           class="search-autocomplete"
+          :style="{ borderRadius: '20px' }"
         >
           <template #prefix>
             <el-icon><Search /></el-icon>
@@ -31,6 +32,7 @@
           @change="handleSelect1"
           class="filter-select"
           placeholder="排序方式"
+          :style="{ borderRadius: '20px' }"
         >
           <el-option label="最近生成" value="latest" />
           <el-option label="最早生成" value="earliest" />
@@ -40,6 +42,7 @@
           @change="handleSelect2"
           placeholder="请选择导图类型"
           class="filter-select"
+          :style="{ borderRadius: '20px' }"
         >
           <el-option
             v-for="option in typeOptions"
@@ -55,26 +58,23 @@
   <!-- 导图预览模块 -->
   <main class="page-main" ref="mainContent">
     <div class="mindmap-preview-container">
-      <!-- 导图卡片模块 -->
-      <div
-        class="mindmap-card"
-        v-for="(map, index) in paginatedMindMaps"
+      <!-- 导图卡片模块 - 使用Element Plus Card组件 -->
+      <el-card
+        v-for="map in paginatedMindMaps"
         :key="map.mapId"
+        class="mindmap-card"
         @click="handleCardClick(map, $event)"
+        shadow="hover"
       >
-        <!-- 勾选框 -->
-        <div class="batch-checkbox">
-          <input
-            type="checkbox"
-            v-model="map.selected"
-            :id="`map-${map.mapId}`"
-            @click.stop="handleSelect3(map)"
-          />
-          <label :for="`map-${index}`"></label>
-        </div>
+        <!-- 勾选框 - 使用Element Plus Checkbox组件 -->
+        <el-checkbox
+          v-model="map.selected"
+          class="batch-checkbox"
+          size="large"
+        ></el-checkbox>
 
         <!-- 导图缩略图 -->
-        <div class="map-thumbnail"><PreviewPage :Map="map" /></div>
+        <div class="map-thumbnail"><ProPreview :Map="map" /></div>
 
         <!-- 导图信息 -->
         <div class="map-info">
@@ -84,7 +84,7 @@
             <span class="map-time">{{ formatTime(map.createdAt) }}</span>
           </div>
         </div>
-      </div>
+      </el-card>
       <!-- 空状态 (无导图时显示) -->
       <div class="empty-state" v-if="mindmaps.length === 0">
         <img
@@ -160,7 +160,7 @@
 <script lang="ts" setup>
 import { ref, onMounted, computed, watch } from 'vue'
 import { useRouter } from 'vue-router'
-import PreviewPage from '@/components/PreviewPage.vue'
+import ProPreview from '@/components/ProPreview.vue'
 import type { MindMapOptions } from '@/utils/type'
 import { ElMessageBox, ElMessage } from 'element-plus'
 import { exports } from '@/utils/export.ts'
@@ -357,7 +357,8 @@ const formatTime = (time: string | undefined) => {
 // 卡片点击事件：
 const handleCardClick = async (map: any, e: MouseEvent) => {
   const target = e.target as HTMLElement
-  if (!target.closest('.batch-checkbox') && !target.closest('.map-actions')) {
+  // 确保点击el-checkbox时不会触发卡片点击事件
+  if (!target.closest('.el-checkbox') && !target.closest('.map-actions')) {
     try {
       console.log(`准备加载导图卡片数据：${map.mapId}`)
       const res = await getMap(map.mapId)
@@ -384,10 +385,6 @@ const handleCardClick = async (map: any, e: MouseEvent) => {
 }
 
 // 勾选框处理事件：
-const handleSelect3 = (map: any): void => {
-  map.selected = !map.selected
-}
-
 // 新建导图：
 const handleCreateNew = () => {
   const mapId = LayoutStore.data?.mapId
@@ -729,79 +726,39 @@ watch(
   max-width: 1400px;
 }
 
-// 导图卡片：
+// 导图卡片 - 使用Element Plus Card组件样式
 .mindmap-card {
   width: 85%;
   margin: 0 auto;
-  border: 1px solid #eee;
-  border-radius: 8px;
-  overflow: hidden;
-  transition: all 0.2s;
   cursor: pointer;
   position: relative;
   display: flex;
   flex-direction: column;
   min-height: 100px;
   max-height: 320px;
-  &:hover {
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-    transform: translateY(-2px);
-  }
+  border-radius: 20px;
+  overflow: hidden;
 }
 
-// 批量选择区：
+// 批量选择区 - Element Plus Checkbox组件的样式
 .batch-checkbox {
   position: absolute;
-  top: 12px;
+  top: 0px;
   right: 12px;
   z-index: 2;
-  width: 18px;
-  height: 18px;
-  border: solid 1px #409eff;
-  border-radius: 2px;
-  transition: opacity 0.2s;
 }
 
-.mindmap-card:hover .batch-checkbox,
-.batch-checkbox input:checked ~ label {
-  opacity: 1;
-}
-
-.batch-checkbox input {
-  position: absolute;
-  opacity: 0;
-  cursor: pointer;
-}
-
-.batch-checkbox input:checked ~ label::after {
-  content: '✓';
-  background-color: #409eff;
-  color: #fff;
-  font-size: 12px;
-  line-height: 18px;
-  text-align: center;
-  display: block;
-}
-
+// 导图缩略图
 .map-thumbnail {
-  height: 85%;
   position: relative;
-  background-color: #f9f9f9;
+  height: 70%;
   overflow: hidden;
   pointer-events: none;
 }
 
-.map-preview-img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  transition: transform 0.2s;
-}
-
-// 导图信息：
+// 导图信息
 .map-info {
   padding: 10px;
-  background-color: #f4f7fa;
   height: 25%;
 }
 
@@ -827,6 +784,8 @@ watch(
   text-align: center;
   padding: 60px 0;
   color: #999;
+  border-radius: 20px;
+  background-color: #fafafa;
 }
 
 .empty-img {
@@ -873,61 +832,10 @@ watch(
   gap: 8px;
 }
 
-// 分页按钮：
-.page-btn {
-  width: 36px;
-  height: 36px;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  background: #fff;
-  cursor: pointer;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  font-size: 14px;
-  transition: all 0.2s;
-
-  &:hover {
-    border-color: #409eff;
-    color: #409eff;
-  }
-
-  &:disabled {
-    cursor: not-allowed;
-    opacity: 0.6;
-    border-color: #ddd;
-    color: #999;
-    &:hover {
-      border-color: #ddd;
-      color: #999;
-    }
-  }
-}
-
-// 页码数字：
-.page-number {
-  width: 36px;
-  height: 36px;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  background: #fff;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 14px;
-  cursor: pointer;
-  transition: all 0.2s;
-
-  &:hover {
-    border-color: #409eff;
-    color: #409eff;
-  }
-
-  &:active {
-    background-color: #409eff;
-    color: white;
-    font-weight: 500;
-  }
+// 分页样式 - 使用Element Plus分页组件的内置样式
+// 统一圆角为20px
+.pagination-container {
+  border-radius: 20px;
 }
 
 // 批量操作区：

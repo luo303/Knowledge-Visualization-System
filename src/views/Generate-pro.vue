@@ -12,8 +12,19 @@
         <div class="map-picture">
           <PreviewPage :Map="map" class="preview-img" />
         </div>
-        <button class="btn" @click="handleCardClick(map)">
-          <span class="map-type">{{
+        <el-button
+          type="primary"
+          @click="handleCardClick(map)"
+          style="
+            width: 95%;
+            height: 10%;
+            margin: 10px 0px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+          "
+        >
+          <span>{{
             map.layout === 'mindMap'
               ? '思维导图'
               : map.layout === 'fishBone'
@@ -22,7 +33,7 @@
                   ? '组织结构图'
                   : '未知类型'
           }}</span>
-        </button>
+        </el-button>
       </div>
     </div>
   </div>
@@ -51,7 +62,7 @@ const maps = ref<MindMapOptions[]>([
     userId: '12313245646',
     desc: '这是一个项目规划',
     layout: 'mindMap',
-    createTime: '2022-01-01 12:00:00'
+    createTime: '2022-01-01 :00:00'
   },
   {
     mapId: 'map-1002',
@@ -181,27 +192,7 @@ const handleCardClick = (map: any) => {
         }
       }
 
-      .btn {
-        background-color: #9ac6f3;
-        cursor: pointer;
-        color: white;
-        border-radius: 10px;
-        border: none;
-        width: 95%;
-        height: 12%;
-        font-size: 20px;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        margin: 15px;
-        letter-spacing: 15px;
-        transform: all 0.2s;
-        &:hover {
-          background-color: #b9d9fc;
-          transform: translateY(-2px);
-          box-shadow: 6px 6px 6px rgba(0, 0, 0, 0.15);
-        }
-      }
+      /* 使用Element Plus按钮组件的内置样式 */
     }
   }
 }

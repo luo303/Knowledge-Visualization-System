@@ -15,9 +15,9 @@
                 @error="handleAvatarError"
               />
             </div>
-            <button class="edit-avatar-btn" @click="openAvatarDialog">
+            <el-button type="text" @click="openAvatarDialog">
               修改头像
-            </button>
+            </el-button>
           </div>
 
           <!-- 修改头像弹窗 -->
@@ -37,11 +37,16 @@
               </el-upload>
             </div>
             <template #footer>
-              <ElButton @click="avatarDialogOpen = false">取消</ElButton>
+              <ElButton
+                @click="avatarDialogOpen = false"
+                :style="{ borderRadius: '20px' }"
+                >取消</ElButton
+              >
               <ElButton
                 type="primary"
                 @click="handleUpdateAvatar"
                 :disabled="!avatarFileList.length"
+                :style="{ borderRadius: '20px' }"
                 >确定</ElButton
               >
             </template>
@@ -53,9 +58,9 @@
               <span class="label">用户名:</span>
               <span class="username">{{ userInfo.user_name }}</span>
             </div>
-            <button class="edit-btn" @click="openUsernameDialog">
+            <el-button type="text" @click="openUsernameDialog">
               <el-icon><Edit /></el-icon>修改用户名
-            </button>
+            </el-button>
           </div>
 
           <!-- 修改用户名弹窗 -->
@@ -65,6 +70,7 @@
               placeholder="请输入用户名"
               max-length="20"
               show-word-limit
+              :style="{ borderRadius: '20px' }"
             />
             <template #footer>
               <ElButton @click="usernameDialogOpen = false">取消</ElButton>
@@ -75,9 +81,9 @@
           </ElDialog>
 
           <footer>
-            <button class="switch-account-btn" @click="handleSwitchAccount">
+            <el-button type="primary" @click="handleSwitchAccount" size="large">
               切换账号
-            </button>
+            </el-button>
           </footer>
         </div>
       </div>
@@ -778,16 +784,7 @@ const handleSwitchAccount = async () => {
         }
       }
 
-      .edit-avatar-btn {
-        font-size: 16px;
-        background-color: transparent;
-        border: none;
-        cursor: pointer;
-
-        &:hover {
-          color: #409eff;
-        }
-      }
+      /* 使用Element Plus按钮组件的内置样式 */
     }
 
     .avatar-upload-container {
@@ -804,7 +801,7 @@ const handleSwitchAccount = async () => {
       width: 100px;
       height: 100px;
       border: 1px dashed #999;
-      border-radius: 50%;
+      border-radius: 50%; /* 保持圆形设计 */
       transition: border-color 0.3s;
 
       &:hover {
@@ -832,36 +829,10 @@ const handleSwitchAccount = async () => {
         }
       }
 
-      .edit-btn {
-        font-size: 16px;
-        background-color: transparent;
-        border: none;
-        cursor: pointer;
-        align-items: center;
-        display: flex;
-        gap: 5px;
-
-        &:hover {
-          color: #409eff;
-        }
-      }
+      /* 使用Element Plus按钮组件的内置样式 */
     }
 
-    // 切换账号按钮：
-    .switch-account-btn {
-      padding: 8px 20px;
-      border-radius: 8px;
-      border: none;
-      background-color: #409eff;
-      color: #fff;
-      font-size: 16px;
-      cursor: pointer;
-      transition: all 0.3s;
-
-      &:hover {
-        background-color: #5cb3ff;
-      }
-    }
+    /* 使用Element Plus按钮组件的内置样式 */
   }
 
   // 账号安全：
@@ -890,6 +861,9 @@ const handleSwitchAccount = async () => {
         padding: 2px 8px;
         color: #5a6edf;
         font-weight: 500;
+        &:hover {
+          color: #409eff;
+        }
       }
 
       .edit-btn {
@@ -949,10 +923,12 @@ const handleSwitchAccount = async () => {
     position: absolute;
     right: 0;
     cursor: pointer;
+    border-radius: 20px;
   }
 }
 
 .newpassword-confirm-btn {
   margin-left: 20px;
+  border-radius: 20px;
 }
 </style>
