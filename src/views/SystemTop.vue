@@ -8,14 +8,15 @@
         <nav>
           <div class="icon-container">
             <router-link active-class="active" to="/layout/handedit"
-              ><div class="notification">
-                <el-avatar
-                  ><el-icon><Bell /></el-icon
-                ></el-avatar>
-                <span
-                  class="notification-badge"
-                  v-if="hasNewAiMessage"
-                ></span></div
+              ><div class="notification" @click="handleToMessage">
+                <el-badge
+                  :is-dot="LayoutStore.newChatId !== ''"
+                  :offset="[-8, 10]"
+                >
+                  <el-avatar
+                    ><el-icon><Bell /></el-icon
+                  ></el-avatar>
+                </el-badge></div
             ></router-link>
 
             <router-link active-class="active" to="/layout/personalcenter"
@@ -41,15 +42,14 @@ import { ElMessageBox } from 'element-plus'
 import { useRouter } from 'vue-router'
 import { useUserStore } from '@/stores/modules/user'
 import { useLayoutStore } from '@/stores'
-import { ref } from 'vue'
 import { storeToRefs } from 'pinia'
 import defaultAvatar from '@/assets/images/personal.png' // 默认头像
 import { Bell, User } from '@element-plus/icons-vue'
+import { nextTick } from 'vue'
 const LayoutStore = useLayoutStore()
 const userStore = useUserStore()
 const { userInfo } = storeToRefs(userStore)
 const router = useRouter()
-const hasNewAiMessage = ref(false)
 // 处理本地静态资源路径：
 const getAvatarUrl = (avatarUrl: string | undefined) => {
   if (!avatarUrl) return defaultAvatar
@@ -73,6 +73,16 @@ const handleToLogin = () => {
     router.push('/login')
   })
 }
+//新消息跳转对话框
+const handleToMessage = async () => {
+  router.push('/layout/handedit')
+  if (LayoutStore.newChatId) {
+    LayoutStore.currentChatId = LayoutStore.newChatId
+    await nextTick()
+    LayoutStore.isChatting = true
+    LayoutStore.newChatId = ''
+  }
+}
 </script>
 
 <style lang="scss" scoped>
@@ -84,23 +94,20 @@ const handleToLogin = () => {
   color: rgb(115, 114, 114);
 }
 
-.title {
-  font-size: 28px;
-}
-
 .square {
   display: inline-block;
-  width: 30px; /* 正方形大小 */
+  width: 30px;
   height: 30px;
   background: #608bd2;
   border-radius: 30%;
-  margin-right: 8px; /* 与文字的间距 */
+  margin-right: 8px;
 }
 
 .box1 {
   display: flex;
   align-items: center;
 }
+
 h1 {
   margin-left: 10px;
   display: flex;
@@ -118,7 +125,6 @@ h1 {
   margin-right: 2%;
 }
 
-// 图标容器
 .icon-container {
   display: flex;
   justify-content: center;
@@ -126,18 +132,20 @@ h1 {
   gap: 20px;
 }
 
-.notification-badge {
-  position: absolute;
-  top: -2px;
-  right: -4px;
+.el-badge {
+  cursor: pointer;
+}
 
-  width: 12px;
-  height: 12px;
-  border-radius: 50%;
+/* 保持当前路由链接不可点击，但允许内部通知按钮交互 */
+.active .notification {
+  pointer-events: auto;
+}
 
-  background-color: #ff4d4f;
-
-  box-shadow: 2px 2px 2px rgba(0, 0, 0, 0.2);
+/* 明确设置通知容器的交互指针样式 */
+.notification,
+.notification :deep(.el-avatar),
+.notification :deep(.el-badge) {
+  cursor: pointer;
 }
 
 nav {
@@ -149,6 +157,7 @@ nav {
     Helvetica,
     sans-serif;
 }
+
 nav a {
   padding: 0 15px;
   width: 32px;
@@ -167,17 +176,6 @@ nav a:hover {
   color: #608bd2;
   pointer-events: none;
   opacity: 1;
-}
-
-.contents {
-  display: flex;
-  justify-content: center;
-}
-.content {
-  display: flex;
-  width: 1400px;
-  height: 1400px;
-  /*background-color: #f0f2f3;*/
 }
 
 .icon-container {
