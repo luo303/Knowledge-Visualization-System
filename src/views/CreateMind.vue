@@ -15,7 +15,11 @@
             :style="{ borderRadius: '20px' }"
           >
             <template #trigger>
-              <el-button size="large">
+              <el-button
+                size="large"
+                type="primary"
+                :style="{ borderRadius: '20px' }"
+              >
                 <el-icon><Upload /></el-icon>
                 <span>上传文件</span>
               </el-button>
