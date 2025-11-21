@@ -93,11 +93,7 @@
           class="empty-img"
         />
         <p class="empty-text">暂无生成的导图，快去创建吧~</p>
-        <el-button
-          type="primary"
-          size="large"
-          @click="handleCreateNew"
-          :style="{ borderRadius: '20px' }"
+        <el-button type="primary" size="large" @click="handleCreateNew"
           >+ 创建导图</el-button
         >
       </div>
@@ -145,18 +141,10 @@
     <div class="batch-action-bar" v-show="selectedCount > 0">
       <span class="selected-count">已选择{{ selectedCount }}个导图</span>
       <div class="batch-buttons">
-        <el-button
-          type="primary"
-          size="large"
-          @click="handleBatchExport"
-          :style="{ borderRadius: '20px' }"
+        <el-button type="primary" size="large" @click="handleBatchExport"
           >批量导出</el-button
         >
-        <el-button
-          type="primary"
-          size="large"
-          @click="handleBatchDeleteConfirm"
-          :style="{ borderRadius: '20px' }"
+        <el-button type="primary" size="large" @click="handleBatchDeleteConfirm"
           >批量删除</el-button
         >
       </div>

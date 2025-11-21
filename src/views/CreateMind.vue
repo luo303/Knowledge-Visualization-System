@@ -15,11 +15,7 @@
             :style="{ borderRadius: '20px' }"
           >
             <template #trigger>
-              <el-button
-                size="large"
-                type="primary"
-                :style="{ borderRadius: '20px' }"
-              >
+              <el-button size="large" type="primary">
                 <el-icon><Upload /></el-icon>
                 <span>上传文件</span>
               </el-button>
@@ -72,11 +68,7 @@
         <p class="result-title">解析完成</p>
         <div class="result-icon success-icon">✓</div>
         <p class="result-desc">您的导图已生成</p>
-        <el-button
-          type="primary"
-          size="large"
-          @click="viewMindmap"
-          :style="{ borderRadius: '20px' }"
+        <el-button type="primary" size="large" @click="viewMindmap"
           >查看导图</el-button
         >
       </div>
@@ -85,11 +77,7 @@
         <p class="result-title">文件解析失败</p>
         <div class="result-icon error-icon">✕</div>
         <p class="result-desc">请确认文件清晰或格式支持</p>
-        <el-button
-          type="primary"
-          size="large"
-          @click="reUpload"
-          :style="{ borderRadius: '20px' }"
+        <el-button type="primary" size="large" @click="reUpload"
           >重新上传</el-button
         >
       </div>

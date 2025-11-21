@@ -27,11 +27,7 @@
           </div>
         </nav>
         <nav>
-          <el-button
-            type="primary"
-            size="large"
-            @click="handleToLogin"
-            :style="{ borderRadius: '20px' }"
+          <el-button type="primary" size="large" @click="handleToLogin"
             >退出登录</el-button
           >
         </nav>

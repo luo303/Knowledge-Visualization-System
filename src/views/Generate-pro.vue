@@ -12,11 +12,7 @@
         <div class="map-picture">
           <PreviewPage :Map="map" class="preview-img" />
         </div>
-        <el-button
-          type="primary"
-          :style="{ borderRadius: '20px' }"
-          @click="handleCardClick(map)"
-        >
+        <el-button type="primary" @click="handleCardClick(map)">
           <span>{{
             map.layout === 'mindMap'
               ? '思维导图'

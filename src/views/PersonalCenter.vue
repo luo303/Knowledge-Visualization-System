@@ -73,26 +73,15 @@
               :style="{ borderRadius: '20px' }"
             />
             <template #footer>
-              <ElButton
-                @click="usernameDialogOpen = false"
-                :style="{ borderRadius: '20px' }"
-                >取消</ElButton
-              >
-              <ElButton
-                type="primary"
-                @click="handleUpdateUsername"
-                :style="{ borderRadius: '20px' }"
+              <ElButton @click="usernameDialogOpen = false">取消</ElButton>
+              <ElButton type="primary" @click="handleUpdateUsername"
                 >确定</ElButton
               >
             </template>
           </ElDialog>
 
           <footer>
-            <el-button
-              type="primary"
-              @click="handleSwitchAccount"
-              :style="{ borderRadius: '20px' }"
-            >
+            <el-button type="primary" @click="handleSwitchAccount" size="large">
               切换账号
             </el-button>
           </footer>
