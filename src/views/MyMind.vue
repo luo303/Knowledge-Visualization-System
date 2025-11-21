@@ -1,38 +1,22 @@
 <template>
   <header class="header-constrols">
     <div class="search-container">
-      <!-- 搜索框区域 -->
+      <!-- 搜索框区域 - 使用Element Plus的el-autocomplete组件 -->
       <div class="search-box">
-        <div>
-          <el-input
-            v-model="searchQuery"
-            type="text"
-            placeholder="搜索导图名称或来源文件..."
-            @input="handleInput"
-            @keydown.enter="handleSearch"
-            ref="searchInput"
-          >
-            <template #prefix>
-              <el-icon><Search /></el-icon>
-            </template>
-          </el-input>
-        </div>
-
-        <!-- 智能联想下拉框 -->
-        <div
-          class="suggestions-box"
-          v-if="showSuggestions && suggestions.length > 0"
+        <el-autocomplete
+          v-model="searchQuery"
+          :fetch-suggestions="querySearch"
+          placeholder="搜索导图名称或来源文件..."
+          @select="handleSelect"
+          @keyup.enter="handleSearch"
+          @clear="handleClear"
+          clearable
+          class="search-autocomplete"
         >
-          <ul>
-            <li
-              v-for="(item, index) in suggestions"
-              :key="index"
-              @click="selectSuggestion(item)"
-            >
-              {{ item }}
-            </li>
-          </ul>
-        </div>
+          <template #prefix>
+            <el-icon><Search /></el-icon>
+          </template>
+        </el-autocomplete>
       </div>
       <!-- 无结果提示 -->
       <div class="no-result" v-if="shouldShowNoResult">
@@ -187,59 +171,59 @@ import { Search } from '@element-plus/icons-vue'
 
 // 搜索相关状态
 const searchQuery = ref('')
-const suggestions = ref<string[]>([])
-const showSuggestions = ref(false)
-const showNoResult = ref(false)
-const searchInput = ref<HTMLInputElement | null>(null)
 const mindmaps = ref<MindMapOptions[]>([])
 const LayoutStore = useLayoutStore()
 const router = useRouter()
 
-// 处理输入事件 - 智能联想
-const handleInput = (e: Event) => {
-  const value = (e.target as HTMLInputElement).value.trim()
-  showNoResult.value = false
+// 搜索关键词的响应式变量
+const searchKeyword = ref('')
+// 移除了不再需要的搜索相关变量，因为el-autocomplete组件内置了这些功能
 
-  if (value) {
+// Element Plus el-autocomplete的查询方法 - 使用更精确的类型定义
+interface AutocompleteOption {
+  value: string
+}
+
+const querySearch = (
+  query: string,
+  callback: (data: AutocompleteOption[]) => void
+): void => {
+  if (query.trim()) {
     // 模糊匹配逻辑 - 包含关键词即显示
-    suggestions.value = mindmaps.value
+    const results: AutocompleteOption[] = mindmaps.value
       .map(map => map.title)
-      .filter(title => title.toLowerCase().includes(value.toLowerCase()))
+      .filter(title => {
+        if (!title) return false
+        return title.toLowerCase().includes(query.toLowerCase())
+      })
       .filter((title, index, self) => self.indexOf(title) === index)
-    showSuggestions.value = true
+      .map(title => ({ value: title }))
+    callback(results)
   } else {
-    suggestions.value = []
-    showSuggestions.value = false
+    callback([])
   }
 }
 
-// 搜索关键词的响应式变量：
-const searchKeyword = ref('')
-
-// 处理搜索
-const handleSearch = () => {
-  const query = searchQuery.value.trim()
-  searchKeyword.value = query
-  showSuggestions.value = false
-  resetPagination() // 搜索逻辑变化时重置分页
-}
-
-// 选择联想建议
-const selectSuggestion = (item: string) => {
-  searchQuery.value = item
-  showSuggestions.value = false
-  searchKeyword.value = item // 同步到关键词
+// 处理选择建议项 - 使用更精确的类型定义
+const handleSelect = (item: AutocompleteOption): void => {
+  searchQuery.value = item.value
+  searchKeyword.value = item.value
   handleSearch()
 }
 
-// 点击外部关闭联想框
-onMounted(() => {
-  document.addEventListener('click', e => {
-    if (searchInput.value && !searchInput.value.contains(e.target as Node)) {
-      showSuggestions.value = false
-    }
-  })
-})
+// 处理搜索 - 添加类型定义
+const handleSearch = (): void => {
+  const query = searchQuery.value.trim()
+  searchKeyword.value = query
+  resetPagination() // 搜索逻辑变化时重置分页
+}
+
+// 清除搜索内容 - 添加类型定义
+const handleClear = (): void => {
+  searchQuery.value = ''
+  searchKeyword.value = ''
+  resetPagination()
+}
 
 // "最近生成" 模块：
 const emit = defineEmits<{
@@ -636,54 +620,54 @@ watch(
   margin-left: 20px;
   padding: 0px;
   box-sizing: border-box;
+  width: 400px; /* 设置合适的宽度 */
 }
 
 .search-box {
   display: flex;
   position: relative;
 }
-.search-icon {
-  margin-right: 8px;
-  height: 20px;
+
+/* Element Plus el-autocomplete 样式优化 */
+.search-autocomplete {
+  width: 100%;
+}
+
+/* 使用 Element Plus 提供的CSS变量以保持一致性 */
+:deep(.el-autocomplete) {
+  --el-input-height: 36px;
+}
+
+/* 优化后缀内容布局 */
+:deep(.el-autocomplete__suffix-inner) {
+  display: flex;
+  align-items: center;
+}
+
+/* 优化清除按钮样式 */
+:deep(.el-autocomplete__suffix-inner .el-button--circle) {
+  padding: 0;
   width: 20px;
+  height: 20px;
+  min-width: 0;
+  margin-left: 4px;
+  transition: var(--el-transition-fast);
 }
 
-input {
-  flex: 1;
-  height: 35px;
-  border: none;
-  outline: none;
+/* 优化图标大小 */
+:deep(.el-autocomplete__suffix-inner .el-button__icon) {
   font-size: 14px;
-  padding: 0 8px;
 }
 
-.suggestions-box {
-  position: absolute;
-  top: 100%;
-  left: 0;
-  right: 0;
-  margin-top: 2px;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  background: white;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  z-index: 100;
+/* 添加鼠标悬浮效果 */
+:deep(.el-autocomplete__suffix-inner .el-button--circle:hover) {
+  background-color: var(--el-fill-color-light);
+}
 
-  ul {
-    list-style: none;
-    padding: 8px 0;
-    margin: 0;
-
-    li {
-      padding: 8px 16px;
-      cursor: pointer;
-      transition: background 0.2s;
-
-      &:hover {
-        background: #f5f7fa;
-      }
-    }
-  }
+/* 优化下拉菜单样式 */
+:deep(.el-autocomplete-suggestion) {
+  border-radius: var(--el-border-radius-base);
+  box-shadow: var(--el-box-shadow-light);
 }
 
 .no-result {
