@@ -5,18 +5,22 @@
 
       <div v-if="status === 'init'" class="init-area">
         <div class="upload-area">
-          <label class="upload-btn">
-            <input
-              type="file"
-              class="file-input"
-              accept=".txt,.docx,.pdf"
-              @change="handleFileUpload"
-            />
-            <div class="upload-icon">
-              <img class="upload-icon" src="@/assets/images/file-upload.png" />
-            </div>
-            <div class="upload-text">上传文件</div>
-          </label>
+          <el-upload
+            class="upload-demo"
+            action="#"
+            :on-change="handleFileUpload"
+            :before-upload="beforeUpload"
+            :auto-upload="false"
+            accept=".txt,.docx,.pdf"
+            :style="{ borderRadius: '20px' }"
+          >
+            <template #trigger>
+              <el-button size="large">
+                <el-icon><Upload /></el-icon>
+                <span>上传文件</span>
+              </el-button>
+            </template>
+          </el-upload>
           <p class="upload-desc" v-if="uploadedFileName">
             已上传: {{ uploadedFileName }}
           </p>
@@ -64,14 +68,26 @@
         <p class="result-title">解析完成</p>
         <div class="result-icon success-icon">✓</div>
         <p class="result-desc">您的导图已生成</p>
-        <el-button class="result-btn" @click="viewMindmap">查看导图</el-button>
+        <el-button
+          type="primary"
+          size="large"
+          @click="viewMindmap"
+          :style="{ borderRadius: '20px' }"
+          >查看导图</el-button
+        >
       </div>
 
       <div v-else-if="status === 'error'" class="result-area">
         <p class="result-title">文件解析失败</p>
         <div class="result-icon error-icon">✕</div>
         <p class="result-desc">请确认文件清晰或格式支持</p>
-        <el-button class="result-btn" @click="reUpload">重新上传</el-button>
+        <el-button
+          type="primary"
+          size="large"
+          @click="reUpload"
+          :style="{ borderRadius: '20px' }"
+          >重新上传</el-button
+        >
       </div>
 
       <div v-if="status === 'view'" class="mindmap-container">
@@ -99,6 +115,7 @@ import { generateMindMap, createMindMap } from '@/api/user/index'
 import type { CreateMindMapParams } from '@/utils/type'
 import JSON5 from 'json5'
 import { useUserStore } from '@/stores'
+import { Upload } from '@element-plus/icons-vue'
 
 const uploadedFileName = ref('') // 存储上传的文件名
 const LayoutStore = useLayoutStore()
@@ -110,131 +127,132 @@ const router = useRouter()
 const tempMindMapData = ref<any>(null) // 预留：存储未来真实接口的临时数据
 
 // 文件上传：
-const handleFileUpload = async (e: Event) => {
-  const target = e.target as HTMLInputElement
-  if (target.files && target.files[0]) {
-    const file = target.files[0]
+const beforeUpload = (file: File) => {
+  // 检查文件大小是否超过限制:
+  const maxSize = 32 * 1024 * 1024
+  if (file.size > maxSize) {
+    ElMessage.error(
+      `文件大小不能超过 32MB ， 当前文件大小为 ${(file.size / (1024 * 1024)).toFixed(2)}`
+    )
+    return false
+  }
+  return true
+}
 
-    // 检查文件大小是否超过限制:
-    const maxSize = 32 * 1024 * 1024
-    if (file.size > maxSize) {
-      ElMessage.error(
-        `文件大小不能超过 32MB ， 当前文件大小为 ${(file.size / (1024 * 1024)).toFixed(2)}`
-      )
-      if (target) target.value = ''
-      return
-    }
+const handleFileUpload = async (uploadFile: any) => {
+  const file = uploadFile.raw
 
-    uploadedFileName.value = file.name
-    status.value = 'uploading'
+  // 检查在beforeUpload中已经完成
+
+  uploadedFileName.value = file.name
+  status.value = 'uploading'
+  progress.value = 0
+
+  let progressInterval: number | undefined
+
+  try {
+    await new Promise<void>(resolve => {
+      progressInterval = window.setInterval(() => {
+        progress.value += 10
+        if (progress.value >= 100) {
+          clearInterval(progressInterval)
+          resolve()
+        }
+      }, 100)
+    })
+
+    status.value = 'parsing'
     progress.value = 0
 
-    let progressInterval: number | undefined
-
-    try {
-      await new Promise<void>(resolve => {
-        progressInterval = window.setInterval(() => {
-          progress.value += 10
-          if (progress.value >= 100) {
-            clearInterval(progressInterval)
-            resolve()
-          }
-        }, 100)
-      })
-
-      status.value = 'parsing'
-      progress.value = 0
-
-      // 管理 “处理中” 的进度条：
-      progressInterval = setInterval(() => {
-        if (progress.value < 95) {
-          progress.value += 5
-        }
-      }, 200)
-
-      console.group('=== 调用`生成导图`接口 ===')
-      console.log('文件名:', file.name)
-      console.log('文件大小:', file.size)
-      console.log('开始调用生成导图接口...')
-      const Resp = await generateMindMap(file)
-      const generateResp = Resp as any
-      console.log('生成导图接口调用完成，收到响应：', generateResp)
-      console.groupEnd()
-
-      if (
-        !generateResp ||
-        generateResp.Code !== 200 ||
-        !generateResp.Data.success ||
-        !generateResp.Data.map_json
-      ) {
-        const errorMsg = generateResp?.Message || '生成导图(草稿)失败!'
-        console.error('"生成导图" 接口业务逻辑失败:', errorMsg)
-        throw new Error(errorMsg)
+    // 管理 “处理中” 的进度条：
+    progressInterval = setInterval(() => {
+      if (progress.value < 95) {
+        progress.value += 5
       }
+    }, 200)
 
-      // 将草稿的map_json解析为对象：
-      const mapJsonString = generateResp.Data.map_json
-      console.log('原始map_json字符串:', mapJsonString)
-      console.log('字符串长度:', mapJsonString.length)
-      console.log('末尾50个字符:', mapJsonString.slice(-50))
-      let draftMapData
-      try {
-        draftMapData = JSON5.parse(mapJsonString)
-      } catch (parseError) {
-        console.error('生成导图 JSON 解析失败:', parseError)
-        throw new Error('生成导图 JSON 解析失败，请检查文件内容！')
-      }
-      // 构造创建导图的请求参数：
-      const createParams: CreateMindMapParams = {
-        title: draftMapData.title || '未命名导图',
-        desc: draftMapData.desc || '无描述',
-        layout: draftMapData.layout || 'tree',
-        root: draftMapData.root
-      }
+    console.group('=== 调用`生成导图`接口 ===')
+    console.log('文件名:', file.name)
+    console.log('文件大小:', file.size)
+    console.log('开始调用生成导图接口...')
+    const Resp = await generateMindMap(file)
+    const generateResp = Resp as any
+    console.log('生成导图接口调用完成，收到响应：', generateResp)
+    console.groupEnd()
 
-      // 调用创建导图接口：
-      console.group('===调用`创建导图`接口===')
-      console.log('请求参数：', createParams)
-      console.log('开始调用创建导图接口...')
-      status.value = 'saving'
-      const cr = await createMindMap(createParams)
-      const createResp = cr as any
-      console.log('"创建导图" 接口调用完成，收到响应：', createResp)
-      console.groupEnd()
-      if (!createResp || createResp.Code !== 200 || !createResp.Data?.mapId) {
-        const errorMsg = createResp?.Message || '创建正式导图失败！'
-        console.error('"创建导图" 接口业务逻辑失败:', errorMsg)
-        throw new Error(errorMsg)
-      }
-
-      const userStore = useUserStore()
-      // 用正式数据更新全局状态：
-      const formalMapData = {
-        ...draftMapData,
-        mapId: createResp.Data.mapId,
-        userId: userStore.userInfo?.user_id || ''
-      }
-      LayoutStore.data = formalMapData
-
-      // 网络请求完成后，清楚进度条计时器，并将进度条直接拉满：
-      clearInterval(progressInterval)
-      progress.value = 100
-      await new Promise(resolve => setTimeout(resolve, 1000))
-      status.value = 'success'
-      console.log('导图创建流程全部成功！最终数据:', formalMapData)
-      ElMessage.success('导图创建成功！')
-    } catch (error) {
-      clearInterval(progressInterval)
-      progress.value = 100
-      await new Promise(resolve => setTimeout(resolve, 1000))
-      if ((error as Error).message.includes('JSON')) {
-        ElMessage.error('文件解析失败，文件内容不符合 JSON 格式！')
-      } else {
-        ElMessage.error((error as Error).message || '文件处理失败，请重试！')
-      }
-      console.error('文件处理失败:', error)
-      status.value = 'error'
+    if (
+      !generateResp ||
+      generateResp.Code !== 200 ||
+      !generateResp.Data.success ||
+      !generateResp.Data.map_json
+    ) {
+      const errorMsg = generateResp?.Message || '生成导图(草稿)失败!'
+      console.error('"生成导图" 接口业务逻辑失败:', errorMsg)
+      throw new Error(errorMsg)
     }
+
+    // 将草稿的map_json解析为对象：
+    const mapJsonString = generateResp.Data.map_json
+    console.log('原始map_json字符串:', mapJsonString)
+    console.log('字符串长度:', mapJsonString.length)
+    console.log('末尾50个字符:', mapJsonString.slice(-50))
+    let draftMapData
+    try {
+      draftMapData = JSON5.parse(mapJsonString)
+    } catch (parseError) {
+      console.error('生成导图 JSON 解析失败:', parseError)
+      throw new Error('生成导图 JSON 解析失败，请检查文件内容！')
+    }
+    // 构造创建导图的请求参数：
+    const createParams: CreateMindMapParams = {
+      title: draftMapData.title || '未命名导图',
+      desc: draftMapData.desc || '无描述',
+      layout: draftMapData.layout || 'tree',
+      root: draftMapData.root
+    }
+
+    // 调用创建导图接口：
+    console.group('===调用`创建导图`接口===')
+    console.log('请求参数：', createParams)
+    console.log('开始调用创建导图接口...')
+    status.value = 'saving'
+    const cr = await createMindMap(createParams)
+    const createResp = cr as any
+    console.log('"创建导图" 接口调用完成，收到响应：', createResp)
+    console.groupEnd()
+    if (!createResp || createResp.Code !== 200 || !createResp.Data?.mapId) {
+      const errorMsg = createResp?.Message || '创建正式导图失败！'
+      console.error('"创建导图" 接口业务逻辑失败:', errorMsg)
+      throw new Error(errorMsg)
+    }
+
+    const userStore = useUserStore()
+    // 用正式数据更新全局状态：
+    const formalMapData = {
+      ...draftMapData,
+      mapId: createResp.Data.mapId,
+      userId: userStore.userInfo?.user_id || ''
+    }
+    LayoutStore.data = formalMapData
+
+    // 网络请求完成后，清楚进度条计时器，并将进度条直接拉满：
+    clearInterval(progressInterval)
+    progress.value = 100
+    await new Promise(resolve => setTimeout(resolve, 1000))
+    status.value = 'success'
+    console.log('导图创建流程全部成功！最终数据:', formalMapData)
+    ElMessage.success('导图创建成功！')
+  } catch (error) {
+    clearInterval(progressInterval)
+    progress.value = 100
+    await new Promise(resolve => setTimeout(resolve, 1000))
+    if ((error as Error).message.includes('JSON')) {
+      ElMessage.error('文件解析失败，文件内容不符合 JSON 格式！')
+    } else {
+      ElMessage.error((error as Error).message || '文件处理失败，请重试！')
+    }
+    console.error('文件处理失败:', error)
+    status.value = 'error'
   }
 }
 
@@ -254,8 +272,6 @@ const reUpload = () => {
   progress.value = 0
   uploadedFileName.value = ''
   tempMindMapData.value = null
-  const fileInput = document.querySelector('.file-input') as HTMLInputElement
-  if (fileInput) fileInput.value = '' // 清空文件选择框
 }
 
 onMounted(() => {
@@ -300,50 +316,29 @@ onUnmounted(() => {
     .upload-area {
       display: flex;
       flex-direction: column;
-      margin: 0 10%;
+      margin: 0 auto;
       gap: 10px;
       width: 100%;
 
-      .upload-btn {
-        display: inline-flex;
-        position: absolute;
-        top: 10%;
-        left: 10%;
+      .upload-area {
+        display: flex;
+        flex-direction: column;
         align-items: center;
         justify-content: center;
-        gap: 10px;
-        width: 80%;
-        height: 15%;
-        background-color: #f0f2f5;
-        border: 2px #c9cdd4;
-        border-radius: 15px;
-        cursor: pointer;
-        transition: all 0.3s ease;
+        margin: 0 auto;
+        gap: 20px;
+        width: 100%;
+        padding: 40px 0;
+      }
 
-        &:hover {
-          background-color: #e8eaed;
-          border-color: #608bd2;
-        }
-
-        .upload-icon {
-          height: 35px;
-          width: 35px;
-        }
-
-        .upload-text {
-          font-size: 32px;
-          color: #666;
-          font-weight: 600;
-        }
-
-        .file-input {
-          display: none;
-        }
+      .upload-demo {
+        display: flex;
+        justify-content: center;
       }
       .upload-desc {
         font-size: 14px;
         color: #999;
-        margin-left: 1%;
+        margin-left: 10%;
         margin-bottom: 10px;
         position: absolute;
         top: 26%;
@@ -360,7 +355,7 @@ onUnmounted(() => {
       justify-content: center;
       gap: 20px;
       background-color: #edeef0;
-      border-radius: 12px;
+      border-radius: 20px;
       margin-top: 10px;
 
       .processing-text {
@@ -434,7 +429,7 @@ onUnmounted(() => {
       justify-content: center;
       gap: 20px;
       background-color: #edeef0;
-      border-radius: 12px;
+      border-radius: 20px;
       margin-top: 10px;
 
       .result-title {
@@ -468,27 +463,13 @@ onUnmounted(() => {
         color: #666;
       }
 
-      .result-btn {
-        margin-top: 10px;
-        padding: 20px 35px;
-        font-size: 20px;
-        background-color: #608bd2;
-        color: white;
-        border: none;
-        border-radius: 8px;
-        cursor: pointer;
-        transition: background-color 0.3s;
-
-        &:hover {
-          background-color: #4a77c8;
-        }
-      }
+      /* 使用Element Plus按钮组件的内置样式 */
     }
 
     .mindmap-container {
       flex: 1;
       padding: 15px;
-      border-radius: 12px;
+      border-radius: 20px;
       background-color: #ebeff8;
       width: 80%;
       height: 66%;
@@ -513,7 +494,7 @@ onUnmounted(() => {
         width: 80%;
         height: 100%;
         margin: 0 auto;
-        border-radius: 10px;
+        border-radius: 20px;
       }
     }
   }
