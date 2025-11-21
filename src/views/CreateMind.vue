@@ -6,18 +6,30 @@
       <div v-if="status === 'init'" class="init-area">
         <div class="upload-area">
           <el-upload
-            class="upload-demo"
             action="#"
             :on-change="handleFileUpload"
             :before-upload="beforeUpload"
             :auto-upload="false"
             accept=".txt,.docx,.pdf"
-            :style="{ borderRadius: '20px' }"
           >
             <template #trigger>
-              <el-button size="large" type="primary">
-                <el-icon><Upload /></el-icon>
-                <span>上传文件</span>
+              <el-button
+                size="large"
+                type="primary"
+                style="
+                  width: 90%;
+                  min-width: 700px;
+                  margin: 10px 20px;
+                  min-height: 60px;
+                  display: flex;
+                  justify-content: center;
+                  align-items: center;
+                "
+                class="responsive-upload-btn"
+              >
+                <span style="font-size: 1.5rem; letter-spacing: 1rem"
+                  >上传文件</span
+                >
               </el-button>
             </template>
           </el-upload>
@@ -107,7 +119,6 @@ import { generateMindMap, createMindMap } from '@/api/user/index'
 import type { CreateMindMapParams } from '@/utils/type'
 import JSON5 from 'json5'
 import { useUserStore } from '@/stores'
-import { Upload } from '@element-plus/icons-vue'
 
 const uploadedFileName = ref('') // 存储上传的文件名
 const LayoutStore = useLayoutStore()
@@ -307,31 +318,14 @@ onUnmounted(() => {
 
     .upload-area {
       display: flex;
+      justify-content: center;
+      align-items: center;
       flex-direction: column;
-      margin: 0 auto;
       gap: 10px;
       width: 100%;
-
-      .upload-area {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        margin: 0 auto;
-        gap: 20px;
-        width: 100%;
-        padding: 40px 0;
-      }
-
-      .upload-demo {
-        display: flex;
-        justify-content: center;
-      }
       .upload-desc {
         font-size: 14px;
         color: #999;
-        margin-left: 10%;
-        margin-bottom: 10px;
         position: absolute;
         top: 26%;
         z-index: 2;
