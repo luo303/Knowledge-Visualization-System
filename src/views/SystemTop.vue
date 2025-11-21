@@ -100,8 +100,8 @@ const handleToMessage = async () => {
   width: 30px;
   height: 30px;
   background: #409eff;
-  border-radius: 30%;
-  margin-right: 8px;
+  border-radius: 10px;
+  margin: 0 52px 0 25px;
 }
 
 .box1 {
@@ -110,14 +110,11 @@ const handleToMessage = async () => {
 }
 
 h1 {
-  margin-left: 10px;
   display: flex;
   align-items: center;
-  font:
-    normal 28px Cookie,
-    Arial,
-    Helvetica,
-    sans-serif;
+  justify-content: center;
+  font-size: 30px;
+  letter-spacing: 2px;
   padding: 0px 20px;
 }
 
