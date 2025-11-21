@@ -713,46 +713,58 @@ watch(
   box-sizing: border-box;
   width: 100%;
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 2%;
+  /* 响应式网格布局，根据屏幕宽度自动调整列数 */
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 1.5rem;
   margin: 0 auto;
   max-width: 1400px;
 }
 
 // 导图卡片 - 使用Element Plus Card组件样式
 .mindmap-card {
-  width: 85%;
-  margin: 0 auto;
+  width: 100%; /* 改为100%宽度，利用网格间距控制 */
   cursor: pointer;
   position: relative;
   display: flex;
   flex-direction: column;
-  min-height: 100px;
-  max-height: 320px;
+  min-height: 200px; /* 增加最小高度 */
+  max-height: 350px; /* 适当增加最大高度 */
   border-radius: 20px;
   overflow: hidden;
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.mindmap-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.12);
 }
 
 // 批量选择区 - Element Plus Checkbox组件的样式
 .batch-checkbox {
   position: absolute;
   top: 0px;
-  right: 12px;
+  right: 15px;
   z-index: 2;
 }
 
 // 导图缩略图
 .map-thumbnail {
   position: relative;
-  height: 70%;
+  height: 90%;
+  border-radius: 20px;
   overflow: hidden;
   pointer-events: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 // 导图信息
 .map-info {
-  padding: 10px;
-  height: 25%;
+  padding: 15px 0px;
+  height: 30%;
 }
 
 .map-name {
