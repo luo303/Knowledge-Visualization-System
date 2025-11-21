@@ -7,17 +7,16 @@
       <div class="box2">
         <nav>
           <div class="icon-container">
-            <router-link active-class="active" to="/layout/handedit"
-              ><div class="notification" @click="handleToMessage">
-                <el-badge
-                  :is-dot="LayoutStore.newChatId !== ''"
-                  :offset="[-8, 10]"
-                >
-                  <el-avatar
-                    ><el-icon><Bell /></el-icon
-                  ></el-avatar>
-                </el-badge></div
-            ></router-link>
+            <div class="notification" @click="handleToMessage">
+              <el-badge
+                :is-dot="LayoutStore.newChatId !== ''"
+                :offset="[-8, 10]"
+              >
+                <el-avatar
+                  ><el-icon><Bell /></el-icon
+                ></el-avatar>
+              </el-badge>
+            </div>
 
             <router-link active-class="active" to="/layout/personalcenter"
               ><div>
@@ -75,7 +74,9 @@ const handleToLogin = () => {
 }
 //新消息跳转对话框
 const handleToMessage = async () => {
-  router.push('/layout/handedit')
+  if (router.currentRoute.value.path !== '/layout/handedit') {
+    router.push('/layout/handedit')
+  }
   if (LayoutStore.newChatId) {
     LayoutStore.currentChatId = LayoutStore.newChatId
     await nextTick()

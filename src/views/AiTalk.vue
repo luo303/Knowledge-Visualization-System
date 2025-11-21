@@ -907,7 +907,6 @@ onBeforeUnmount(() => {
   }
 
   :deep(.el-button--primary) {
-    border-radius: 14px;
     padding: 10px 18px;
     box-shadow: 0 6px 14px rgba(64, 158, 255, 0.18);
     transition: transform 0.1s ease;
