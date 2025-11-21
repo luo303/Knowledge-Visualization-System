@@ -205,7 +205,7 @@
 // @ts-expect-error 忽略 simple-mind-map 无类型声明的报错
 import Markdown from 'vue3-markdown-it'
 import { ElMessage } from 'element-plus'
-import { ref, nextTick, onMounted, watch } from 'vue'
+import { ref, nextTick, onMounted, watch, onBeforeUnmount } from 'vue'
 import { EditPen, Plus } from '@element-plus/icons-vue'
 import { useLayoutStore } from '@/stores'
 import { storeToRefs } from 'pinia'
@@ -221,11 +221,17 @@ import {
 } from '@/api/user'
 const LayoutStore = useLayoutStore()
 // 所有对话数据（指定类型为Chat数组）
-const { chat, currentChat, currentChatId, chatlist, needget, isloading } =
-  storeToRefs(LayoutStore)
-onMounted(() => {
-  currentChatId.value = ''
-})
+const {
+  chat,
+  currentChat,
+  currentChatId,
+  newChatId,
+  chatlist,
+  needget,
+  isloading,
+  isChatting
+} = storeToRefs(LayoutStore)
+
 //对对话记录进行时间排序(ascending 是否升序（true：最早在前，false：最新在前）)
 const sortByUpdate = (
   conversations: ChatList[],
@@ -290,7 +296,6 @@ const handleEnter = (event: any) => {
   event.preventDefault()
 }
 // 控制当前显示视图：false=列表，true=聊天窗口
-const isChatting = ref<boolean>(false)
 
 // 输入框内容
 const inputContent = ref<string>('')
@@ -354,6 +359,9 @@ const confirm = async () => {
 // 进入聊天窗口（添加参数类型）
 const enterChat = async (id: string) => {
   currentChatId.value = id
+  if (currentChatId.value === newChatId.value) {
+    newChatId.value = ''
+  }
   await nextTick()
   if (needget.value) {
     try {
@@ -404,6 +412,7 @@ const sendMsg = async () => {
     ElMessage.warning('AI努力中,请等待思考完')
     return
   }
+  const mapid = LayoutStore.data.mapId
   const temp = inputContent.value
   const id = currentChat.value.conversation_id
   // 添加用户消息
@@ -440,6 +449,12 @@ const sendMsg = async () => {
           content: (res as any).Data.content,
           role: 'assistant'
         })
+      }
+      if (
+        (!isChatting.value || currentChatId.value !== id) &&
+        mapid === LayoutStore.data.mapId
+      ) {
+        newChatId.value = id
       }
       scrollToBottom()
     } else if ((res as any).Code === 5001) {
@@ -562,6 +577,28 @@ watch(
     }
   }
 )
+//监听进入会话就自动滚动到底部
+watch(
+  () => isChatting.value,
+  async newId => {
+    if (newId) {
+      await nextTick()
+      scrollToBottom()
+    }
+  }
+)
+onMounted(() => {
+  if (currentChatId.value && currentChat.value.conversation_id) {
+    if (newChatId.value) {
+      newChatId.value = ''
+    }
+    isChatting.value = true
+    scrollToBottom()
+  }
+})
+onBeforeUnmount(() => {
+  isChatting.value = false
+})
 </script>
 
 <style lang="scss" scoped>
@@ -870,7 +907,6 @@ watch(
   }
 
   :deep(.el-button--primary) {
-    border-radius: 14px;
     padding: 10px 18px;
     box-shadow: 0 6px 14px rgba(64, 158, 255, 0.18);
     transition: transform 0.1s ease;
