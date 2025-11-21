@@ -100,13 +100,18 @@
     </div>
   </main>
 
-  <footer class="page-footer">
-    <div class="batch-label">
-      <img src="@/assets/images/folder.png" alt="folder" class="folder-icon" />
-      <span class="batch-text">批量操作</span>
+  <!-- 底部容器 - Element Plus风格布局 -->
+  <div class="page-footer">
+    <!-- 左侧批量操作标签 -->
+    <div class="footer-left">
+      <div class="batch-label">
+        <el-icon class="icon-margin"><Folder /></el-icon>
+        <span>请点击勾选框进行批量操作</span>
+      </div>
     </div>
-    <!-- 分页 - 使用Element Plus Pagination组件 -->
-    <div class="pagination-wrapper">
+
+    <!-- 中间分页区域 -->
+    <div class="footer-center">
       <el-pagination
         v-if="totalCount > 0"
         background
@@ -118,24 +123,31 @@
       />
     </div>
 
-    <!-- 批量操作区 -->
-    <div class="batch-action-bar" v-show="selectedCount > 0">
-      <span class="selected-count">已选择{{ selectedCount }}个导图</span>
-      <div class="batch-buttons">
-        <el-button type="primary" size="large" @click="handleBatchExport"
-          >批量导出</el-button
-        >
-        <el-button type="primary" size="large" @click="handleBatchDeleteConfirm"
-          >批量删除</el-button
-        >
-      </div>
-    </div>
+    <div class="footer-right"></div>
+  </div>
 
-    <!-- 操作状态反馈浮层 -->
-    <div class="status-toast" :class="statusType" v-show="showStatusToast">
-      {{ statusMessage }}
+  <!-- 批量操作区 -->
+  <div class="batch-action-bar" v-show="selectedCount > 0">
+    <span class="selected-count">已选择{{ selectedCount }}个导图</span>
+    <div class="batch-buttons">
+      <el-button type="primary" size="large" @click="handleBatchExport"
+        >批量导出</el-button
+      >
+      <el-button type="primary" size="large" @click="handleBatchDeleteConfirm"
+        >批量删除</el-button
+      >
     </div>
-  </footer>
+  </div>
+
+  <!-- 操作状态反馈浮层 - 使用Element Plus Message组件替代 -->
+  <el-notification
+    :show-close="false"
+    :type="statusType || 'info'"
+    :title="''"
+    :message="statusMessage"
+    :duration="2000"
+    v-if="showStatusToast"
+  />
 </template>
 
 <script lang="ts" setup>
@@ -148,7 +160,7 @@ import { exports } from '@/utils/export.ts'
 import { getMindMapList } from '@/api/user/index'
 import { useLayoutStore } from '@/stores/modules/layout'
 import { getMap, delMap } from '@/api/user/index'
-import { Search } from '@element-plus/icons-vue'
+import { Search, Folder } from '@element-plus/icons-vue'
 
 // 搜索相关状态
 const searchQuery = ref('')
@@ -769,80 +781,62 @@ watch(
   left: 0;
   right: 0;
   z-index: 10;
-  display: flex;
-  justify-content: space-between;
-  align-content: center;
-  padding: 0px 15% 0px 4%;
-}
-// 分页容器：
-// 分页外层容器：
-.pagination-wrapper {
-  width: 100%;
   box-sizing: border-box;
-  padding: 10px 2px;
-  margin: 0 auto;
-  max-width: 1400px;
-  border-top: 1px solid #f0f0f0;
+  padding: 0 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+// 左侧区域 - 批量操作标签
+.footer-left {
+  flex-shrink: 0;
+}
+
+.batch-label {
+  display: flex;
+  align-items: center;
+  white-space: nowrap;
+  font-size: 14px;
+  margin-left: 60%;
+}
+
+.icon-margin {
+  margin-right: 8px;
+  font-size: 18px;
+}
+
+// 中间区域 - 分页
+.footer-center {
   flex: 1;
   display: flex;
   justify-content: center;
   align-items: center;
+  margin: 0 20px;
 }
 
-// 批量操作区：
-.batch-label {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  white-space: nowrap;
-  margin-left: 10%;
-
-  .folder-icon {
-    width: 20px;
-    height: 20px;
-    object-fit: contain;
-  }
+// 右侧占位区域
+.footer-right {
+  width: 150px;
 }
 
+// 批量操作区 - Element Plus风格
 .batch-action-bar {
   position: fixed;
   bottom: 0;
-  right: 5%;
+  right: 3.5%;
   display: flex;
   justify-content: space-between;
   align-items: center;
   padding: 12px 20px;
-  gap: 30px;
+  gap: 20px;
   z-index: 10;
+  border-top: 1px solid var(--el-border-color-light);
+  border-radius: 4px 4px 0 0;
 }
 
 .selected-count {
   font-size: 14px;
-  color: #666;
-}
-
-// 状态反馈层：
-.status-toast {
-  position: fixed;
-  bottom: 50%;
-  left: 50%;
-  transform: translateX(-50%);
-  padding: 10px 20px;
-  border-radius: 4px;
-  color: #fff;
-  font-size: 14px;
-  z-index: 10;
-  background-color: #409eff;
-}
-
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateX(-50%) translateY(20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateX(-50%) translateY(0);
-  }
+  color: var(--el-text-color-secondary);
 }
 </style>
