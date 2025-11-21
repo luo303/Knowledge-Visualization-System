@@ -52,33 +52,27 @@
 
       <div v-else-if="status === 'uploading'" class="processing-area">
         <p class="processing-text">文件上传中...</p>
-        <img
-          src="@/assets/images/hourglass.png"
-          class="hourglass-icon"
-          alt="hourglass"
+        <el-icon class="hourglass-icon"><Loading /></el-icon>
+        <el-progress
+          :percentage="progress"
+          :stroke-width="8"
+          style="width: 80%"
         />
-        <div class="progress-container">
-          <div class="progress-bar" :style="{ width: progress + '%' }"></div>
-        </div>
-        <p class="progress-text">{{ progress }}%</p>
       </div>
 
       <div v-else-if="status === 'parsing'" class="processing-area">
         <p class="processing-text">文件解析中...</p>
-        <img
-          src="@/assets/images/analyzing.png"
-          class="analyzing-icon"
-          alt="analyzing"
+        <el-icon class="analyzing-icon"><Loading /></el-icon>
+        <el-progress
+          :percentage="progress"
+          :stroke-width="8"
+          style="width: 80%"
         />
-        <div class="progress-container">
-          <div class="progress-bar" :style="{ width: progress + '%' }"></div>
-        </div>
-        <p class="progress-text">{{ progress }}%</p>
       </div>
 
       <div v-else-if="status === 'success'" class="result-area">
         <p class="result-title">解析完成</p>
-        <div class="result-icon success-icon">✓</div>
+        <el-icon class="result-icon success-icon"><Check /></el-icon>
         <p class="result-desc">您的导图已生成</p>
         <el-button type="primary" size="large" @click="viewMindmap"
           >查看导图</el-button
@@ -87,7 +81,7 @@
 
       <div v-else-if="status === 'error'" class="result-area">
         <p class="result-title">文件解析失败</p>
-        <div class="result-icon error-icon">✕</div>
+        <el-icon class="result-icon error-icon"><Close /></el-icon>
         <p class="result-desc">请确认文件清晰或格式支持</p>
         <el-button type="primary" size="large" @click="reUpload"
           >重新上传</el-button
@@ -119,6 +113,7 @@ import { generateMindMap, createMindMap } from '@/api/user/index'
 import type { CreateMindMapParams } from '@/utils/type'
 import JSON5 from 'json5'
 import { useUserStore } from '@/stores'
+import { Close, Check, Loading } from '@element-plus/icons-vue'
 
 const uploadedFileName = ref('') // 存储上传的文件名
 const LayoutStore = useLayoutStore()
@@ -350,59 +345,22 @@ onUnmounted(() => {
         font-weight: 500;
       }
 
-      // 加载动画
-      .hourglass-icon {
-        width: 100px;
-        height: 100px;
-        animation: hourglass-rotate 2s ease-in-out infinite;
-      }
-
-      // 沙漏动画关键帧
-      @keyframes hourglass-rotate {
-        0% {
-          transform: rotate(0deg);
-        }
-        50% {
-          transform: rotate(180deg);
-        }
-        100% {
-          transform: rotate(360deg);
-        }
-      }
-
-      // 解析动画
+      // Element Plus 图标样式 - 添加旋转动画效果
+      .hourglass-icon,
       .analyzing-icon {
-        width: 100px;
-        height: 100px;
-        animation: analyzing-rotate 3s ease-in-out infinite;
+        font-size: 60px;
+        color: #409eff;
+        animation: rotate 1.5s linear infinite;
       }
 
-      @keyframes analyzing-rotate {
-        0% {
+      // 旋转动画定义
+      @keyframes rotate {
+        from {
           transform: rotate(0deg);
         }
-        100% {
+        to {
           transform: rotate(360deg);
         }
-      }
-      // 进度条
-      .progress-container {
-        width: 80%;
-        height: 8px;
-        background-color: #f0f2f5;
-        border-radius: 4px;
-        overflow: hidden;
-
-        .progress-bar {
-          height: 100%;
-          background-color: #608bd2;
-          transition: width 0.3s ease;
-        }
-      }
-
-      .progress-text {
-        font-size: 14px;
-        color: #608bd2;
       }
     }
 
@@ -424,24 +382,29 @@ onUnmounted(() => {
         font-weight: 600;
       }
 
+      // Element Plus 图标样式 - 添加源泉效果（圆形背景）
       .result-icon {
+        font-size: 60px;
         width: 110px;
         height: 110px;
+        line-height: 110px;
+        text-align: center;
+        background-color: rgba(255, 255, 255, 0.9);
         border-radius: 50%;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        border: 2px solid #f0f0f0;
+        transition: all 0.3s ease;
         display: flex;
         align-items: center;
         justify-content: center;
-        font-size: 60px;
-        font-weight: bold;
-        border: 8px solid #608bd2;
       }
 
       .success-icon {
-        color: #608bd2;
+        color: #409eff; /* Element Plus 成功色 */
       }
 
       .error-icon {
-        color: #608bd2;
+        color: #409eff; /* Element Plus 错误色 */
       }
 
       .result-desc {
