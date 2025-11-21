@@ -250,7 +250,6 @@ const typeOptions = [
   { value: 'catalogOrganization', text: '目录组织图' },
   { value: 'timeline', text: '时间轴' },
   { value: 'fishbone', text: '鱼骨图' },
-  { value: '时间轴2', text: 'timeline2' },
   { value: 'verticalTimeline', text: 'v0.6.6+竖向时间轴' }
 ]
 
