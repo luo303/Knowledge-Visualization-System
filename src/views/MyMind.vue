@@ -449,7 +449,9 @@ const handleBatchExport = async () => {
   }
 
   try {
-    const { value: selectedFormat } = await ElMessageBox.confirm(
+    let selectedFormat = ''
+
+    await ElMessageBox.confirm(
       `
       <div style="margin-bottom: 16px;">请选择导出的格式</div>
       <div style="display: flex; align-items: center; gap: 12px; flex-wrap;">
@@ -473,7 +475,7 @@ const handleBatchExport = async () => {
               'input[name="format"]:checked'
             ) as HTMLInputElement
             if (radio) {
-              exports(selectedMaps, radio.value)
+              selectedFormat = radio.value
               done()
             } else {
               ElMessage.warning('请选择导出格式！')
@@ -487,7 +489,7 @@ const handleBatchExport = async () => {
 
     // 执行导出：
     statusMessage.value = '正在导出 ...'
-    statusType.value = 'loading'
+    statusType.value = 'info'
     showStatusToast.value = true
 
     await exports(selectedMaps, selectedFormat)
@@ -525,7 +527,7 @@ const handleBatchDelete = async () => {
     .filter(map => map.selected)
     .map(map => map.mapId)
   statusMessage.value = '正在删除...'
-  statusType.value = 'loading'
+  statusType.value = 'info'
   showStatusToast.value = true
   try {
     console.log(`准备删除${countToDelete}导图卡片数据：`)
