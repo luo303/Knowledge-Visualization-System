@@ -24,6 +24,7 @@ export interface MindMapOptions {
   updatedAt?: string
   selected?: boolean // 导图是否被选中
   [key: string]: any
+  resultId: string
 }
 
 // 个人信息类型接口

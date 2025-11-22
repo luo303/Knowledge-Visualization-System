@@ -106,11 +106,13 @@ export const getBatchById = (batchId: string) => {
 }
 
 // 标记正负值
-export const markMindMapValue = (mapId: string, isPositive: boolean) => {
-  return request.post('/api/biz/v1/mindmap/generation/result//label', {
-    map_id: mapId,
-    is_positive: isPositive
-  })
+export const markMindMapValue = (resultId: string, label: number) => {
+  return request.post(
+    `/api/biz/v1/mindmap/generation/result/${resultId}/label`,
+    {
+      label: label
+    }
+  )
 }
 
 // 创建正式思维导图

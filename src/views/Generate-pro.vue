@@ -53,7 +53,7 @@ import { ref, onMounted } from 'vue'
 import { ElMessage } from 'element-plus'
 import type { MindMapOptions, MindMapNode } from '@/utils/type'
 import { useRouter, useRoute } from 'vue-router'
-import { getBatchById } from '@/api/user/index'
+import { getBatchById, markMindMapValue, getMap } from '@/api/user/index'
 import JSON5 from 'json5'
 
 const router = useRouter()
@@ -71,6 +71,7 @@ const createDefaultMindMap = (index: number): MindMapOptions => {
     title: `默认导图 ${index + 1}`,
     desc: '这是一个默认导图',
     layout: 'mindMap',
+    resultId: '',
     root: {
       data: {
         text: '根节点示例'
@@ -162,8 +163,20 @@ onMounted(async () => {
             try {
               mapJson = item.map_json ? JSON5.parse(item.map_json) : {}
             } catch (parseError) {
-              console.error('解析map_json失败，使用默认值:', parseError)
+              console.error('解析map_json失败, 使用默认值:', parseError)
               mapJson = {}
+            }
+
+            // 详细日志记录，特别是result_id相关信息
+            console.log(
+              `第 ${index} 个导图的原始数据 - result_id: ${item.result_id}, resultId: ${item.resultId}, 其他字段:`,
+              Object.keys(item)
+            )
+
+            // 获取resultId，尝试多种可能的字段名
+            const resultId = item.result_id || item.resultId || ''
+            if (!resultId) {
+              console.warn(`第 ${index} 个导图缺少resultId字段！`)
             }
 
             // 验证并修复root节点结构
@@ -171,6 +184,7 @@ onMounted(async () => {
 
             return {
               mapId: item.map_id || `map-${batchId.value}-${index}`,
+              resultId: resultId,
               root: validatedRoot,
               title: mapJson.title || '未命名导图',
               userId: item.user_id || '',
@@ -200,12 +214,51 @@ onMounted(async () => {
 })
 
 // 卡片点击事件
-const handleCardClick = (map: MindMapOptions) => {
-  const currentMapId = map.mapId
-  if (currentMapId && currentMapId !== 'xxx') {
-    router.push({ name: 'handedit', query: { mapId: currentMapId } })
-  } else {
+const handleCardClick = async (map: MindMapOptions) => {
+  const { resultId, mapId } = map
+  console.log('点击卡片，map信息：', {
+    resultId,
+    mapId,
+    hasResultId: !!resultId,
+    hasMapId: !!mapId && mapId !== 'xxx'
+  })
+
+  // 检查 mapId 是否有效（用于跳转）
+  if (!mapId || mapId === 'xxx') {
     ElMessage.warning('导图 ID 无效，无法跳转！')
+    return
+  }
+
+  // 如果有resultId，则尝试标记
+  if (resultId) {
+    try {
+      // 调用标记接口，传入 resultId 和 label (1表示正面评价)
+      console.log('准备调用markMindMapValue接口，参数:', { resultId, label: 1 })
+      await markMindMapValue(resultId, 1)
+      ElMessage.success('标记成功！')
+
+      // 标记成功后，查询导图信息
+      try {
+        console.log('准备调用getMap接口,参数:', { mapId })
+        await getMap(mapId)
+        console.log('导图查询成功')
+      } catch (error) {
+        console.error('导图查询失败：', error)
+        ElMessage.warning('导图查询失败，但仍可进入编辑页面')
+      }
+
+      // 标记成功后，跳转到编辑页
+      router.push({ name: 'handedit', query: { mapId: mapId } })
+    } catch (error) {
+      console.error('标记失败：', error)
+      // 标记失败时提供选项，让用户可以选择是否继续编辑
+      ElMessage.error('标记失败，直接进入编辑页面')
+      router.push({ name: 'handedit', query: { mapId: mapId } })
+    }
+  } else {
+    // 没有resultId时，提供提示但仍然允许进入编辑页面
+    ElMessage.warning('缺少 result ID，跳过标记步骤')
+    router.push({ name: 'handedit', query: { mapId: mapId } })
   }
 }
 </script>
