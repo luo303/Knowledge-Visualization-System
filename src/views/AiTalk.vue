@@ -139,7 +139,7 @@
             class="input"
             v-model="inputContent"
             type="textarea"
-            placeholder="输入消息..."
+            placeholder="输入部分文字后Tab键可AI智能补全"
             @keyup.enter="sendMsg"
             @keydown.tab="complete"
             :autosize="{ minRows: 2, maxRows: 4 }"
