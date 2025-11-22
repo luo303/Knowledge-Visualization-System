@@ -11,45 +11,47 @@
     <div v-else>
       <div class="createmind-title">请点击底部按钮选择想要生成的导图</div>
       <div class="generatemap-container">
-        <div
-          class="singlemindmap-container"
+        <el-card
           v-for="map in maps"
           :key="map.mapId"
+          class="mindmap-card"
+          shadow="hover"
+          :body-style="{ padding: '10px', height: '100%' }"
         >
-          <div class="map-info">
-            <h3 class="map-name">{{ map.root.data.text }}</h3>
-            <div class="map-meta">
+          <!-- 卡片头部 -->
+          <template #header>
+            <div class="card-header">
+              <span class="map-name">{{ map.root.data.text }}</span>
               <span class="map-time">{{ map.createTime }}</span>
             </div>
-          </div>
+          </template>
+
+          <!-- 卡片主体 -->
           <div class="map-picture">
-            <PreviewPage :Map="map" class="preview-img" />
+            <ProPreview :Map="map" class="preview-img" />
           </div>
-          <el-button
-            type="primary"
-            @click="handleCardClick(map)"
-            style="
-              width: 95%;
-              height: 10%;
-              margin: 10px 0px;
-              display: flex;
-              justify-content: center;
-              align-items: center;
-            "
-          >
-            <span>查看导图</span>
-          </el-button>
-        </div>
+
+          <!-- 卡片底部 -->
+          <template #footer>
+            <el-button
+              type="primary"
+              @click="handleCardClick(map)"
+              style="width: 100%"
+            >
+              <span>查看导图</span>
+            </el-button>
+          </template>
+        </el-card>
       </div>
     </div>
   </div>
 </template>
 
 <script lang="ts" setup>
-import PreviewPage from '@/components/PreviewPage.vue'
+import ProPreview from '@/components/ProPreview.vue'
 import { ref, onMounted } from 'vue'
 import { ElMessage } from 'element-plus'
-import type { MindMapOptions } from '@/utils/type'
+import type { MindMapOptions, MindMapNode } from '@/utils/type'
 import { useRouter, useRoute } from 'vue-router'
 import { getBatchById } from '@/api/user/index'
 import JSON5 from 'json5'
@@ -61,57 +63,144 @@ const loading = ref<boolean>(true)
 const errorMsg = ref<string>('')
 const batchId = ref<string>('')
 
+// 创建默认的MindMapOptions，用于调试和兜底
+const createDefaultMindMap = (index: number): MindMapOptions => {
+  const defaultMap: MindMapOptions = {
+    mapId: `default-map-${index}`,
+    userId: '',
+    title: `默认导图 ${index + 1}`,
+    desc: '这是一个默认导图',
+    layout: 'mindMap',
+    root: {
+      data: {
+        text: '根节点示例'
+      },
+      children: [
+        {
+          data: { text: '子节点1' },
+          children: [
+            { data: { text: '孙节点1-1' } },
+            { data: { text: '孙节点1-2' } }
+          ]
+        },
+        {
+          data: { text: '子节点2' },
+          children: [{ data: { text: '孙节点2-1' } }]
+        }
+      ]
+    },
+    createTime: new Date().toLocaleString()
+  }
+  return defaultMap
+}
+
+// 验证和修复MindMapNode结构
+const validateAndFixNode = (node: any): MindMapNode => {
+  // 确保节点有data对象
+  if (!node || typeof node !== 'object' || !node.data) {
+    return {
+      data: { text: '未知节点' },
+      children: []
+    }
+  }
+
+  // 确保data有text属性
+  if (!node.data.text) {
+    node.data.text = '未命名'
+  }
+
+  // 确保children是数组
+  if (!Array.isArray(node.children)) {
+    node.children = []
+  }
+
+  // 递归验证子节点
+  if (node.children && node.children.length > 0) {
+    node.children = node.children.map((child: any) => validateAndFixNode(child))
+  }
+
+  return node as MindMapNode
+}
+
 onMounted(async () => {
   try {
     const queryBatchId = route.query.batchId as string
+
+    // 开发调试模式：如果没有batchId，使用默认数据
     if (!queryBatchId) {
-      throw new Error('未获取到导图批次 ID ,请重新上传文件！')
-    }
-    batchId.value = queryBatchId
-    console.log('generate-pro 页面获取到的 batchId:', batchId.value)
-    // 调用获取id批次的接口
-    loading.value = true
-    const batchResponse = await getBatchById(batchId.value)
-    console.log('getBatchById 接口完整响应:', batchResponse) // 关键：确认接口返回结构
-    const batchData = batchResponse as any
-    if (!batchData || !batchData.results || batchData.results.length === 0) {
-      throw new Error('接口返回数据格式错误,results 数组缺失或为空')
-    }
-    console.log('接口返回的 results 数组:', batchData.results)
-    // 解析每个结果的 map_json,转换成MindMapOption形式
-    const realMaps = batchData.results.map((item: any, index: number) => {
-      const mapJson = JSON5.parse(item.map_json)
+      console.warn('未获取到batchId，使用默认示例数据进行调试')
+      // 创建2个默认导图用于调试
+      maps.value = [createDefaultMindMap(0), createDefaultMindMap(1)]
+      console.log('使用默认示例数据:', maps.value)
+    } else {
+      batchId.value = queryBatchId
+      console.log('generate-pro 页面获取到的 batchId:', batchId.value)
 
-      return {
-        mapId: item.map_id || `map-${batchId.value}-${index}`, // 优先用接口返回的 mapId，无则生成临时ID
-        root: mapJson.root || { data: { text: '未命名导图' }, children: [] }, // 导图节点结构
-        title: mapJson.title || '未命名导图',
-        userId: item.user_id || '',
-        desc: mapJson.desc || '无描述',
-        layout: mapJson.layout || 'mindMap',
-        createTime: item.create_time || new Date().toLocaleString() // 接口返回的创建时间
-      } as MindMapOptions
-    })
+      // 调用获取id批次的接口
+      loading.value = true
+      const batchResponse = await getBatchById(batchId.value)
+      console.log('getBatchById 接口完整响应:', batchResponse)
 
-    console.log('解析后的 realMaps 数组:', realMaps)
-    if (realMaps.length === 0) {
-      throw new Error('解析后未生成任何导图数据')
+      const batchData = batchResponse as any
+      // 防御性检查
+      if (
+        !batchData ||
+        !batchData.results ||
+        !Array.isArray(batchData.results) ||
+        batchData.results.length === 0
+      ) {
+        console.warn('接口返回数据不完整或为空，使用默认数据')
+        maps.value = [createDefaultMindMap(0)]
+      } else {
+        console.log('接口返回的 results 数组长度:', batchData.results.length)
+
+        // 解析每个结果的 map_json,转换成MindMapOption形式
+        const realMaps = batchData.results.map((item: any, index: number) => {
+          try {
+            // 防御性解析map_json
+            let mapJson
+            try {
+              mapJson = item.map_json ? JSON5.parse(item.map_json) : {}
+            } catch (parseError) {
+              console.error('解析map_json失败，使用默认值:', parseError)
+              mapJson = {}
+            }
+
+            // 验证并修复root节点结构
+            const validatedRoot = validateAndFixNode(mapJson.root || {})
+
+            return {
+              mapId: item.map_id || `map-${batchId.value}-${index}`,
+              root: validatedRoot,
+              title: mapJson.title || '未命名导图',
+              userId: item.user_id || '',
+              desc: mapJson.desc || '无描述',
+              layout: mapJson.layout || 'mindMap',
+              createTime: item.create_time || new Date().toLocaleString()
+            } as MindMapOptions
+          } catch (itemError) {
+            console.error(`处理第${index}个导图数据失败:`, itemError)
+            return createDefaultMindMap(index)
+          }
+        })
+
+        console.log('解析后的 realMaps 数组长度:', realMaps.length)
+        maps.value = realMaps
+        console.log('maps 数组已更新:', maps.value)
+      }
     }
-    maps.value = realMaps
-    console.log('maps 数组已更新:', maps.value)
-
-    // 更新 maps 数据
-    maps.value = realMaps
   } catch (error) {
     errorMsg.value = (error as Error).message || '获取导图数据失败，请重试'
     console.error('获取导图数据失败:', error)
+    // 出错时使用默认数据，确保页面不空白
+    maps.value = [createDefaultMindMap(0)]
   } finally {
     loading.value = false
   }
 })
 
 // 卡片点击事件
-const handleCardClick = (map: any) => {
+const handleCardClick = (map: MindMapOptions) => {
   const currentMapId = map.mapId
   if (currentMapId && currentMapId !== 'xxx') {
     router.push({ name: 'handedit', query: { mapId: currentMapId } })
@@ -141,67 +230,90 @@ const handleCardClick = (map: any) => {
   .generatemap-container {
     display: flex;
     flex-direction: row;
-    align-items: center;
-    justify-content: center;
-    border-radius: 20px;
-    gap: 10px;
+    flex-wrap: wrap;
+    gap: 20px;
     width: 100%;
     height: 90%;
+    overflow-y: auto;
+    justify-content: flex-start;
+  }
 
-    .singlemindmap-container {
-      height: 100%;
-      width: 100%;
+  .mindmap-card {
+    width: calc(33.333% - 20px);
+    border-radius: 20px;
+    min-width: 300px;
+    height: 430px;
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 20px;
+
+    .card-header {
       display: flex;
-      flex-direction: column;
-      background-color: white;
-      border-radius: 20px;
-      border: 1px solid #ebebeb;
-      cursor: pointer;
-      box-shadow: 7px 14px 12px rgba(0, 0, 0, 0.15);
-      transition: all 0.2s;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 16px;
 
-      &:hover {
-        transform: translateY(-7px);
-        box-shadow: 10px 17px 12px rgba(0, 0, 0, 0.15);
+      .map-name {
+        font-weight: bold;
+        flex: 1;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
       }
 
-      .map-info {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        padding: 15px;
-
-        .map-name {
-          font-size: 16px;
-          font-weight: bold;
-          display: flex;
-          white-space: nowrap;
-        }
-
-        .map-meta {
-          display: flex;
-          justify-content: space-between;
-          color: #585757;
-          white-space: nowrap;
-        }
+      .map-time {
+        color: #909399;
+        font-size: 12px;
+        margin-left: 10px;
       }
+    }
 
-      .map-picture {
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        height: 90%;
-        width: 95%;
-        border-radius: 20px;
-        background-color: #f8f8f9;
-        flex-direction: column;
-        position: relative;
-        margin: 0 auto;
+    .map-picture {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      flex: 1;
+      background-color: #f8f8f9;
+      border-radius: 8px;
+      margin: 10px 0;
+      height: 250px;
 
-        .preview-img {
-          width: 100%;
-        }
+      .preview-img {
+        width: 100%;
+        transform: scale(1.2);
       }
+    }
+  }
+
+  .loading,
+  .error,
+  .empty {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100%;
+    font-size: 16px;
+    color: #909399;
+  }
+
+  .error {
+    color: #f56c6c;
+  }
+}
+
+// 响应式布局
+@media (max-width: 1200px) {
+  .createmind-container {
+    .mindmap-card {
+      width: calc(50% - 20px);
+    }
+  }
+}
+
+@media (max-width: 768px) {
+  .createmind-container {
+    .mindmap-card {
+      width: 100%;
     }
   }
 }
