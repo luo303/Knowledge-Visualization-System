@@ -41,16 +41,24 @@ export const exports = async (
         layout: mindMapDatas[i]?.layout
       } as any)
 
-      // 等待渲染完成（根据实际情况调整延迟，确保节点渲染完毕）
-      await new Promise(resolve => {
-        setTimeout(resolve, 400)
+      // 等待渲染完成（确保节点渲染完毕，使用更稳定的渲染检测）
+      await new Promise<void>(resolve => {
+        const checkRender = () => {
+          if (mindMap.renderer && mindMap.renderer.renderTree) {
+            resolve()
+          } else {
+            setTimeout(checkRender, 50)
+          }
+        }
+        checkRender()
       })
 
       // 导出并自动下载
-      if (format === 'xmind') {
-        await mindMap.export(format, mindMapDatas[i]?.title)
-      } else if (format === 'png' || format === 'pdf') {
-        await mindMap.export(format, true, mindMapDatas[i]?.title)
+      const fmt = String(format).toLowerCase().trim()
+      if (fmt === 'xmind') {
+        await mindMap.export(fmt, mindMapDatas[i]?.title)
+      } else if (fmt === 'png' || fmt === 'pdf') {
+        await mindMap.export(fmt, true, mindMapDatas[i]?.title)
       } else {
         ElMessage.error(`暂不支持${format}格式`)
       }
