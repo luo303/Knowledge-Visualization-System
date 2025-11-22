@@ -588,7 +588,7 @@ watch(
   margin-left: 1.1%;
   padding: 0px;
   box-sizing: border-box;
-  width: 400px; /* 设置合适的宽度 */
+  width: 280px; /* 设置合适的宽度 */
 }
 
 .search-box {
@@ -654,7 +654,7 @@ watch(
 }
 
 .filter-select {
-  width: 160px;
+  width: 150px;
 }
 // 清除筛选按钮：
 .clear-btn {
@@ -700,7 +700,7 @@ watch(
   display: flex;
   flex-direction: column;
   min-height: 200px; /* 增加最小高度 */
-  max-height: 350px; /* 适当增加最大高度 */
+  max-height: 220px; /* 适当增加最大高度 */
   border-radius: 20px;
   overflow: hidden;
   transition:
@@ -719,18 +719,27 @@ watch(
   top: 0px;
   right: 15px;
   z-index: 2;
+  transform: scale(1.5);
 }
 
 // 导图缩略图
 .map-thumbnail {
   position: relative;
-  height: 75%;
+  height: 50%;
   border-radius: 20px;
-  overflow: hidden;
+  overflow: hidden; /* 确保超出部分被隐藏 */
   pointer-events: none;
   display: flex;
   align-items: center;
   justify-content: center;
+
+  // 确保内部Mind容器可以放大内容
+  :deep(.Mind) {
+    transform: scale(1.5);
+    transform-origin: center;
+    width: 100%;
+    height: 100%;
+  }
 }
 
 // 导图信息
