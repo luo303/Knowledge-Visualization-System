@@ -5,7 +5,13 @@
       <div v-if="!isChatting" class="list_container">
         <div class="header">
           <span class="title">AI编辑模式</span>
-          <button @click="open(true)" class="NewBtn">+ 新对话</button>
+          <el-button
+            type="primary"
+            size="large"
+            :icon="Plus"
+            @click="open(true)"
+            >新对话</el-button
+          >
         </div>
 
         <div class="chat_list">
@@ -133,15 +139,18 @@
             class="input"
             v-model="inputContent"
             type="textarea"
-            placeholder="输入消息..."
+            placeholder="输入部分文字后Tab键可AI智能补全你的想法"
             @keyup.enter="sendMsg"
             @keydown.tab="complete"
-            :autosize="{ minRows: 1, maxRows: 2 }"
+            :autosize="{ minRows: 2, maxRows: 4 }"
             show-word-limit
-            maxlength="100"
             word-limit-position="outside"
           />
-          <el-button @click="sendMsg" type="primary" :disabled="isloading"
+          <el-button
+            @click="sendMsg"
+            type="primary"
+            size="large"
+            :disabled="isloading"
             >发送</el-button
           >
         </div>
@@ -184,10 +193,7 @@
     <template #footer>
       <div class="dialog-footer">
         <el-button @click="DelDialogVisible = false">取消删除</el-button>
-        <el-button
-          type="primary"
-          @click="deleteChat(currentChat.conversation_id)"
-        >
+        <el-button type="primary" @click="deleteChat(currentChatId)">
           确认删除
         </el-button>
       </div>
@@ -199,8 +205,8 @@
 // @ts-expect-error 忽略 simple-mind-map 无类型声明的报错
 import Markdown from 'vue3-markdown-it'
 import { ElMessage } from 'element-plus'
-import { ref, nextTick, onMounted, watch } from 'vue'
-import { EditPen } from '@element-plus/icons-vue'
+import { ref, nextTick, onMounted, watch, onBeforeUnmount } from 'vue'
+import { EditPen, Plus } from '@element-plus/icons-vue'
 import { useLayoutStore } from '@/stores'
 import { storeToRefs } from 'pinia'
 import type { ChatList, Message } from '@/stores/modules/type'
@@ -215,11 +221,17 @@ import {
 } from '@/api/user'
 const LayoutStore = useLayoutStore()
 // 所有对话数据（指定类型为Chat数组）
-const { chat, currentChat, currentChatId, chatlist, needget, isloading } =
-  storeToRefs(LayoutStore)
-onMounted(() => {
-  currentChatId.value = ''
-})
+const {
+  chat,
+  currentChat,
+  currentChatId,
+  newChatId,
+  chatlist,
+  needget,
+  isloading,
+  isChatting
+} = storeToRefs(LayoutStore)
+
 //对对话记录进行时间排序(ascending 是否升序（true：最早在前，false：最新在前）)
 const sortByUpdate = (
   conversations: ChatList[],
@@ -284,7 +296,6 @@ const handleEnter = (event: any) => {
   event.preventDefault()
 }
 // 控制当前显示视图：false=列表，true=聊天窗口
-const isChatting = ref<boolean>(false)
 
 // 输入框内容
 const inputContent = ref<string>('')
@@ -348,6 +359,9 @@ const confirm = async () => {
 // 进入聊天窗口（添加参数类型）
 const enterChat = async (id: string) => {
   currentChatId.value = id
+  if (currentChatId.value === newChatId.value) {
+    newChatId.value = ''
+  }
   await nextTick()
   if (needget.value) {
     try {
@@ -398,6 +412,7 @@ const sendMsg = async () => {
     ElMessage.warning('AI努力中,请等待思考完')
     return
   }
+  const mapid = LayoutStore.data.mapId
   const temp = inputContent.value
   const id = currentChat.value.conversation_id
   // 添加用户消息
@@ -435,7 +450,16 @@ const sendMsg = async () => {
           role: 'assistant'
         })
       }
+      if (
+        (!isChatting.value || currentChatId.value !== id) &&
+        mapid === LayoutStore.data.mapId
+      ) {
+        newChatId.value = id
+        ElMessage.success('有新的消息')
+      }
       scrollToBottom()
+    } else if ((res as any).Code === 5001) {
+      ElMessage.warning(`${(res as any).Message}`)
     } else {
       ElMessage.error('发送失败，AI有点宕机了')
     }
@@ -453,6 +477,7 @@ const createNewChat = async () => {
     const res = await NewChat(LayoutStore.data, form.value.name)
     if ((res as any).Code === 200) {
       currentChatId.value = (res as any).Data.conversation_id
+
       chat.value.push({
         title: form.value.name,
         conversation_id: (res as any).Data.conversation_id,
@@ -472,6 +497,7 @@ const createNewChat = async () => {
   } catch (error) {
     dialogFormVisible.value = false
     formRef.value.resetFields()
+    ElMessage.error('创建失败')
     console.log(error)
   }
 }
@@ -498,7 +524,7 @@ const deleteChat = async (id: string) => {
             const index = chat.value.findIndex(
               item => item.conversation_id === id
             )
-            if (index) {
+            if (index !== -1) {
               chat.value.splice(index, 1)
             }
           } else {
@@ -520,52 +546,78 @@ const deleteChat = async (id: string) => {
     DelDialogVisible.value = false
   }
 }
-//tab键智能补全
-const complete = async (e: any) => {
+// tab键智能补全（节流，立即执行）
+let completeTimer: number | null = null
+const complete = (e: any) => {
   e.preventDefault()
-  try {
-    const res = await TabComplete(
-      currentChatId.value,
-      inputContent.value,
-      LayoutStore.data
-    )
-    if ((res as any).Code === 200) {
-      inputContent.value = (res as any).Data.completed_text
-    } else {
-      ElMessage.error('补全失败')
+  if (completeTimer) return
+  completeTimer = setTimeout(async () => {
+    try {
+      const res = await TabComplete(
+        currentChat.value.conversation_id,
+        inputContent.value,
+        LayoutStore.data
+      )
+      if ((res as any).Code === 200) {
+        inputContent.value = (res as any).Data.completed_text
+      } else {
+        ElMessage.error('补全失败')
+      }
+    } catch (error) {
+      console.log(error)
+    } finally {
+      completeTimer = null
     }
-  } catch (error) {
-    console.log(error)
-  }
+  }, 0)
 }
 watch(
   () => LayoutStore.data.mapId,
   async newId => {
     if (newId) {
-      console.log(1)
-
       getconlist()
     }
   }
 )
+//监听进入会话就自动滚动到底部
+watch(
+  () => isChatting.value,
+  async newId => {
+    if (newId) {
+      await nextTick()
+      scrollToBottom()
+    }
+  }
+)
+onMounted(() => {
+  if (currentChatId.value && currentChat.value.conversation_id) {
+    if (newChatId.value) {
+      newChatId.value = ''
+    }
+    isChatting.value = true
+    scrollToBottom()
+  }
+})
+onBeforeUnmount(() => {
+  isChatting.value = false
+})
 </script>
 
 <style lang="scss" scoped>
 .talk {
   height: 90%;
   border-radius: 20px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-  background-color: white;
+  box-shadow: 0 10px 24px rgba(31, 38, 135, 0.12);
+  background-color: #ffffff;
+  backdrop-filter: saturate(120%);
   .container {
     width: 100%;
     max-width: 100%;
     height: 100%;
     margin: 0 auto;
-
     box-sizing: border-box;
     border-radius: 20px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-    background-color: white;
+    box-shadow: 0 6px 20px rgba(31, 38, 135, 0.08);
+    background-color: #ffffff;
   }
 
   // 列表视图
@@ -585,26 +637,37 @@ watch(
 
   // 通用头部
   .header {
-    padding: 15px;
+    padding: 18px 20px;
     display: flex;
     justify-content: space-between;
     align-items: center;
     border-radius: 20px 20px 0 0;
-    border-bottom: 1px solid #eee;
+    border-bottom: 1px solid #eef2f6;
+    background: linear-gradient(180deg, #ffffff, #fafbff);
     .icon {
       cursor: pointer;
+      transition:
+        transform 0.12s ease,
+        opacity 0.2s;
+    }
+    .icon:hover {
+      transform: translateY(-1px);
+      opacity: 0.9;
     }
   }
 
   .title {
-    font-weight: 500;
-    font-size: 16px;
+    font-weight: 600;
+    font-size: 18px;
+    color: #1f2937;
+    letter-spacing: 0.2px;
   }
 
   /* 列表项样式 */
   .chat_list {
     flex: 1;
     overflow-y: auto;
+    padding: 6px 8px 8px;
     // 滚动条整体样式
     &::-webkit-scrollbar {
       width: 6px; // 滚动条宽度
@@ -636,17 +699,21 @@ watch(
   }
 
   .chat_item {
-    padding: 15px;
+    padding: 14px 16px;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    border-bottom: 1px solid #f0f0f0;
+    border-bottom: 1px solid #f3f4f6;
     cursor: pointer;
-    transition: background 0.2s;
+    transition:
+      background 0.2s,
+      transform 0.12s ease;
+    border-radius: 12px;
   }
 
   .chat_item:hover {
-    background: #f5f5f5;
+    background: #f7fafc;
+    transform: translateY(-1px);
   }
 
   .chat_info .last_msg {
@@ -663,25 +730,31 @@ watch(
   .actions button {
     border: none;
     background: transparent;
-    color: #f44336;
+    color: #6b7280;
     cursor: pointer;
-    opacity: 0.7;
-    transition: opacity 0.2s;
+    opacity: 0.8;
+    transition:
+      opacity 0.2s,
+      color 0.2s;
   }
 
   .actions button:hover {
     opacity: 1;
+    color: #374151;
   }
 
   /* 消息区域样式 */
   .talk_area {
     flex: 1;
-    padding: 15px;
+    padding: 18px;
     overflow-y: auto;
-    background: #f9f9f9;
+    background: #f6f8fb;
     display: flex;
     flex-direction: column;
-    gap: 12px;
+    gap: 14px;
+    align-items: flex-start;
+    max-width: 100%;
+    scroll-padding-bottom: 80px;
     // 滚动条整体样式
     &::-webkit-scrollbar {
       width: 6px; // 滚动条宽度
@@ -713,10 +786,38 @@ watch(
   }
 
   .msg {
-    max-width: 70%;
-    padding: 10px 15px;
-    border-radius: 12px;
+    max-width: clamp(240px, 68%, 680px);
+    padding: 12px 16px;
+    border-radius: 14px;
     word-break: break-word;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.06);
+    position: relative;
+    overflow-wrap: anywhere;
+    box-sizing: border-box;
+    line-height: 1.6;
+  }
+  .msg :deep(img) {
+    max-width: 100%;
+    height: auto;
+    display: block;
+    border-radius: 8px;
+  }
+  .msg :deep(pre) {
+    max-width: 100%;
+    overflow-x: auto;
+    background: #0f172a0d;
+    border: 1px solid #e5e7eb;
+    border-radius: 10px;
+    padding: 10px 12px;
+  }
+  .msg :deep(code) {
+    word-break: break-word;
+    white-space: pre-wrap;
+  }
+  .msg :deep(table) {
+    display: block;
+    max-width: 100%;
+    overflow-x: auto;
   }
   .load {
     display: flex;
@@ -734,45 +835,90 @@ watch(
     }
   }
   .system_msg {
-    background: #e9ecef;
+    background: #eef2f7;
     align-self: flex-start;
+    color: #374151;
+    border: 1px solid #e5e7eb;
+  }
+  .system_msg::before {
+    content: '';
+    position: absolute;
+    left: -6px;
+    top: 16px;
+    width: 0;
+    height: 0;
+    border-top: 6px solid transparent;
+    border-bottom: 6px solid transparent;
+    border-right: 6px solid #eef2f7;
   }
 
   .user-msg {
-    background: #409eff;
-    color: white;
+    background: linear-gradient(135deg, #409eff, #66b1ff);
+    color: #ffffff;
     align-self: flex-end;
+    box-shadow: 0 4px 12px rgba(64, 158, 255, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.25);
+  }
+  .user-msg::after {
+    content: '';
+    position: absolute;
+    right: -6px;
+    top: 16px;
+    width: 0;
+    height: 0;
+    border-top: 6px solid transparent;
+    border-bottom: 6px solid transparent;
+    border-left: 6px solid #66b1ff;
   }
 
   .input_area {
     display: flex;
-    padding: 15px;
+    padding: 16px 18px;
     gap: 10px;
     align-items: center;
-    border-top: 1px solid #eee;
+    border-top: 1px solid #eef2f6;
+    background: #ffffff;
+    border-radius: 0 0 24px 24px;
   }
 
   .input_area .input {
     flex: 1;
-    border-radius: 20px;
+    border-radius: 14px;
     outline: none;
     font-size: 14px;
   }
 
-  // .input_area button {
-  //   width: 20%;
-  //   height: 35px;
-  //   background: #409eff;
-  //   color: white;
-  //   border: none;
-  //   border-radius: 20px;
-  //   cursor: pointer;
-  //   transition: background 0.2s;
-  // }
+  :deep(.el-textarea__inner) {
+    border-radius: 14px;
+    border-color: #e5e7eb;
+    background: #fbfbfd;
+    box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.03);
+    padding: 10px 12px;
+    transition:
+      border-color 0.15s ease,
+      box-shadow 0.15s ease;
+  }
+  :deep(.el-textarea__inner:focus) {
+    border-color: #90c2ff;
+    box-shadow: 0 0 0 3px rgba(64, 158, 255, 0.15);
+  }
+  :deep(.el-input__count) {
+    color: #6b7280;
+    font-weight: 500;
+  }
 
-  // .input_area button:hover {
-  //   background: #3086e8;
-  // }
+  :deep(.el-button--primary) {
+    padding: 10px 18px;
+    box-shadow: 0 6px 14px rgba(64, 158, 255, 0.18);
+    transition: transform 0.1s ease;
+  }
+  :deep(.el-button--primary:hover) {
+    transform: translateY(-1px);
+  }
+  :deep(.el-button.is-disabled) {
+    box-shadow: none;
+    opacity: 0.7;
+  }
 
   .NewBtn {
     padding: 5px 10px;
@@ -781,6 +927,21 @@ watch(
     border: none;
     border-radius: 4px;
     cursor: pointer;
+  }
+  :deep(.el-dialog) {
+    border-radius: 16px;
+    box-shadow: 0 14px 28px rgba(31, 38, 135, 0.12);
+    /* 新增：限制对话框最大宽度，防止撑开父盒子 */
+    max-width: 90vw;
+  }
+  :deep(.el-dialog__header) {
+    font-weight: 600;
+    border-bottom: 1px solid #eef2f7;
+    margin-bottom: 12px;
+  }
+  :deep(.el-dialog__footer) {
+    padding-top: 8px;
+    border-top: 1px solid #eef2f7;
   }
 }
 </style>

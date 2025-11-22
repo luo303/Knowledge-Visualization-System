@@ -16,15 +16,12 @@
         ><el-icon><EditPen /></el-icon><span>手动编辑</span></el-menu-item
       >
       <el-menu-item
-        ><el-icon><ChatLineSquare /></el-icon
-        ><span>对话修改</span></el-menu-item
-      >
-      <el-menu-item
+        @click="
+          () => {
+            ElMessage('讲解模式待开发中')
+          }
+        "
         ><el-icon><VideoPlay /></el-icon><span>讲解模式</span></el-menu-item
-      >
-      <el-menu-item
-        ><el-icon><DocumentChecked /></el-icon
-        ><span>保存/导出</span></el-menu-item
       >
       <el-menu-item index="/layout/personalcenter"
         ><el-icon><Tools /></el-icon><span>设置</span></el-menu-item
@@ -39,12 +36,11 @@ import {
   Tools,
   Folder,
   Share,
-  VideoPlay,
-  ChatLineSquare,
-  DocumentChecked
+  VideoPlay
 } from '@element-plus/icons-vue'
 import { useLayoutStore } from '@/stores/modules/layout'
 import { onMounted } from 'vue'
+import { ElMessage } from 'element-plus'
 
 const LayoutStore = useLayoutStore()
 onMounted(() => {

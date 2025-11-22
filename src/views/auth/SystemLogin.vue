@@ -75,93 +75,21 @@
       <div class="content-right">
         <div class="image"></div>
         <h1>知识可视化系统</h1>
-        <ul class="feature-list">
-          <li>
-            <svg
-              t="1761804560082"
-              class="icon"
-              viewBox="0 0 1024 1024"
-              version="1.1"
-              xmlns="http://www.w3.org/2000/svg"
-              p-id="6367"
-              width="30"
-              height="30"
-            >
-              <path
-                d="M480 480m-160 0a2.5 2.5 0 1 0 320 0 2.5 2.5 0 1 0-320 0Z"
-                p-id="6368"
-                fill="#1296db"
-              ></path></svg
-            >支持上传多种文件格式
-          </li>
-          <li>
-            <svg
-              t="1761804560082"
-              class="icon"
-              viewBox="0 0 1024 1024"
-              version="1.1"
-              xmlns="http://www.w3.org/2000/svg"
-              p-id="6367"
-              width="30"
-              height="30"
-            >
-              <path
-                d="M480 480m-160 0a2.5 2.5 0 1 0 320 0 2.5 2.5 0 1 0-320 0Z"
-                p-id="6368"
-                fill="#1296db"
-              ></path></svg
-            >AI问答及自动逻辑优化
-          </li>
-          <li>
-            <svg
-              t="1761804560082"
-              class="icon"
-              viewBox="0 0 1024 1024"
-              version="1.1"
-              xmlns="http://www.w3.org/2000/svg"
-              p-id="6367"
-              width="30"
-              height="30"
-            >
-              <path
-                d="M480 480m-160 0a2.5 2.5 0 1 0 320 0 2.5 2.5 0 1 0-320 0Z"
-                p-id="6368"
-                fill="#1296db"
-              ></path></svg
-            >一键保存及导出
-          </li>
-          <li>
-            <svg
-              t="1761804560082"
-              class="icon"
-              viewBox="0 0 1024 1024"
-              version="1.1"
-              xmlns="http://www.w3.org/2000/svg"
-              p-id="6367"
-              width="30"
-              height="30"
-            >
-              <path
-                d="M480 480m-160 0a2.5 2.5 0 1 0 320 0 2.5 2.5 0 1 0-320 0Z"
-                p-id="6368"
-                fill="#1296db"
-              ></path></svg
-            >通过对话修改导图内容及结构
-          </li>
-        </ul>
+        <FeatureList></FeatureList>
       </div>
     </div>
-    <p class="footer">
-      备案号：
-      <a
-        style="color: #666"
-        target="_blank"
-        rel="noopener"
-        href="https://beian.miit.gov.cn"
-      >
-        粤ICP备2025494220号-1
-      </a>
-    </p>
+    <div class="footer">
+      <div class="icp">
+        <span class="icp-prefix">备案号：</span>
+        <a
+          class="icp-link"
+          target="_blank"
+          rel="noopener"
+          href="https://beian.miit.gov.cn"
+          >粤ICP备2025494220号-1</a
+        >
+      </div>
+    </div>
   </div>
 </template>
 
@@ -172,6 +100,7 @@ import { Message, Lock } from '@element-plus/icons-vue'
 import { useRouter } from 'vue-router'
 import { Login } from '@/api/user/index'
 import { useUserStore } from '@/stores/modules/user' // 导入用户仓库
+import FeatureList from '@/components/FeatureList.vue'
 
 const userStore = useUserStore() // 导入token仓库
 // 表单响应式数据
@@ -407,6 +336,34 @@ const resetPassword = () => {
 }
 .footer {
   position: absolute;
-  top: 90%;
+  left: 0;
+  right: 0;
+  bottom: 24px;
+  display: flex;
+  justify-content: center;
+}
+.icp {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 12px;
+  border: 1px solid #e5e7eb;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.65);
+  box-shadow: 0 6px 16px rgba(31, 38, 135, 0.08);
+  backdrop-filter: saturate(120%) blur(4px);
+}
+.icp-prefix {
+  color: #666;
+  font-size: 13px;
+}
+.icp-link {
+  color: #2563eb;
+  font-size: 13px;
+  text-decoration: none;
+}
+.icp-link:hover {
+  color: #1d4ed8;
+  text-decoration: underline;
 }
 </style>

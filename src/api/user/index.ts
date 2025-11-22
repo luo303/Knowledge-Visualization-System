@@ -81,6 +81,40 @@ export const generateMindMap = (file: File) => {
   })
 }
 
+// 生成多个思维导图
+export const generateMultipleMindMaps = (
+  file: File,
+  text: string,
+  count: string,
+  strategy: string
+) => {
+  const formData = new FormData()
+  formData.append('file', file)
+  formData.append('text', text)
+  formData.append('count', count)
+  formData.append('strategy', strategy)
+  return request.post('api/biz/v1/mindmap/generation/pro', formData)
+}
+
+// 根据id获取批次
+export const getBatchById = (batchId: string) => {
+  return request.get('/api/biz/v1/mindmap/generation/batch', {
+    params: {
+      batch_id: batchId
+    }
+  })
+}
+
+// 标记正负值
+export const markMindMapValue = (resultId: string, label: number) => {
+  return request.post(
+    `/api/biz/v1/mindmap/generation/result/${resultId}/label`,
+    {
+      label: label
+    }
+  )
+}
+
 // 创建正式思维导图
 export const createMindMap = async (data: CreateMindMapParams) => {
   const response = await request.post('api/biz/v1/mindmap', data, {
@@ -124,10 +158,8 @@ export const TabComplete = (
   map_data: MindMapOptions
 ) => {
   return request.post('/api/biz/v1/aichat/tab_complete', {
-    params: {
-      conversation_id,
-      user_input,
-      map_data: JSON.stringify(map_data)
-    }
+    conversation_id,
+    user_input,
+    map_data: JSON.stringify(map_data)
   })
 }

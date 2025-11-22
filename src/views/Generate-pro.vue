@@ -1,99 +1,477 @@
 <template>
   <div class="createmind-container">
-    <div class="createmind-title">请点击底部按钮选择想要生成的导图</div>
-    <div class="generatemap-container">
-      <div class="singlemindmap-container" v-for="map in maps" :key="map.mapId">
-        <div class="map-info">
-          <h3 class="map-name">{{ map.root.data.text }}</h3>
-          <div class="map-meta">
-            <span class="map-time">{{ map.createTime }}</span>
+    <!-- 1. 显示 loading 状态 -->
+    <div v-if="loading" class="loading">正在加载导图...</div>
+
+    <!-- 2. 显示错误信息 -->
+    <div v-else-if="errorMsg" class="error">{{ errorMsg }}</div>
+
+    <!-- 3. 有数据但为空数组 -->
+    <div v-else-if="maps.length === 0" class="empty">未查询到任何导图数据</div>
+    <div v-else>
+      <div class="createmind-title">请点击底部按钮选择想要生成的导图</div>
+      <div class="generatemap-container">
+        <el-card
+          v-for="map in maps"
+          :key="map.mapId"
+          class="mindmap-card"
+          shadow="hover"
+          :body-style="{ padding: '10px', height: '100%' }"
+        >
+          <!-- 卡片头部 -->
+          <template #header>
+            <div class="card-header">
+              <span class="map-name">{{ map.root.data.text }}</span>
+              <span class="map-time">{{ map.createTime }}</span>
+            </div>
+          </template>
+
+          <!-- 卡片主体 -->
+          <div class="map-picture">
+            <ProPreview :Map="map" class="preview-img" />
           </div>
-        </div>
-        <div class="map-picture">
-          <PreviewPage :Map="map" class="preview-img" />
-        </div>
-        <button class="btn" @click="handleCardClick(map)">
-          <span class="map-type">{{
-            map.layout === 'mindMap'
-              ? '思维导图'
-              : map.layout === 'fishBone'
-                ? '鱼骨图'
-                : map.layout === 'orgChart'
-                  ? '组织结构图'
-                  : '未知类型'
-          }}</span>
-        </button>
+
+          <!-- 卡片底部 -->
+          <template #footer>
+            <el-button
+              type="primary"
+              @click="handleCardClick(map)"
+              style="width: 100%"
+            >
+              <span>查看导图</span>
+            </el-button>
+          </template>
+        </el-card>
       </div>
     </div>
   </div>
 </template>
 
 <script lang="ts" setup>
-import PreviewPage from '@/components/PreviewPage.vue'
-import { ref } from 'vue'
-import type { MindMapOptions } from '@/utils/type'
-import { useRouter } from 'vue-router'
+import ProPreview from '@/components/ProPreview.vue'
+import { ref, onMounted } from 'vue'
+import { ElMessage } from 'element-plus'
+import type { MindMapOptions, MindMapNode } from '@/utils/type'
+import { useRouter, useRoute } from 'vue-router'
+import { getBatchById, markMindMapValue, getMap } from '@/api/user/index'
+import JSON5 from 'json5'
+import { useLayoutStore } from '@/stores'
 
 const router = useRouter()
+const route = useRoute()
+const maps = ref<MindMapOptions[]>([])
+const loading = ref<boolean>(true)
+const errorMsg = ref<string>('')
+const batchId = ref<string>('')
 
-const maps = ref<MindMapOptions[]>([
-  {
-    mapId: 'map-1001',
-    root: {
-      data: { text: '项目规划' },
-      children: [
-        { data: { text: '需求分析' } },
-        { data: { text: '技术选型' } },
-        { data: { text: '开发计划' } }
-      ]
-    },
-    title: '项目规划',
-    userId: '12313245646',
-    desc: '这是一个项目规划',
+// 创建默认的MindMapOptions，用于调试和兜底
+const createDefaultMindMap = (index: number): MindMapOptions => {
+  const defaultMap: MindMapOptions = {
+    mapId: `default-map-${index}`,
+    userId: '',
+    title: `默认导图 ${index + 1}`,
+    desc: '这是一个默认导图',
     layout: 'mindMap',
-    createTime: '2022-01-01 12:00:00'
-  },
-  {
-    mapId: 'map-1002',
+    resultId: '',
     root: {
-      data: { text: '问题排查' },
+      data: {
+        text: '根节点示例'
+      },
       children: [
-        { data: { text: '前端问题' } },
-        { data: { text: '后端问题' } },
-        { data: { text: '网络问题' } }
+        {
+          data: { text: '子节点1' },
+          children: [
+            { data: { text: '孙节点1-1' } },
+            { data: { text: '孙节点1-2' } }
+          ]
+        },
+        {
+          data: { text: '子节点2' },
+          children: [{ data: { text: '孙节点2-1' } }]
+        }
       ]
     },
-    title: '问题排查',
-    userId: '12313245646',
-    desc: '这是一个问题排查',
-    layout: 'fishBone',
-    createTime: '2022-01-02 12:00:00'
-  },
-  {
-    mapId: 'map-1003',
-    root: {
-      data: { text: '团队成员' },
-      children: [
-        { data: { text: '产品经理' } },
-        { data: { text: 'UI设计师' } },
-        { data: { text: '前端开发' } },
-        { data: { text: '后端开发' } }
-      ]
-    },
-    title: '团队成员',
-    userId: '12313245646',
-    desc: '这是一个团队成员',
-    layout: 'orgChart',
-    createTime: '2022-01-03 12:00:00'
+    createTime: new Date().toLocaleString()
   }
-])
+  return defaultMap
+}
+
+// 验证和修复MindMapNode结构
+const validateAndFixNode = (node: any): MindMapNode => {
+  // 确保节点有data对象
+  if (!node || typeof node !== 'object' || !node.data) {
+    return {
+      data: { text: '未知节点' },
+      children: []
+    }
+  }
+
+  // 确保data有text属性
+  if (!node.data.text) {
+    node.data.text = '未命名'
+  }
+
+  // 确保children是数组
+  if (!Array.isArray(node.children)) {
+    node.children = []
+  }
+
+  // 递归验证子节点
+  if (node.children && node.children.length > 0) {
+    node.children = node.children.map((child: any) => validateAndFixNode(child))
+  }
+
+  return node as MindMapNode
+}
+
+onMounted(async () => {
+  try {
+    const queryBatchId = route.query.batchId as string
+
+    // 开发调试模式：如果没有batchId，使用默认数据
+    if (!queryBatchId) {
+      console.warn('未获取到batchId, 使用默认示例数据进行调试')
+      // 创建2个默认导图用于调试
+      maps.value = [createDefaultMindMap(0), createDefaultMindMap(1)]
+      console.log('使用默认示例数据:', maps.value)
+    } else {
+      batchId.value = queryBatchId
+      console.log('generate-pro 页面获取到的 batchId:', batchId.value)
+
+      // 调用获取id批次的接口
+      loading.value = true
+      const batchResponse = await getBatchById(batchId.value)
+      console.log('getBatchById 接口完整响应:', batchResponse)
+
+      const batchData = batchResponse as any
+      // 防御性检查
+      if (
+        !batchData ||
+        !batchData.Data ||
+        !batchData.Data.results ||
+        !Array.isArray(batchData.Data.results) ||
+        batchData.Data.results.length === 0
+      ) {
+        console.warn('接口返回数据不完整或为空，使用默认数据')
+        maps.value = [createDefaultMindMap(0)]
+      } else {
+        console.log(
+          '接口返回的 results 数组长度:',
+          batchData.Data.results.length
+        )
+
+        // 解析每个结果的 map_json,转换成MindMapOption形式
+        const realMaps = batchData.Data.results.map(
+          (item: any, index: number) => {
+            try {
+              // 防御性解析map_json
+              let mapJson
+              try {
+                mapJson = item.map_json ? JSON5.parse(item.map_json) : {}
+              } catch (parseError) {
+                console.error('解析map_json失败, 使用默认值:', parseError)
+                mapJson = {}
+              }
+
+              // 详细日志记录，特别是result_id相关信息
+              console.log(
+                `第 ${index} 个导图的原始数据 - result_id: ${item.result_id}, resultId: ${item.resultId}, 其他字段:`,
+                Object.keys(item)
+              )
+
+              // 获取resultId，尝试多种可能的字段名
+              const resultId = item.result_id || item.resultId || ''
+              if (!resultId) {
+                console.warn(`第 ${index} 个导图缺少resultId字段！`)
+              }
+
+              // 验证并修复root节点结构
+              const validatedRoot = validateAndFixNode(mapJson.root || {})
+
+              return {
+                mapId: item.map_id || `map-${batchId.value}-${index}`,
+                resultId: resultId,
+                root: validatedRoot,
+                title: mapJson.title || '未命名导图',
+                userId: item.user_id || '',
+                desc: mapJson.desc || '无描述',
+                layout: mapJson.layout || 'mindMap',
+                createTime: item.create_time || new Date().toLocaleString()
+              } as MindMapOptions
+            } catch (itemError) {
+              console.error(`处理第${index}个导图数据失败:`, itemError)
+              return createDefaultMindMap(index)
+            }
+          }
+        )
+
+        console.log('解析后的 realMaps 数组长度:', realMaps.length)
+        maps.value = realMaps
+        console.log('maps 数组已更新:', maps.value)
+      }
+    }
+  } catch (error) {
+    errorMsg.value = (error as Error).message || '获取导图数据失败，请重试'
+    console.error('获取导图数据失败:', error)
+    // 出错时使用默认数据，确保页面不空白
+    maps.value = [createDefaultMindMap(0)]
+  } finally {
+    loading.value = false
+  }
+})
 
 // 卡片点击事件
-const handleCardClick = (map: any) => {
-  const currentMapId = map.mapId
-  if (currentMapId && currentMapId !== 'xxx') {
+const handleCardClick = async (map: MindMapOptions) => {
+  console.log('===== handleCardClick 函数开始执行 =====')
+
+  // 输入参数验证
+  if (!map) {
+    console.error('错误：传入的map参数为空')
+    ElMessage.error('导图数据无效')
+    return
+  }
+
+  const { resultId, mapId } = map
+  console.log('点击卡片，map信息：', {
+    resultId,
+    mapId,
+    hasResultId: !!resultId,
+    hasMapId: !!mapId && mapId !== 'xxx',
+    hasTitle: !!map.title,
+    hasRoot: !!map.root
+  })
+
+  // 检查 mapId 是否有效（用于跳转）
+  if (!mapId || mapId === 'xxx') {
+    ElMessage.warning('导图 ID 无效，无法跳转！')
+    return
+  }
+
+  // 立即将点击的map数据赋值给LayoutStore.data
+  try {
+    const LayoutStore = useLayoutStore()
+    // 创建完整的数据副本并确保必要字段存在
+    const mapData = {
+      ...map,
+      // 确保必要的字段存在
+      mapId: map.mapId || '',
+      userId: map.userId || '',
+      title: map.title || '未命名导图',
+      desc: map.desc || '',
+      layout: map.layout || 'right',
+      root: map.root || { data: { text: '' }, children: [] },
+      // 初始化saved_map_id字段（如果存在）
+      saved_map_id: map.saved_map_id || null
+    }
+
+    LayoutStore.data = mapData
+    console.log('===== 已将点击的map数据直接保存到LayoutStore =====')
+    console.log('保存的数据摘要:', {
+      mapId: mapData.mapId,
+      saved_map_id: mapData.saved_map_id,
+      title: mapData.title,
+      hasRootNode: !!mapData.root
+    })
+
+    // 验证赋值是否成功
+    const assignedData = LayoutStore.data
+    if (assignedData && assignedData.mapId === mapData.mapId) {
+      console.log('数据赋值验证成功')
+    } else {
+      console.warn('数据赋值验证警告：LayoutStore中的mapId与原始mapId不匹配')
+      // 尝试重新赋值
+      try {
+        LayoutStore.data = mapData
+        console.log('已尝试重新赋值')
+      } catch (retryError) {
+        console.error('重新赋值失败:', retryError)
+      }
+    }
+  } catch (error) {
+    console.error('===== LayoutStore数据赋值失败 =====')
+    console.error('错误对象:', error)
+    if (error instanceof Error) {
+      console.error('错误消息:', error.message)
+      console.error('错误堆栈:', error.stack)
+    }
+    // 使用备用方法设置数据
+    try {
+      const LayoutStore = useLayoutStore()
+      // 使用 Object.assign 作为备用赋值方式
+      Object.assign(LayoutStore.data, {
+        mapId: map.mapId || '',
+        title: map.title || '未命名导图'
+      })
+      console.log('已使用备用方法设置关键数据')
+    } catch (fallbackError) {
+      console.error('备用赋值方法也失败:', fallbackError)
+    }
+  }
+
+  // 如果有resultId，则尝试标记
+  if (resultId) {
+    try {
+      // 调用标记接口，传入 resultId 和 label (1表示正面评价)
+      console.log('准备调用markMindMapValue接口，参数:', { resultId, label: 1 })
+      const markResponse = await markMindMapValue(resultId, 1)
+      ElMessage.success('标记成功！')
+
+      // 从标记响应中提取saved_map_id
+      const markResponseData = markResponse as any
+      let currentMapId = mapId // 默认使用原始mapId
+
+      if (
+        markResponseData &&
+        markResponseData.Data &&
+        markResponseData.Data.saved_map_id
+      ) {
+        currentMapId = markResponseData.Data.saved_map_id
+        console.log('从标记响应中获取到saved_map_id:', currentMapId)
+      } else {
+        console.log('标记响应中未找到saved_map_id，继续使用原始mapId:', mapId)
+      }
+
+      // 标记成功后，使用正确的mapId（优先使用saved_map_id）查询导图信息
+      try {
+        console.log('===== 标记成功后获取最新导图数据 =====')
+        console.log('准备调用getMap接口,参数:', { mapId: currentMapId })
+        const mapResponse = await getMap(currentMapId)
+        console.log('导图查询成功，返回数据:', mapResponse)
+
+        // 将获取到的导图数据保存到LayoutStore中（作为更新）
+        const responseData = mapResponse as any
+        if (responseData && responseData.Data) {
+          const LayoutStore = useLayoutStore()
+          // 提取saved_map_id并确保赋值给LayoutStore.data
+          const mergedData = {
+            ...LayoutStore.data,
+            ...responseData.Data,
+            // 确保使用saved_map_id覆盖mapId（如果存在）
+            mapId:
+              responseData.Data.saved_map_id ||
+              responseData.Data.mapId ||
+              currentMapId ||
+              LayoutStore.data.mapId
+          }
+          LayoutStore.data = mergedData
+          console.log('已将接口获取的最新导图数据合并到LayoutStore')
+          console.log('特别处理：使用saved_map_id更新LayoutStore:', {
+            saved_map_id: responseData.Data.saved_map_id,
+            final_mapId: mergedData.mapId
+          })
+          // 更新当前使用的mapId
+          currentMapId = mergedData.mapId
+        }
+      } catch (error) {
+        console.error('===== 导图查询失败 =====')
+        console.error('错误对象:', error)
+        if (error instanceof Error) {
+          console.error('错误消息:', error.message)
+        }
+        ElMessage.warning('导图查询失败，但仍可进入编辑页面')
+        console.log('继续使用之前保存的本地数据进行跳转')
+      }
+
+      // 标记成功后，使用当前确定的mapId（优先是saved_map_id）跳转到编辑页
+      console.log('标记成功后跳转，使用mapId:', currentMapId)
+      router.push({ name: 'handedit', query: { mapId: currentMapId } })
+    } catch (error) {
+      console.error('标记失败：', error)
+      // 标记失败时提供选项，让用户可以选择是否继续编辑
+      ElMessage.error('标记失败，直接进入编辑页面')
+
+      // 标记失败时，尝试获取最新的导图信息
+      let currentMapId = mapId // 默认使用原始mapId
+      try {
+        console.log('===== 标记失败后获取导图数据 =====')
+        console.log('准备调用getMap接口,参数:', { mapId })
+        const mapResponse = await getMap(mapId)
+        console.log('导图查询成功，返回数据:', mapResponse)
+
+        // 将获取到的导图数据保存到LayoutStore中（作为更新）
+        const responseData = mapResponse as any
+        if (responseData && responseData.Data) {
+          const LayoutStore = useLayoutStore()
+          // 提取saved_map_id并确保赋值给LayoutStore.data
+          const mergedData = {
+            ...LayoutStore.data,
+            ...responseData.Data,
+            // 确保使用saved_map_id覆盖mapId（如果存在）
+            mapId:
+              responseData.Data.saved_map_id ||
+              responseData.Data.mapId ||
+              LayoutStore.data.mapId
+          }
+          LayoutStore.data = mergedData
+          console.log('已将接口获取的导图数据合并到LayoutStore')
+          console.log('特别处理：使用saved_map_id更新LayoutStore:', {
+            saved_map_id: responseData.Data.saved_map_id,
+            final_mapId: mergedData.mapId
+          })
+          // 更新当前使用的mapId
+          currentMapId = mergedData.mapId
+        }
+      } catch (error) {
+        console.error('===== 导图查询失败 =====')
+        console.error('错误对象:', error)
+        if (error instanceof Error) {
+          console.error('错误消息:', error.message)
+        }
+        console.log('继续使用之前保存的本地数据进行跳转')
+      }
+
+      console.log('标记失败后跳转，使用mapId:', currentMapId)
+      router.push({ name: 'handedit', query: { mapId: currentMapId } })
+    }
+  } else {
+    // 没有resultId时，提供提示但仍然允许进入编辑页面
+    console.log('没有resultId，跳过标记步骤')
+    ElMessage.warning('缺少 result ID, 跳过标记步骤')
+
+    // 查询导图信息并保存到LayoutStore（作为补充数据获取）
+    let currentMapId = mapId // 默认使用原始mapId
+    try {
+      console.log('准备调用getMap接口,参数:', { mapId })
+      const mapResponse = await getMap(mapId)
+      console.log('导图查询成功，返回数据:', mapResponse)
+
+      // 将获取到的导图数据保存到LayoutStore中（作为更新）
+      const responseData = mapResponse as any
+      if (responseData && responseData.Data) {
+        const LayoutStore = useLayoutStore()
+        // 提取saved_map_id并确保赋值给LayoutStore.data
+        const mergedData = {
+          ...LayoutStore.data,
+          ...responseData.Data,
+          // 确保使用saved_map_id覆盖mapId（如果存在）
+          mapId:
+            responseData.Data.saved_map_id ||
+            responseData.Data.mapId ||
+            LayoutStore.data.mapId
+        }
+        LayoutStore.data = mergedData
+        console.log('已将接口获取的导图数据合并到LayoutStore')
+        console.log('特别处理：使用saved_map_id更新LayoutStore:', {
+          saved_map_id: responseData.Data.saved_map_id,
+          final_mapId: mergedData.mapId
+        })
+        // 更新当前使用的mapId
+        currentMapId = mergedData.mapId
+      }
+    } catch (error) {
+      console.error('===== 导图查询失败 =====')
+      console.error('错误对象:', error)
+      if (error instanceof Error) {
+        console.error('错误消息:', error.message)
+      }
+      console.log('继续使用之前保存的本地数据进行跳转')
+    }
+
+    console.log('即将跳转到编辑页面:', { mapId: currentMapId })
     router.push({ name: 'handedit', query: { mapId: currentMapId } })
   }
+
+  console.log('===== handleCardClick 函数执行结束 =====')
 }
 </script>
 <style lang="scss" scoped>
@@ -117,91 +495,90 @@ const handleCardClick = (map: any) => {
   .generatemap-container {
     display: flex;
     flex-direction: row;
-    align-items: center;
-    justify-content: center;
-    border-radius: 20px;
-    gap: 10px;
+    flex-wrap: wrap;
+    gap: 20px;
     width: 100%;
     height: 90%;
+    overflow-y: auto;
+    justify-content: flex-start;
+  }
 
-    .singlemindmap-container {
-      height: 100%;
-      width: 100%;
-      flex-direction: column;
-      background-color: white;
-      border-radius: 20px;
-      border: 1px solid #ebebeb;
-      cursor: pointer;
+  .mindmap-card {
+    width: calc(33.333% - 20px);
+    border-radius: 20px;
+    min-width: 300px;
+    height: 430px;
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 20px;
+
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 16px;
+
+      .map-name {
+        font-weight: bold;
+        flex: 1;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      .map-time {
+        color: #909399;
+        font-size: 12px;
+        margin-left: 10px;
+      }
+    }
+
+    .map-picture {
       display: flex;
       justify-content: center;
       align-items: center;
-      gap: 5px;
-      box-shadow: 7px 14px 12px rgba(0, 0, 0, 0.15);
-      transition: all 0.2s;
-      &:hover {
-        transform: translateY(-7px);
-        box-shadow: 10px 17px 12px rgba(0, 0, 0, 0.15);
+      flex: 1;
+      background-color: #f8f8f9;
+      border-radius: 8px;
+      margin: 10px 0;
+      height: 250px;
+
+      .preview-img {
+        width: 100%;
+        transform: scale(1.2);
       }
+    }
+  }
 
-      .map-info {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        padding: 15px;
+  .loading,
+  .error,
+  .empty {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100%;
+    font-size: 16px;
+    color: #909399;
+  }
 
-        .map-name {
-          font-size: 16px;
-          font-weight: bold;
-          display: flex;
-          white-space: nowrap;
-          margin-right: 120px;
-        }
+  .error {
+    color: #f56c6c;
+  }
+}
 
-        .map-meta {
-          display: flex;
-          justify-content: space-between;
-          color: #585757;
-          white-space: nowrap;
-        }
-      }
+// 响应式布局
+@media (max-width: 1200px) {
+  .createmind-container {
+    .mindmap-card {
+      width: calc(50% - 20px);
+    }
+  }
+}
 
-      .map-picture {
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        height: 90%;
-        width: 95%;
-        border-radius: 20px;
-        background-color: #f8f8f9;
-        flex-direction: column;
-        position: relative;
-
-        .preview-img {
-          width: 100%;
-        }
-      }
-
-      .btn {
-        background-color: #9ac6f3;
-        cursor: pointer;
-        color: white;
-        border-radius: 10px;
-        border: none;
-        width: 95%;
-        height: 12%;
-        font-size: 20px;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        margin: 15px;
-        letter-spacing: 15px;
-        transform: all 0.2s;
-        &:hover {
-          background-color: #b9d9fc;
-          transform: translateY(-2px);
-          box-shadow: 6px 6px 6px rgba(0, 0, 0, 0.15);
-        }
-      }
+@media (max-width: 768px) {
+  .createmind-container {
+    .mindmap-card {
+      width: 100%;
     }
   }
 }
