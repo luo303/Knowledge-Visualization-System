@@ -761,8 +761,6 @@ watch(
   text-align: center;
   padding: 60px 0;
   color: #999;
-  border-radius: 20px;
-  background-color: #fafafa;
 }
 
 .empty-img {
