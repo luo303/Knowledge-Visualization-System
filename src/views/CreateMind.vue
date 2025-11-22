@@ -194,20 +194,12 @@ const beforeUpload = (file: File) => {
 }
 
 const handleFileUpload = async (uploadFile: any) => {
-  console.log('===== handleFileUpload 开始执行 =====')
-
   if (!uploadFile || !uploadFile.raw) {
-    console.error('上传文件无效:', uploadFile)
     ElMessage.error('上传文件无效，请重新选择')
     return
   }
 
   const file = uploadFile.raw
-  console.log('上传的文件信息:', {
-    name: file.name,
-    size: file.size,
-    type: file.type
-  })
 
   // 检查在beforeUpload中已经完成
 
@@ -237,23 +229,11 @@ const handleFileUpload = async (uploadFile: any) => {
         progress.value += 5
       }
     }, 200)
-
-    console.group('=== 调用`生成导图`接口 ===')
-    console.log('文件名:', file.name)
-    console.log('文件大小:', file.size)
-    console.log('开始调用生成导图接口...')
     const text = 'default_text'
     const count = '3'
     const strategy = '1'
     const Resp = await generateMultipleMindMaps(file, text, count, strategy)
     const generateResp = Resp as any
-    console.log('生成导图接口调用完成，收到响应：', generateResp)
-    console.groupEnd()
-
-    console.log(
-      '"生成多个导图" 接口返回的完整响应:',
-      JSON.stringify(generateResp, null, 2)
-    )
 
     // 增强的错误处理和数据提取逻辑
     let batchId = null
@@ -263,17 +243,14 @@ const handleFileUpload = async (uploadFile: any) => {
       // 检查标准结构
       if (generateResp.Data.success && generateResp.Data.batch_id) {
         batchId = generateResp.Data.batch_id
-        console.log('从标准结构获取到batch_id:', batchId)
       }
       // 检查可能的替代结构
       else if (generateResp.Data.batch_id) {
         batchId = generateResp.Data.batch_id
-        console.log('从替代结构获取到batch_id(忽略success标志):', batchId)
       }
       // 检查其他可能的字段名
       else if (generateResp.Data.batchId) {
         batchId = generateResp.Data.batchId
-        console.log('从batchId字段获取到批次ID:', batchId)
       }
     }
 
@@ -281,15 +258,11 @@ const handleFileUpload = async (uploadFile: any) => {
     if (!batchId) {
       const errorMsg =
         generateResp?.Message || '未能获取到batch_id，请检查接口响应!'
-      console.error('"生成多个导图" 接口未返回有效的batch_id:', errorMsg)
-      console.error('响应数据结构:', Object.keys(generateResp || {}))
       if (generateResp?.Data) {
         console.error('Data字段结构:', Object.keys(generateResp.Data))
       }
       throw new Error(errorMsg)
     }
-
-    console.log('成功获取到导图的批次ID:', batchId)
 
     // 创建包含batchId的完整对象，确保正确的类型结构
     const updatedData = {
@@ -298,7 +271,6 @@ const handleFileUpload = async (uploadFile: any) => {
     }
 
     LayoutStore.data = updatedData
-    console.log('已将batchId保存到LayoutStore:', LayoutStore.data.batchId)
 
     // 网络请求完成后，清楚进度条计时器，并将进度条直接拉满：
     clearInterval(progressInterval)
@@ -312,7 +284,6 @@ const handleFileUpload = async (uploadFile: any) => {
     await new Promise(resolve => setTimeout(resolve, 1000))
 
     // 详细的错误日志和处理
-    console.error('===== 文件处理失败 =====')
     console.error('错误对象:', error)
     if (error instanceof Error) {
       console.error('错误消息:', error.message)

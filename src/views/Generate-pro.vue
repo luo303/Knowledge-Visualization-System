@@ -259,13 +259,16 @@ const handleCardClick = async (map: MindMapOptions) => {
       title: map.title || '未命名导图',
       desc: map.desc || '',
       layout: map.layout || 'right',
-      root: map.root || { data: { text: '' }, children: [] }
+      root: map.root || { data: { text: '' }, children: [] },
+      // 初始化saved_map_id字段（如果存在）
+      saved_map_id: map.saved_map_id || null
     }
 
     LayoutStore.data = mapData
     console.log('===== 已将点击的map数据直接保存到LayoutStore =====')
     console.log('保存的数据摘要:', {
       mapId: mapData.mapId,
+      saved_map_id: mapData.saved_map_id,
       title: mapData.title,
       hasRootNode: !!mapData.root
     })
@@ -276,12 +279,32 @@ const handleCardClick = async (map: MindMapOptions) => {
       console.log('数据赋值验证成功')
     } else {
       console.warn('数据赋值验证警告：LayoutStore中的mapId与原始mapId不匹配')
+      // 尝试重新赋值
+      try {
+        LayoutStore.data = mapData
+        console.log('已尝试重新赋值')
+      } catch (retryError) {
+        console.error('重新赋值失败:', retryError)
+      }
     }
   } catch (error) {
     console.error('===== LayoutStore数据赋值失败 =====')
     console.error('错误对象:', error)
     if (error instanceof Error) {
       console.error('错误消息:', error.message)
+      console.error('错误堆栈:', error.stack)
+    }
+    // 使用备用方法设置数据
+    try {
+      const LayoutStore = useLayoutStore()
+      // 使用 Object.assign 作为备用赋值方式
+      Object.assign(LayoutStore.data, {
+        mapId: map.mapId || '',
+        title: map.title || '未命名导图'
+      })
+      console.log('已使用备用方法设置关键数据')
+    } catch (fallbackError) {
+      console.error('备用赋值方法也失败:', fallbackError)
     }
   }
 
@@ -290,24 +313,54 @@ const handleCardClick = async (map: MindMapOptions) => {
     try {
       // 调用标记接口，传入 resultId 和 label (1表示正面评价)
       console.log('准备调用markMindMapValue接口，参数:', { resultId, label: 1 })
-      await markMindMapValue(resultId, 1)
+      const markResponse = await markMindMapValue(resultId, 1)
       ElMessage.success('标记成功！')
 
-      // 标记成功后，查询导图信息（作为补充数据获取）
+      // 从标记响应中提取saved_map_id
+      const markResponseData = markResponse as any
+      let currentMapId = mapId // 默认使用原始mapId
+
+      if (
+        markResponseData &&
+        markResponseData.Data &&
+        markResponseData.Data.saved_map_id
+      ) {
+        currentMapId = markResponseData.Data.saved_map_id
+        console.log('从标记响应中获取到saved_map_id:', currentMapId)
+      } else {
+        console.log('标记响应中未找到saved_map_id，继续使用原始mapId:', mapId)
+      }
+
+      // 标记成功后，使用正确的mapId（优先使用saved_map_id）查询导图信息
       try {
         console.log('===== 标记成功后获取最新导图数据 =====')
-        console.log('准备调用getMap接口,参数:', { mapId })
-        const mapResponse = await getMap(mapId)
+        console.log('准备调用getMap接口,参数:', { mapId: currentMapId })
+        const mapResponse = await getMap(currentMapId)
         console.log('导图查询成功，返回数据:', mapResponse)
 
         // 将获取到的导图数据保存到LayoutStore中（作为更新）
         const responseData = mapResponse as any
         if (responseData && responseData.Data) {
           const LayoutStore = useLayoutStore()
-          // 合并已保存的本地数据和从接口获取的数据
-          const mergedData = { ...LayoutStore.data, ...responseData.Data }
+          // 提取saved_map_id并确保赋值给LayoutStore.data
+          const mergedData = {
+            ...LayoutStore.data,
+            ...responseData.Data,
+            // 确保使用saved_map_id覆盖mapId（如果存在）
+            mapId:
+              responseData.Data.saved_map_id ||
+              responseData.Data.mapId ||
+              currentMapId ||
+              LayoutStore.data.mapId
+          }
           LayoutStore.data = mergedData
           console.log('已将接口获取的最新导图数据合并到LayoutStore')
+          console.log('特别处理：使用saved_map_id更新LayoutStore:', {
+            saved_map_id: responseData.Data.saved_map_id,
+            final_mapId: mergedData.mapId
+          })
+          // 更新当前使用的mapId
+          currentMapId = mergedData.mapId
         }
       } catch (error) {
         console.error('===== 导图查询失败 =====')
@@ -319,14 +372,16 @@ const handleCardClick = async (map: MindMapOptions) => {
         console.log('继续使用之前保存的本地数据进行跳转')
       }
 
-      // 标记成功后，跳转到编辑页
-      router.push({ name: 'handedit', query: { mapId: mapId } })
+      // 标记成功后，使用当前确定的mapId（优先是saved_map_id）跳转到编辑页
+      console.log('标记成功后跳转，使用mapId:', currentMapId)
+      router.push({ name: 'handedit', query: { mapId: currentMapId } })
     } catch (error) {
       console.error('标记失败：', error)
       // 标记失败时提供选项，让用户可以选择是否继续编辑
       ElMessage.error('标记失败，直接进入编辑页面')
 
-      // 查询导图信息并保存到LayoutStore（作为补充数据获取）
+      // 标记失败时，尝试获取最新的导图信息
+      let currentMapId = mapId // 默认使用原始mapId
       try {
         console.log('===== 标记失败后获取导图数据 =====')
         console.log('准备调用getMap接口,参数:', { mapId })
@@ -337,10 +392,24 @@ const handleCardClick = async (map: MindMapOptions) => {
         const responseData = mapResponse as any
         if (responseData && responseData.Data) {
           const LayoutStore = useLayoutStore()
-          // 合并已保存的本地数据和从接口获取的数据
-          const mergedData = { ...LayoutStore.data, ...responseData.Data }
+          // 提取saved_map_id并确保赋值给LayoutStore.data
+          const mergedData = {
+            ...LayoutStore.data,
+            ...responseData.Data,
+            // 确保使用saved_map_id覆盖mapId（如果存在）
+            mapId:
+              responseData.Data.saved_map_id ||
+              responseData.Data.mapId ||
+              LayoutStore.data.mapId
+          }
           LayoutStore.data = mergedData
           console.log('已将接口获取的导图数据合并到LayoutStore')
+          console.log('特别处理：使用saved_map_id更新LayoutStore:', {
+            saved_map_id: responseData.Data.saved_map_id,
+            final_mapId: mergedData.mapId
+          })
+          // 更新当前使用的mapId
+          currentMapId = mergedData.mapId
         }
       } catch (error) {
         console.error('===== 导图查询失败 =====')
@@ -351,7 +420,8 @@ const handleCardClick = async (map: MindMapOptions) => {
         console.log('继续使用之前保存的本地数据进行跳转')
       }
 
-      router.push({ name: 'handedit', query: { mapId: mapId } })
+      console.log('标记失败后跳转，使用mapId:', currentMapId)
+      router.push({ name: 'handedit', query: { mapId: currentMapId } })
     }
   } else {
     // 没有resultId时，提供提示但仍然允许进入编辑页面
@@ -359,6 +429,7 @@ const handleCardClick = async (map: MindMapOptions) => {
     ElMessage.warning('缺少 result ID, 跳过标记步骤')
 
     // 查询导图信息并保存到LayoutStore（作为补充数据获取）
+    let currentMapId = mapId // 默认使用原始mapId
     try {
       console.log('准备调用getMap接口,参数:', { mapId })
       const mapResponse = await getMap(mapId)
@@ -368,10 +439,24 @@ const handleCardClick = async (map: MindMapOptions) => {
       const responseData = mapResponse as any
       if (responseData && responseData.Data) {
         const LayoutStore = useLayoutStore()
-        // 合并原始数据和从接口获取的数据
-        const mergedData = { ...LayoutStore.data, ...responseData.Data }
+        // 提取saved_map_id并确保赋值给LayoutStore.data
+        const mergedData = {
+          ...LayoutStore.data,
+          ...responseData.Data,
+          // 确保使用saved_map_id覆盖mapId（如果存在）
+          mapId:
+            responseData.Data.saved_map_id ||
+            responseData.Data.mapId ||
+            LayoutStore.data.mapId
+        }
         LayoutStore.data = mergedData
         console.log('已将接口获取的导图数据合并到LayoutStore')
+        console.log('特别处理：使用saved_map_id更新LayoutStore:', {
+          saved_map_id: responseData.Data.saved_map_id,
+          final_mapId: mergedData.mapId
+        })
+        // 更新当前使用的mapId
+        currentMapId = mergedData.mapId
       }
     } catch (error) {
       console.error('===== 导图查询失败 =====')
@@ -382,8 +467,8 @@ const handleCardClick = async (map: MindMapOptions) => {
       console.log('继续使用之前保存的本地数据进行跳转')
     }
 
-    console.log('即将跳转到编辑页面:', { mapId })
-    router.push({ name: 'handedit', query: { mapId: mapId } })
+    console.log('即将跳转到编辑页面:', { mapId: currentMapId })
+    router.push({ name: 'handedit', query: { mapId: currentMapId } })
   }
 
   console.log('===== handleCardClick 函数执行结束 =====')
