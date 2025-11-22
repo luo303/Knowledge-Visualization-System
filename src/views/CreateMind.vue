@@ -17,8 +17,8 @@
                 size="large"
                 type="primary"
                 style="
-                  width: 90%;
-                  min-width: 700px;
+                  width: 100%;
+                  min-width: 723px;
                   margin: 10px 20px;
                   min-height: 60px;
                   display: flex;
@@ -41,12 +41,56 @@
           </p>
         </div>
 
-        <div class="mindmap-container">
-          <img
-            src="@/assets/images/example-mindmap.jpg"
-            alt="example-mindmap"
-            class="example-mindmap"
-          />
+        <div class="features-container">
+          <div class="features-grid">
+            <el-card class="feature-card" :body-style="{ padding: '20px' }">
+              <template #header>
+                <div class="card-header">
+                  <el-icon><document /></el-icon>
+                  <span>多格式解析</span>
+                </div>
+              </template>
+              <p class="card-desc">
+                支持TXT、DOCX、PDF等多种格式文件解析，自动提取关键信息。
+              </p>
+            </el-card>
+
+            <el-card class="feature-card" :body-style="{ padding: '20px' }">
+              <template #header>
+                <div class="card-header">
+                  <el-icon><Share /></el-icon>
+                  <span>智能导图生成</span>
+                </div>
+              </template>
+              <p class="card-desc">
+                利用人工智能技术，快速将文本内容转换为结构清晰的思维导图。
+              </p>
+            </el-card>
+
+            <el-card class="feature-card" :body-style="{ padding: '20px' }">
+              <template #header>
+                <div class="card-header">
+                  <el-icon><edit /></el-icon>
+                  <span>可视化编辑</span>
+                </div>
+              </template>
+              <p class="card-desc">
+                生成的导图可进行在线编辑、调整和优化，满足个性化需求。
+              </p>
+            </el-card>
+
+            <el-card class="feature-card" :body-style="{ padding: '20px' }">
+              <template #header>
+                <div class="card-header">
+                  <el-icon><download /></el-icon>
+                  <span>一键导出</span>
+                </div>
+              </template>
+              <p class="card-desc">
+                支持多种格式导出，方便分享和保存您的思维导图成果。
+              </p>
+            </el-card>
+          </div>
         </div>
       </div>
 
@@ -113,7 +157,15 @@ import { generateMindMap, createMindMap } from '@/api/user/index'
 import type { CreateMindMapParams } from '@/utils/type'
 import JSON5 from 'json5'
 import { useUserStore } from '@/stores'
-import { Close, Check, Loading } from '@element-plus/icons-vue'
+import {
+  Close,
+  Check,
+  Loading,
+  Share,
+  Document,
+  Edit,
+  Download
+} from '@element-plus/icons-vue'
 
 const uploadedFileName = ref('') // 存储上传的文件名
 const LayoutStore = useLayoutStore()
@@ -291,7 +343,8 @@ onUnmounted(() => {
     border-radius: 20px;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
     background-color: white;
-    margin-right: 20px;
+    margin-right: 2%;
+    margin-left: 2%;
     padding: 20px;
     display: flex;
     flex-direction: column;
@@ -415,35 +468,90 @@ onUnmounted(() => {
       /* 使用Element Plus按钮组件的内置样式 */
     }
 
-    .mindmap-container {
-      flex: 1;
-      padding: 15px;
-      border-radius: 20px;
-      background-color: #ebeff8;
-      width: 80%;
-      height: 66%;
-      display: flex;
-      margin: 0 auto;
+    .features-container {
+      flex: display;
       justify-content: center;
       align-items: center;
+      padding: 15px;
+      margin-left: 3%;
+      margin-top: 20px;
+      width: 80%;
       box-sizing: border-box;
-      max-height: 80%;
-      top: 30%;
-      left: 10%;
-      position: absolute;
+    }
 
-      .uploading-text {
-        font-size: 18px;
-        color: #666;
-        font-weight: 500;
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 25px;
+      width: 100%;
+    }
+
+    .feature-card {
+      transition: all 0.3s ease;
+      border-radius: var(--el-border-radius-base);
+      max-height: 140px;
+      min-width: 350px;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .feature-card:hover {
+      transform: translateY(-7px);
+      border-color: var(--el-color-primary-light-7);
+    }
+
+    .card-header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-weight: 600;
+      color: var(--el-text-color-primary);
+      font-size: 16px;
+    }
+
+    .card-header .el-icon {
+      font-size: 20px;
+      color: var(--el-color-primary);
+      background-color: var(--el-color-primary-light-9);
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .card-desc {
+      color: var(--el-text-color-regular);
+      line-height: 1.6;
+      margin: -8px 0 0 0;
+      flex: 1;
+      font-size: 14px;
+    }
+
+    /* 响应式设计 */
+    @media (max-width: 1024px) {
+      .features-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 768px) {
+      .features-container {
+        padding: 15px;
+        margin-top: 15px;
       }
 
-      .example-mindmap {
-        display: flex;
-        width: 80%;
-        height: 100%;
-        margin: 0 auto;
-        border-radius: 20px;
+      .feature-card {
+        min-height: 160px;
+      }
+
+      .card-header {
+        font-size: 15px;
+      }
+
+      .card-desc {
+        font-size: 13px;
       }
     }
   }
