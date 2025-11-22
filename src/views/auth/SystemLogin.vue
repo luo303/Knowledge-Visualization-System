@@ -78,17 +78,18 @@
         <FeatureList></FeatureList>
       </div>
     </div>
-    <p class="footer">
-      备案号：
-      <a
-        style="color: #666"
-        target="_blank"
-        rel="noopener"
-        href="https://beian.miit.gov.cn"
-      >
-        粤ICP备2025494220号-1
-      </a>
-    </p>
+    <div class="footer">
+      <div class="icp">
+        <span class="icp-prefix">备案号：</span>
+        <a
+          class="icp-link"
+          target="_blank"
+          rel="noopener"
+          href="https://beian.miit.gov.cn"
+          >粤ICP备2025494220号-1</a
+        >
+      </div>
+    </div>
   </div>
 </template>
 
@@ -335,6 +336,34 @@ const resetPassword = () => {
 }
 .footer {
   position: absolute;
-  top: 90%;
+  left: 0;
+  right: 0;
+  bottom: 24px;
+  display: flex;
+  justify-content: center;
+}
+.icp {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 12px;
+  border: 1px solid #e5e7eb;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.65);
+  box-shadow: 0 6px 16px rgba(31, 38, 135, 0.08);
+  backdrop-filter: saturate(120%) blur(4px);
+}
+.icp-prefix {
+  color: #666;
+  font-size: 13px;
+}
+.icp-link {
+  color: #2563eb;
+  font-size: 13px;
+  text-decoration: none;
+}
+.icp-link:hover {
+  color: #1d4ed8;
+  text-decoration: underline;
 }
 </style>
