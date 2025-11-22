@@ -194,3 +194,51 @@ pre {
 :root {
   --el-border-radius-base: 20px;
 }
+
+.el-overlay {
+  background-color: rgba(17, 24, 39, 0.35);
+}
+
+.el-dialog {
+  border-radius: 16px;
+  box-shadow: 0 14px 28px rgba(31, 38, 135, 0.12);
+}
+
+.el-dialog__header {
+  font-weight: 600;
+  border-bottom: 1px solid #eef2f7;
+  margin-bottom: 8px;
+}
+
+.el-dialog__title {
+  color: #1f2937;
+}
+
+.el-dialog__body {
+  padding: 16px 20px;
+}
+
+.el-dialog__footer {
+  padding-top: 10px;
+  border-top: 1px solid #eef2f7;
+}
+
+.el-dialog .el-button {
+  border-radius: 12px;
+}
+
+.el-dialog .el-button--primary {
+  background: linear-gradient(135deg, #409eff, #66b1ff);
+  border-color: transparent;
+  color: #ffffff;
+  box-shadow: 0 8px 18px rgba(64, 158, 255, 0.24);
+}
+
+.el-dialog .el-button--primary:hover {
+  filter: brightness(1.05);
+}
+
+.el-dialog .el-button--default {
+  color: #374151;
+  border-color: #e5e7eb;
+}

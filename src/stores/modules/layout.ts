@@ -62,6 +62,8 @@ export const useLayoutStore = defineStore(
     const chat = ref<Chat[]>([])
     //当前会话id
     const currentChatId = ref('')
+    //新信息的会话Id(用于新消息跳转)
+    const newChatId = ref('')
     //当前对话信息
     const currentChat = ref<Chat>({
       title: '',
@@ -70,6 +72,8 @@ export const useLayoutStore = defineStore(
     })
     //是否需要调用接口获取会话历史记录
     const needget = ref(false)
+    //是否正在与AI对话
+    const isChatting = ref(false)
     //是否AI正在思考中
     const isloading = ref(false)
     //后端保存导图数据
@@ -155,6 +159,15 @@ export const useLayoutStore = defineStore(
         }
       }
     )
+    // 监听mapId变化，重置相关聊天状态
+    // watch(
+    //   () => data.value.mapId,
+    //   () => {
+    //     currentChatId.value = ''
+    //     currentChat.value = { title: '', conversation_id: '', messages: [] }
+    //     newChatId.value = ''
+    //   }
+    // )
     return {
       isCollapse,
       data,
@@ -163,8 +176,10 @@ export const useLayoutStore = defineStore(
       chatlist,
       currentChat,
       currentChatId,
+      newChatId,
       needget,
       isloading,
+      isChatting,
       clearMap,
       saveMap
     }

@@ -5,18 +5,34 @@
 
       <div v-if="status === 'init'" class="init-area">
         <div class="upload-area">
-          <label class="upload-btn">
-            <input
-              type="file"
-              class="file-input"
-              accept=".txt,.docx,.pdf"
-              @change="handleFileUpload"
-            />
-            <div class="upload-icon">
-              <img class="upload-icon" src="@/assets/images/file-upload.png" />
-            </div>
-            <div class="upload-text">上传文件</div>
-          </label>
+          <el-upload
+            action="#"
+            :on-change="handleFileUpload"
+            :before-upload="beforeUpload"
+            :auto-upload="false"
+            accept=".txt,.docx,.pdf"
+          >
+            <template #trigger>
+              <el-button
+                size="large"
+                type="primary"
+                style="
+                  width: 100%;
+                  min-width: 723px;
+                  margin: 10px 20px;
+                  min-height: 60px;
+                  display: flex;
+                  justify-content: center;
+                  align-items: center;
+                "
+                class="responsive-upload-btn"
+              >
+                <span style="font-size: 1.5rem; letter-spacing: 1rem"
+                  >上传文件</span
+                >
+              </el-button>
+            </template>
+          </el-upload>
           <p class="upload-desc" v-if="uploadedFileName">
             已上传: {{ uploadedFileName }}
           </p>
@@ -25,53 +41,95 @@
           </p>
         </div>
 
-        <div class="mindmap-container">
-          <img
-            src="@/assets/images/example-mindmap.jpg"
-            alt="example-mindmap"
-            class="example-mindmap"
-          />
+        <div class="features-container">
+          <div class="features-grid">
+            <el-card class="feature-card" :body-style="{ padding: '20px' }">
+              <template #header>
+                <div class="card-header">
+                  <el-icon><document /></el-icon>
+                  <span>多格式解析</span>
+                </div>
+              </template>
+              <p class="card-desc">
+                支持TXT、DOCX、PDF等多种格式文件解析，自动提取关键信息。
+              </p>
+            </el-card>
+
+            <el-card class="feature-card" :body-style="{ padding: '20px' }">
+              <template #header>
+                <div class="card-header">
+                  <el-icon><Share /></el-icon>
+                  <span>智能导图生成</span>
+                </div>
+              </template>
+              <p class="card-desc">
+                利用人工智能技术，快速将文本内容转换为结构清晰的思维导图。
+              </p>
+            </el-card>
+
+            <el-card class="feature-card" :body-style="{ padding: '20px' }">
+              <template #header>
+                <div class="card-header">
+                  <el-icon><edit /></el-icon>
+                  <span>可视化编辑</span>
+                </div>
+              </template>
+              <p class="card-desc">
+                生成的导图可进行在线编辑、调整和优化，满足个性化需求。
+              </p>
+            </el-card>
+
+            <el-card class="feature-card" :body-style="{ padding: '20px' }">
+              <template #header>
+                <div class="card-header">
+                  <el-icon><download /></el-icon>
+                  <span>一键导出</span>
+                </div>
+              </template>
+              <p class="card-desc">
+                支持多种格式导出，方便分享和保存您的思维导图成果。
+              </p>
+            </el-card>
+          </div>
         </div>
       </div>
 
       <div v-else-if="status === 'uploading'" class="processing-area">
         <p class="processing-text">文件上传中...</p>
-        <img
-          src="@/assets/images/hourglass.png"
-          class="hourglass-icon"
-          alt="hourglass"
+        <el-icon class="hourglass-icon"><Loading /></el-icon>
+        <el-progress
+          :percentage="progress"
+          :stroke-width="8"
+          style="width: 80%"
         />
-        <div class="progress-container">
-          <div class="progress-bar" :style="{ width: progress + '%' }"></div>
-        </div>
-        <p class="progress-text">{{ progress }}%</p>
       </div>
 
       <div v-else-if="status === 'parsing'" class="processing-area">
         <p class="processing-text">文件解析中...</p>
-        <img
-          src="@/assets/images/analyzing.png"
-          class="analyzing-icon"
-          alt="analyzing"
+        <el-icon class="analyzing-icon"><Loading /></el-icon>
+        <el-progress
+          :percentage="progress"
+          :stroke-width="8"
+          style="width: 80%"
         />
-        <div class="progress-container">
-          <div class="progress-bar" :style="{ width: progress + '%' }"></div>
-        </div>
-        <p class="progress-text">{{ progress }}%</p>
       </div>
 
       <div v-else-if="status === 'success'" class="result-area">
         <p class="result-title">解析完成</p>
-        <div class="result-icon success-icon">✓</div>
+        <el-icon class="result-icon success-icon"><Check /></el-icon>
         <p class="result-desc">您的导图已生成</p>
-        <el-button class="result-btn" @click="viewMindmap">查看导图</el-button>
+        <el-button type="primary" size="large" @click="viewMindmap"
+          >查看导图</el-button
+        >
       </div>
 
       <div v-else-if="status === 'error'" class="result-area">
         <p class="result-title">文件解析失败</p>
-        <div class="result-icon error-icon">✕</div>
+        <el-icon class="result-icon error-icon"><Close /></el-icon>
         <p class="result-desc">请确认文件清晰或格式支持</p>
-        <el-button class="result-btn" @click="reUpload">重新上传</el-button>
+        <el-button type="primary" size="large" @click="reUpload"
+          >重新上传</el-button
+        >
       </div>
 
       <div v-if="status === 'view'" class="mindmap-container">
@@ -95,10 +153,23 @@ import AiTalk from './AiTalk.vue'
 import { useLayoutStore } from '@/stores/modules/layout'
 import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
-import { generateMindMap, createMindMap } from '@/api/user/index'
+import {
+  generateMultipleMindMaps,
+  createMindMap,
+  getBatchById
+} from '@/api/user/index'
 import type { CreateMindMapParams } from '@/utils/type'
-import JSON5 from 'json5'
 import { useUserStore } from '@/stores'
+import {
+  Close,
+  Check,
+  Loading,
+  Share,
+  Document,
+  Edit,
+  Download
+} from '@element-plus/icons-vue'
+import JSON5 from 'json5'
 
 const uploadedFileName = ref('') // 存储上传的文件名
 const LayoutStore = useLayoutStore()
@@ -110,141 +181,235 @@ const router = useRouter()
 const tempMindMapData = ref<any>(null) // 预留：存储未来真实接口的临时数据
 
 // 文件上传：
-const handleFileUpload = async (e: Event) => {
-  const target = e.target as HTMLInputElement
-  if (target.files && target.files[0]) {
-    const file = target.files[0]
+const beforeUpload = (file: File) => {
+  // 检查文件大小是否超过限制:
+  const maxSize = 32 * 1024 * 1024
+  if (file.size > maxSize) {
+    ElMessage.error(
+      `文件大小不能超过 32MB ， 当前文件大小为 ${(file.size / (1024 * 1024)).toFixed(2)}`
+    )
+    return false
+  }
+  return true
+}
 
-    // 检查文件大小是否超过限制:
-    const maxSize = 32 * 1024 * 1024
-    if (file.size > maxSize) {
-      ElMessage.error(
-        `文件大小不能超过 32MB ， 当前文件大小为 ${(file.size / (1024 * 1024)).toFixed(2)}`
-      )
-      if (target) target.value = ''
-      return
-    }
+const handleFileUpload = async (uploadFile: any) => {
+  if (!uploadFile || !uploadFile.raw) {
+    ElMessage.error('上传文件无效，请重新选择')
+    return
+  }
 
-    uploadedFileName.value = file.name
-    status.value = 'uploading'
+  const file = uploadFile.raw
+
+  // 检查在beforeUpload中已经完成
+
+  uploadedFileName.value = file.name
+  status.value = 'uploading'
+  progress.value = 0
+
+  let progressInterval: number | undefined
+
+  try {
+    await new Promise<void>(resolve => {
+      progressInterval = window.setInterval(() => {
+        progress.value += 10
+        if (progress.value >= 100) {
+          clearInterval(progressInterval)
+          resolve()
+        }
+      }, 100)
+    })
+
+    status.value = 'parsing'
     progress.value = 0
 
-    let progressInterval: number | undefined
-
-    try {
-      await new Promise<void>(resolve => {
-        progressInterval = window.setInterval(() => {
-          progress.value += 10
-          if (progress.value >= 100) {
-            clearInterval(progressInterval)
-            resolve()
-          }
-        }, 100)
-      })
-
-      status.value = 'parsing'
-      progress.value = 0
-
-      // 管理 “处理中” 的进度条：
-      progressInterval = setInterval(() => {
-        if (progress.value < 95) {
-          progress.value += 5
-        }
-      }, 200)
-
-      console.group('=== 调用`生成导图`接口 ===')
-      console.log('文件名:', file.name)
-      console.log('文件大小:', file.size)
-      console.log('开始调用生成导图接口...')
-      const Resp = await generateMindMap(file)
-      const generateResp = Resp as any
-      console.log('生成导图接口调用完成，收到响应：', generateResp)
-      console.groupEnd()
-
-      if (
-        !generateResp ||
-        generateResp.Code !== 200 ||
-        !generateResp.Data.success ||
-        !generateResp.Data.map_json
-      ) {
-        const errorMsg = generateResp?.Message || '生成导图(草稿)失败!'
-        console.error('"生成导图" 接口业务逻辑失败:', errorMsg)
-        throw new Error(errorMsg)
+    // 管理 “处理中” 的进度条：
+    progressInterval = setInterval(() => {
+      if (progress.value < 95) {
+        progress.value += 5
       }
+    }, 200)
+    const text = 'default_text'
+    const count = '3'
+    const strategy = '1'
+    const Resp = await generateMultipleMindMaps(file, text, count, strategy)
+    const generateResp = Resp as any
 
-      // 将草稿的map_json解析为对象：
-      const mapJsonString = generateResp.Data.map_json
-      console.log('原始map_json字符串:', mapJsonString)
-      console.log('字符串长度:', mapJsonString.length)
-      console.log('末尾50个字符:', mapJsonString.slice(-50))
-      let draftMapData
-      try {
-        draftMapData = JSON5.parse(mapJsonString)
-      } catch (parseError) {
-        console.error('生成导图 JSON 解析失败:', parseError)
-        throw new Error('生成导图 JSON 解析失败，请检查文件内容！')
-      }
-      // 构造创建导图的请求参数：
-      const createParams: CreateMindMapParams = {
-        title: draftMapData.title || '未命名导图',
-        desc: draftMapData.desc || '无描述',
-        layout: draftMapData.layout || 'tree',
-        root: draftMapData.root
-      }
+    // 增强的错误处理和数据提取逻辑
+    let batchId = null
 
-      // 调用创建导图接口：
-      console.group('===调用`创建导图`接口===')
-      console.log('请求参数：', createParams)
-      console.log('开始调用创建导图接口...')
-      status.value = 'saving'
-      const cr = await createMindMap(createParams)
-      const createResp = cr as any
-      console.log('"创建导图" 接口调用完成，收到响应：', createResp)
-      console.groupEnd()
-      if (!createResp || createResp.Code !== 200 || !createResp.Data?.mapId) {
-        const errorMsg = createResp?.Message || '创建正式导图失败！'
-        console.error('"创建导图" 接口业务逻辑失败:', errorMsg)
-        throw new Error(errorMsg)
+    // 检查多种可能的响应结构
+    if (generateResp && generateResp.Data) {
+      // 检查标准结构
+      if (generateResp.Data.success && generateResp.Data.batch_id) {
+        batchId = generateResp.Data.batch_id
       }
-
-      const userStore = useUserStore()
-      // 用正式数据更新全局状态：
-      const formalMapData = {
-        ...draftMapData,
-        mapId: createResp.Data.mapId,
-        userId: userStore.userInfo?.user_id || ''
+      // 检查可能的替代结构
+      else if (generateResp.Data.batch_id) {
+        batchId = generateResp.Data.batch_id
       }
-      LayoutStore.data = formalMapData
-
-      // 网络请求完成后，清楚进度条计时器，并将进度条直接拉满：
-      clearInterval(progressInterval)
-      progress.value = 100
-      await new Promise(resolve => setTimeout(resolve, 1000))
-      status.value = 'success'
-      console.log('导图创建流程全部成功！最终数据:', formalMapData)
-      ElMessage.success('导图创建成功！')
-    } catch (error) {
-      clearInterval(progressInterval)
-      progress.value = 100
-      await new Promise(resolve => setTimeout(resolve, 1000))
-      if ((error as Error).message.includes('JSON')) {
-        ElMessage.error('文件解析失败，文件内容不符合 JSON 格式！')
-      } else {
-        ElMessage.error((error as Error).message || '文件处理失败，请重试！')
+      // 检查其他可能的字段名
+      else if (generateResp.Data.batchId) {
+        batchId = generateResp.Data.batchId
       }
-      console.error('文件处理失败:', error)
-      status.value = 'error'
     }
+
+    // 如果仍然没有获取到batchId，抛出错误
+    if (!batchId) {
+      const errorMsg =
+        generateResp?.Message || '未能获取到batch_id，请检查接口响应!'
+      if (generateResp?.Data) {
+        console.error('Data字段结构:', Object.keys(generateResp.Data))
+      }
+      throw new Error(errorMsg)
+    }
+
+    // 创建包含batchId的完整对象，确保正确的类型结构
+    const updatedData = {
+      ...LayoutStore.data,
+      batchId: batchId
+    }
+
+    LayoutStore.data = updatedData
+
+    // 网络请求完成后，清楚进度条计时器，并将进度条直接拉满：
+    clearInterval(progressInterval)
+    progress.value = 100
+    await new Promise(resolve => setTimeout(resolve, 1000))
+    status.value = 'success'
+    ElMessage.success('导图创建成功！')
+  } catch (error) {
+    clearInterval(progressInterval)
+    progress.value = 100
+    await new Promise(resolve => setTimeout(resolve, 1000))
+
+    // 详细的错误日志和处理
+    console.error('错误对象:', error)
+    if (error instanceof Error) {
+      console.error('错误消息:', error.message)
+      console.error('错误堆栈:', error.stack)
+    }
+
+    // 尝试从LayoutStore获取当前状态，以便调试
+    console.error('LayoutStore当前状态:', {
+      hasData: !!LayoutStore.data,
+      batchId: LayoutStore.data?.batchId,
+      mapId: LayoutStore.data?.mapId
+    })
+
+    // 显示用户友好的错误消息
+    ElMessage.error(
+      '文件处理失败: ' + (error instanceof Error ? error.message : '未知错误')
+    )
+    status.value = 'error'
+  } finally {
+    console.log('===== handleFileUpload 执行结束 =====')
   }
 }
 
 // 查看导图（跳转编辑页）
-const viewMindmap = () => {
+const viewMindmap = async () => {
+  // 直接从LayoutStore.data获取batchId，避免解构可能导致的问题
+  const batchId = LayoutStore.data?.batchId
   const mapId = LayoutStore.data?.mapId
+
+  console.log('viewMindmap - 从LayoutStore获取的batchId:', batchId)
+  console.log('viewMindmap - 从LayoutStore获取的mapId:', mapId)
+
+  if (!batchId) {
+    ElMessage.warning('未找到导图批次ID, 无法生成正式导图')
+    console.error('LayoutStore中缺少有效的batchId:', LayoutStore.data)
+    return
+  }
+
   if (mapId && mapId !== 'xxx') {
-    router.push({ name: 'generate-pro', query: { mapId } }) // 携带 mapId
-  } else {
-    ElMessage.warning('导图数据未找到或未生成正式ID，无法跳转')
+    router.push({ name: 'generate-pro', query: { batchId, mapId } }) // 携带 mapId
+  }
+  try {
+    console.log('===== viewMindmap 开始执行 =====')
+    // 步骤1：调用“根据id获取批次”接口，获取导图草稿数据
+    ElMessage.info('正在获取导图数据...')
+    console.group('=== 调用`根据id获取批次`接口 ===')
+    console.log('调用getBatchById的参数:', { batchId })
+    const batchResp = await getBatchById(batchId)
+    const batchData = batchResp as any
+    console.log('批次数据响应：', batchData)
+    console.log('批次数据响应结构:', Object.keys(batchData || {}))
+    if (batchData?.Data) {
+      console.log('Data字段结构:', Object.keys(batchData.Data))
+    }
+    console.groupEnd()
+    // 验证草稿数据（确保有核心字段）
+    const firstResult = batchData?.Data?.results?.[0]
+    if (!firstResult || !firstResult.map_json) {
+      throw new Error('导图草稿数据获取失败或数据不完整')
+    }
+
+    const draftMapData = JSON5.parse(firstResult.map_json)
+    if (!draftMapData.root) {
+      throw new Error('导图节点结构缺失')
+    }
+
+    // 步骤2：调用“创建导图”接口，生成正式 mapId
+    console.group('=== 调用`创建导图`接口 ===')
+    const createParams: CreateMindMapParams = {
+      title: draftMapData.title || '未命名导图',
+      desc: draftMapData.desc || '无描述',
+      layout: draftMapData.layout || 'tree',
+      root: draftMapData.root // 草稿数据中的核心节点结构
+    }
+    const cre = await createMindMap(createParams)
+    const createResp = cre as any
+    console.log('创建导图响应：', createResp)
+    console.groupEnd()
+
+    // 验证创建结果
+    if (!createResp || createResp.Code !== 200 || !createResp.Data.mapId) {
+      throw new Error('正式导图创建失败')
+    }
+    const newMapId = createResp.Data.mapId
+
+    // 步骤3：更新全局状态（存储正式 mapId 和完整导图数据）
+    const userStore = useUserStore()
+    // 确保batchId被正确保留，不是可选的
+    const formalMapData = {
+      ...draftMapData,
+      batchId: batchId, // 必须保留批次ID
+      mapId: newMapId, // 存储正式ID
+      userId: userStore.userInfo?.user_id || ''
+    }
+
+    console.log('准备保存到LayoutStore的完整数据:', formalMapData)
+    LayoutStore.data = formalMapData // 更新全局状态
+    console.log('LayoutStore更新后的数据:', LayoutStore.data)
+
+    // 步骤4：跳转至编辑页（携带新生成的 mapId）
+    ElMessage.success('导图生成成功，即将跳转编辑页')
+    router.push({
+      name: 'generate-pro',
+      query: { mapId: newMapId, batchId: batchId || '' }
+    })
+  } catch (error) {
+    // 详细的错误日志和处理
+    console.error('===== 查看导图流程失败 =====')
+    console.error('错误对象:', error)
+    if (error instanceof Error) {
+      console.error('错误消息:', error.message)
+      console.error('错误堆栈:', error.stack)
+    }
+
+    // 记录当前的batchId和LayoutStore状态
+    console.error('失败时的batchId:', batchId)
+    console.error('LayoutStore当前状态:', {
+      hasData: !!LayoutStore.data,
+      batchId: LayoutStore.data?.batchId,
+      mapId: LayoutStore.data?.mapId
+    })
+
+    const errorMsg = error instanceof Error ? error.message : '未知错误'
+    ElMessage.error('查看导图失败: ' + errorMsg)
+  } finally {
+    console.log('===== viewMindmap 执行结束 =====')
   }
 }
 
@@ -254,8 +419,6 @@ const reUpload = () => {
   progress.value = 0
   uploadedFileName.value = ''
   tempMindMapData.value = null
-  const fileInput = document.querySelector('.file-input') as HTMLInputElement
-  if (fileInput) fileInput.value = '' // 清空文件选择框
 }
 
 onMounted(() => {
@@ -277,7 +440,8 @@ onUnmounted(() => {
     border-radius: 20px;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
     background-color: white;
-    margin-right: 20px;
+    margin-right: 2%;
+    margin-left: 2%;
     padding: 20px;
     display: flex;
     flex-direction: column;
@@ -299,52 +463,14 @@ onUnmounted(() => {
 
     .upload-area {
       display: flex;
+      justify-content: center;
+      align-items: center;
       flex-direction: column;
-      margin: 0 10%;
       gap: 10px;
       width: 100%;
-
-      .upload-btn {
-        display: inline-flex;
-        position: absolute;
-        top: 10%;
-        left: 10%;
-        align-items: center;
-        justify-content: center;
-        gap: 10px;
-        width: 80%;
-        height: 15%;
-        background-color: #f0f2f5;
-        border: 2px #c9cdd4;
-        border-radius: 15px;
-        cursor: pointer;
-        transition: all 0.3s ease;
-
-        &:hover {
-          background-color: #e8eaed;
-          border-color: #608bd2;
-        }
-
-        .upload-icon {
-          height: 35px;
-          width: 35px;
-        }
-
-        .upload-text {
-          font-size: 32px;
-          color: #666;
-          font-weight: 600;
-        }
-
-        .file-input {
-          display: none;
-        }
-      }
       .upload-desc {
         font-size: 14px;
         color: #999;
-        margin-left: 1%;
-        margin-bottom: 10px;
         position: absolute;
         top: 26%;
         z-index: 2;
@@ -360,7 +486,7 @@ onUnmounted(() => {
       justify-content: center;
       gap: 20px;
       background-color: #edeef0;
-      border-radius: 12px;
+      border-radius: 20px;
       margin-top: 10px;
 
       .processing-text {
@@ -369,59 +495,22 @@ onUnmounted(() => {
         font-weight: 500;
       }
 
-      // 加载动画
-      .hourglass-icon {
-        width: 100px;
-        height: 100px;
-        animation: hourglass-rotate 2s ease-in-out infinite;
-      }
-
-      // 沙漏动画关键帧
-      @keyframes hourglass-rotate {
-        0% {
-          transform: rotate(0deg);
-        }
-        50% {
-          transform: rotate(180deg);
-        }
-        100% {
-          transform: rotate(360deg);
-        }
-      }
-
-      // 解析动画
+      // Element Plus 图标样式 - 添加旋转动画效果
+      .hourglass-icon,
       .analyzing-icon {
-        width: 100px;
-        height: 100px;
-        animation: analyzing-rotate 3s ease-in-out infinite;
+        font-size: 60px;
+        color: #409eff;
+        animation: rotate 1.5s linear infinite;
       }
 
-      @keyframes analyzing-rotate {
-        0% {
+      // 旋转动画定义
+      @keyframes rotate {
+        from {
           transform: rotate(0deg);
         }
-        100% {
+        to {
           transform: rotate(360deg);
         }
-      }
-      // 进度条
-      .progress-container {
-        width: 80%;
-        height: 8px;
-        background-color: #f0f2f5;
-        border-radius: 4px;
-        overflow: hidden;
-
-        .progress-bar {
-          height: 100%;
-          background-color: #608bd2;
-          transition: width 0.3s ease;
-        }
-      }
-
-      .progress-text {
-        font-size: 14px;
-        color: #608bd2;
       }
     }
 
@@ -434,7 +523,7 @@ onUnmounted(() => {
       justify-content: center;
       gap: 20px;
       background-color: #edeef0;
-      border-radius: 12px;
+      border-radius: 20px;
       margin-top: 10px;
 
       .result-title {
@@ -443,24 +532,29 @@ onUnmounted(() => {
         font-weight: 600;
       }
 
+      // Element Plus 图标样式 - 添加源泉效果（圆形背景）
       .result-icon {
+        font-size: 60px;
         width: 110px;
         height: 110px;
+        line-height: 110px;
+        text-align: center;
+        background-color: rgba(255, 255, 255, 0.9);
         border-radius: 50%;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        border: 2px solid #f0f0f0;
+        transition: all 0.3s ease;
         display: flex;
         align-items: center;
         justify-content: center;
-        font-size: 60px;
-        font-weight: bold;
-        border: 8px solid #608bd2;
       }
 
       .success-icon {
-        color: #608bd2;
+        color: #409eff; /* Element Plus 成功色 */
       }
 
       .error-icon {
-        color: #608bd2;
+        color: #409eff; /* Element Plus 错误色 */
       }
 
       .result-desc {
@@ -468,52 +562,93 @@ onUnmounted(() => {
         color: #666;
       }
 
-      .result-btn {
-        margin-top: 10px;
-        padding: 20px 35px;
-        font-size: 20px;
-        background-color: #608bd2;
-        color: white;
-        border: none;
-        border-radius: 8px;
-        cursor: pointer;
-        transition: background-color 0.3s;
+      /* 使用Element Plus按钮组件的内置样式 */
+    }
 
-        &:hover {
-          background-color: #4a77c8;
-        }
+    .features-container {
+      flex: display;
+      justify-content: center;
+      align-items: center;
+      padding: 15px;
+      margin-left: 3%;
+      margin-top: 20px;
+      width: 80%;
+      box-sizing: border-box;
+    }
+
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 25px;
+      width: 100%;
+    }
+
+    .feature-card {
+      transition: all 0.3s ease;
+      border-radius: var(--el-border-radius-base);
+      max-height: 140px;
+      min-width: 350px;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .feature-card:hover {
+      transform: translateY(-7px);
+      border-color: var(--el-color-primary-light-7);
+    }
+
+    .card-header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-weight: 600;
+      color: var(--el-text-color-primary);
+      font-size: 16px;
+    }
+
+    .card-header .el-icon {
+      font-size: 20px;
+      color: var(--el-color-primary);
+      background-color: var(--el-color-primary-light-9);
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .card-desc {
+      color: var(--el-text-color-regular);
+      line-height: 1.6;
+      margin: -8px 0 0 0;
+      flex: 1;
+      font-size: 14px;
+    }
+
+    /* 响应式设计 */
+    @media (max-width: 1024px) {
+      .features-grid {
+        grid-template-columns: 1fr;
       }
     }
 
-    .mindmap-container {
-      flex: 1;
-      padding: 15px;
-      border-radius: 12px;
-      background-color: #ebeff8;
-      width: 80%;
-      height: 66%;
-      display: flex;
-      margin: 0 auto;
-      justify-content: center;
-      align-items: center;
-      box-sizing: border-box;
-      max-height: 80%;
-      top: 30%;
-      left: 10%;
-      position: absolute;
-
-      .uploading-text {
-        font-size: 18px;
-        color: #666;
-        font-weight: 500;
+    @media (max-width: 768px) {
+      .features-container {
+        padding: 15px;
+        margin-top: 15px;
       }
 
-      .example-mindmap {
-        display: flex;
-        width: 80%;
-        height: 100%;
-        margin: 0 auto;
-        border-radius: 10px;
+      .feature-card {
+        min-height: 160px;
+      }
+
+      .card-header {
+        font-size: 15px;
+      }
+
+      .card-desc {
+        font-size: 13px;
       }
     }
   }

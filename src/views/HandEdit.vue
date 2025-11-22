@@ -453,9 +453,17 @@ onMounted(async () => {
     maxZoomRatio: 150, //最大缩放倍数
     minZoomRatio: 20 //最小缩放倍数
   } as any)
-  setTimeout(() => {
+  // 监听容器尺寸变化，自动调整画布
+  const resizeObserver = new ResizeObserver(() => {
     mindMap.resize()
-  }, 260)
+    mindMap.view.fit()
+  })
+  const container = document.getElementById('mindMapContainer')
+  if (container) resizeObserver.observe(container)
+  // 组件卸载时断开监听
+  onBeforeUnmount(() => {
+    resizeObserver.disconnect()
+  })
   //删除Shift + Backspace快捷键
   mindMap.keyCommand.removeShortcut('Shift+Backspace')
   //监听搜索节点
@@ -777,7 +785,11 @@ watch(
     flex-direction: column;
     justify-content: space-between;
     height: 90%;
-    width: 25%;
+    flex: 0 0 23%;
+    width: auto;
+    max-width: 360px;
+    min-width: 300px;
+    box-sizing: border-box;
     .search_input {
       border-radius: 10px;
       height: 7%;
@@ -828,6 +840,54 @@ watch(
 .menu-item:hover {
   color: #2563eb;
   background: rgba(59, 130, 246, 0.03);
+}
+
+:deep(.el-overlay) {
+  background-color: rgba(17, 24, 39, 0.35);
+}
+
+:deep(.el-dialog) {
+  border-radius: 16px;
+  box-shadow: 0 14px 28px rgba(31, 38, 135, 0.12);
+}
+
+:deep(.el-dialog__header) {
+  font-weight: 600;
+  border-bottom: 1px solid #eef2f7;
+  margin-bottom: 8px;
+}
+
+:deep(.el-dialog__title) {
+  color: #1f2937;
+}
+
+:deep(.el-dialog__body) {
+  padding: 16px 20px;
+}
+
+:deep(.el-dialog__footer) {
+  padding-top: 10px;
+  border-top: 1px solid #eef2f7;
+}
+
+:deep(.el-dialog .el-button) {
+  border-radius: 12px;
+}
+
+:deep(.el-dialog .el-button--primary) {
+  background: linear-gradient(135deg, #409eff, #66b1ff);
+  border-color: transparent;
+  color: #ffffff;
+  box-shadow: 0 8px 18px rgba(64, 158, 255, 0.24);
+}
+
+:deep(.el-dialog .el-button--primary:hover) {
+  filter: brightness(1.05);
+}
+
+:deep(.el-dialog .el-button--default) {
+  color: #374151;
+  border-color: #e5e7eb;
 }
 
 .menu-item:hover::before {

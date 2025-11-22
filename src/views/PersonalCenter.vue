@@ -1,281 +1,359 @@
 <template>
-  <div class="personal-center">
-    <div class="personal-info-container">
-      <!-- 基本信息 -->
-      <div class="section">
-        <h3 class="section-title">基本信息</h3>
-        <div class="basic-info">
-          <!-- 头像 -->
-          <div class="avatar-wrapper">
-            <div class="avatar">
-              <img
+  <el-card class="personal-center">
+    <el-row :gutter="24" class="personal-info-container">
+      <el-col :xs="24" :sm="12" :md="12" :lg="12" :xl="12">
+        <el-card class="section-card" shadow="hover">
+          <template #header>
+            <div class="card-header">
+              <span class="section-title">基本信息</span>
+            </div>
+          </template>
+          <div class="basic-info">
+            <!-- 头像 -->
+            <div class="avatar-wrapper">
+              <el-avatar
                 :src="getAvatarUrl(userInfo.avatar)"
-                alt="personal"
-                class="avatar-img"
+                size="large"
                 @error="handleAvatarError"
-              />
-            </div>
-            <button class="edit-avatar-btn" @click="openAvatarDialog">
-              修改头像
-            </button>
-          </div>
-
-          <!-- 修改头像弹窗 -->
-          <ElDialog v-model="avatarDialogOpen" title="修改头像" width="30%">
-            <div class="avatar-upload-container">
-              <el-upload
-                :file-list="avatarFileList"
-                :on-change="handleFileChange"
-                :auto-upload="false"
-                list-type="picture-card"
-                :show-file-list="showUploadComponent"
               >
-                <div class="upload-btn" v-if="showUploadComponent">
-                  <ElIcon size="24"><Upload /></ElIcon>
-                  <div class="upload-text">上传头像</div>
-                </div>
-              </el-upload>
-            </div>
-            <template #footer>
-              <ElButton @click="avatarDialogOpen = false">取消</ElButton>
-              <ElButton
+                {{ userInfo.user_name?.charAt(0) || '用' }}
+              </el-avatar>
+              <el-button
                 type="primary"
-                @click="handleUpdateAvatar"
-                :disabled="!avatarFileList.length"
-                >确定</ElButton
+                plain
+                size="small"
+                @click="openAvatarDialog"
+                class="mt-2"
               >
-            </template>
-          </ElDialog>
-
-          <!-- 用户名 -->
-          <div class="username-wrapper">
-            <div class="username-container">
-              <span class="label">用户名:</span>
-              <span class="username">{{ userInfo.user_name }}</span>
+                <el-icon><Upload /></el-icon>修改头像
+              </el-button>
             </div>
-            <button class="edit-btn" @click="openUsernameDialog">
-              <el-icon><Edit /></el-icon>修改用户名
-            </button>
-          </div>
 
-          <!-- 修改用户名弹窗 -->
-          <ElDialog v-model="usernameDialogOpen" title="修改用户名" width="30%">
-            <ElInput
-              v-model="newUsername"
-              placeholder="请输入用户名"
-              max-length="20"
-              show-word-limit
-            />
-            <template #footer>
-              <ElButton @click="usernameDialogOpen = false">取消</ElButton>
-              <ElButton type="primary" @click="handleUpdateUsername"
-                >确定</ElButton
+            <!-- 修改头像弹窗 -->
+
+            <!-- 用户名 -->
+            <div class="username-wrapper">
+              <el-descriptions border :column="{ xs: 1, sm: 2 }">
+                <el-descriptions-item label="用户名">{{
+                  userInfo.user_name
+                }}</el-descriptions-item>
+              </el-descriptions>
+              <el-button
+                type="primary"
+                link
+                @click="openUsernameDialog"
+                class="mt-2"
               >
-            </template>
-          </ElDialog>
+                <el-icon><Edit /></el-icon>修改用户名
+              </el-button>
+            </div>
 
-          <footer>
-            <button class="switch-account-btn" @click="handleSwitchAccount">
-              切换账号
-            </button>
-          </footer>
-        </div>
-      </div>
+            <footer>
+              <el-button
+                type="primary"
+                @click="handleSwitchAccount"
+                size="large"
+              >
+                切换账号
+              </el-button>
+            </footer>
+          </div>
+        </el-card>
+
+        <el-dialog v-model="avatarDialogOpen" title="修改头像" width="30%">
+          <div class="avatar-upload-container">
+            <el-upload
+              :file-list="avatarFileList"
+              :on-change="handleFileChange"
+              :auto-upload="false"
+              list-type="picture-card"
+              :show-file-list="showUploadComponent"
+            >
+              <div v-if="showUploadComponent">
+                <el-icon size="24"><Upload /></el-icon>
+                <div>上传头像</div>
+              </div>
+            </el-upload>
+          </div>
+          <template #footer>
+            <el-button @click="avatarDialogOpen = false">取消</el-button>
+            <el-button
+              type="primary"
+              @click="handleUpdateAvatar"
+              :disabled="!avatarFileList.length"
+            >
+              确定
+            </el-button>
+          </template>
+        </el-dialog>
+      </el-col>
+
+      <!-- 修改用户名弹窗 -->
+      <el-dialog v-model="usernameDialogOpen" title="修改用户名" width="30%">
+        <el-input
+          v-model="newUsername"
+          placeholder="请输入用户名"
+          max-length="20"
+          show-word-limit
+          :style="{ borderRadius: 'var(--el-border-radius-base)' }"
+        />
+        <template #footer>
+          <el-button @click="usernameDialogOpen = false">取消</el-button>
+          <el-button type="primary" @click="handleUpdateUsername"
+            >确定</el-button
+          >
+        </template>
+      </el-dialog>
 
       <!-- 账号安全 -->
-      <div class="section">
-        <h3 class="section-title">账号安全</h3>
-        <div class="security-info">
-          <div class="security-item">
-            <span class="label">手机号码：</span>
-            <span class="userphone">{{ userInfo.phone }}</span>
-            <span class="status" @click="openchange('phone')">{{
-              userInfo.phone ? '已绑定(点击可换绑)' : '未绑定(点击进行绑定)'
-            }}</span>
-          </div>
+      <el-col :xs="24" :sm="12" :md="12" :lg="12" :xl="12">
+        <el-card class="section-card" shadow="hover">
+          <template #header>
+            <div class="card-header">
+              <span class="section-title">账号安全</span>
+            </div>
+          </template>
+          <div class="security-container">
+            <el-descriptions border :column="1" class="security-info">
+              <el-descriptions-item label="手机号码">
+                <div class="security-content">
+                  <span class="content-text">{{
+                    userInfo.phone || '未设置'
+                  }}</span>
+                  <el-button
+                    type="primary"
+                    link
+                    @click="openchange('phone')"
+                    :class="{ 'text-green-500': userInfo.phone }"
+                  >
+                    {{
+                      userInfo.phone
+                        ? '已绑定(点击可换绑)'
+                        : '未绑定(点击进行绑定)'
+                    }}
+                  </el-button>
+                </div>
+              </el-descriptions-item>
 
-          <div class="security-item">
-            <span class="label">账号密码：</span>
-            <span class="status">{{
-              userInfo.has_password ? '已设置' : '未设置'
-            }}</span>
-            <button class="edit-btn" @click="openPasswordDialog">
-              修改密码
-            </button>
-          </div>
+              <el-descriptions-item label="账号密码">
+                <div class="security-content">
+                  <span class="content-text">{{
+                    userInfo.has_password ? '已设置' : '未设置'
+                  }}</span>
+                  <el-button type="primary" link @click="openPasswordDialog">
+                    修改密码
+                  </el-button>
+                </div>
+              </el-descriptions-item>
 
-          <ElDialog
-            v-model="passwordDialogOpen"
-            title="修改密码"
-            width="35%"
-            @close="closePasswordDialog"
+              <el-descriptions-item label="邮箱绑定">
+                <div class="security-content">
+                  <span class="content-text">{{
+                    userInfo.email || '未设置'
+                  }}</span>
+                  <el-button
+                    type="primary"
+                    link
+                    @click="openchange('email')"
+                    :class="{ 'text-green-500': userInfo.email }"
+                  >
+                    {{
+                      userInfo.email
+                        ? '已绑定(点击可换绑)'
+                        : '未绑定(点击进行绑定)'
+                    }}
+                  </el-button>
+                </div>
+              </el-descriptions-item>
+            </el-descriptions>
+          </div>
+        </el-card>
+
+        <!-- 用户提示卡片 -->
+        <el-card
+          class="section-card mt-4"
+          shadow="hover"
+          style="min-height: 260px"
+        >
+          <template #header>
+            <div class="card-header">
+              <span class="section-title">温馨提示</span>
+            </div>
+          </template>
+          <div class="tips-content">
+            <p class="tips-text">
+              亲爱的用户，感谢您使用我们的知识可视化系统！
+            </p>
+            <ul class="tips-list">
+              <li>• 请定期更新您的密码，确保账号安全</li>
+              <li>• 建议绑定手机号和邮箱，方便账号找回</li>
+              <li>• 上传清晰的头像可以提升您的个人形象</li>
+              <li>• 如有任何问题，请联系我们的客服团队</li>
+            </ul>
+            <p class="tips-wish">祝您使用愉快！</p>
+          </div>
+        </el-card>
+      </el-col>
+    </el-row>
+    <el-dialog
+      v-model="passwordDialogOpen"
+      title="修改密码"
+      width="35%"
+      @close="closePasswordDialog"
+    >
+      <el-form
+        style="width: 100%"
+        size="large"
+        :model="formdata"
+        :rules="rules"
+        ref="formRef"
+        :hide-required-asterisk="true"
+        label-width="auto"
+        class="password-form"
+      >
+        <el-form-item prop="new_password">
+          <el-input
+            v-model="formdata.new_password"
+            type="password"
+            placeholder="请输入新密码"
+            show-password
+            class="password-input"
+          />
+        </el-form-item>
+
+        <el-form-item prop="confirm_password">
+          <el-input
+            v-model="formdata.confirm_password"
+            type="password"
+            placeholder="请确认新密码"
+            show-password
+            class="password-input"
+          />
+        </el-form-item>
+
+        <el-form-item prop="code" class="parent">
+          <el-input
+            v-model="formdata.code"
+            type="text"
+            placeholder="请输入验证码"
+            class="password-input"
+          />
+          <el-button
+            v-if="show"
+            type="primary"
+            @click="getCode('resetpassword')"
+            text
+            class="getCode-btn"
+            >获取验证码</el-button
           >
-            <el-form
-              style="width: 100%"
-              size="large"
-              :model="formdata"
-              :rules="rules"
-              ref="formRef"
-              :hide-required-asterisk="true"
-              label-width="auto"
-              class="password-form"
-            >
-              <el-form-item prop="new_password">
-                <el-input
-                  v-model="formdata.new_password"
-                  type="password"
-                  placeholder="请输入新密码"
-                  show-password
-                  class="password-input"
-                />
-              </el-form-item>
-
-              <el-form-item prop="confirm_password">
-                <el-input
-                  v-model="formdata.confirm_password"
-                  type="pasword"
-                  placeholder="请确认新密码"
-                  show-password
-                  class="password-input"
-                />
-              </el-form-item>
-
-              <el-form-item prop="code" class="parent">
-                <el-input
-                  v-model="formdata.code"
-                  type="text"
-                  placeholder="请输入验证码"
-                  class="password-input"
-                />
-                <el-button
-                  v-if="show"
-                  type="primary"
-                  @click="getCode('resetpassword')"
-                  text
-                  class="getCode-btn"
-                  >获取验证码</el-button
-                >
-                <el-button
-                  v-else
-                  type="default"
-                  @click="getCode('resetPassword')"
-                  text
-                  disabled
-                  class="getCode-btn"
-                  >{{ countdown }}s</el-button
-                >
-              </el-form-item>
-            </el-form>
-
-            <template #footer>
-              <el-button
-                class="newpassword-cancel-btn"
-                @click="closePasswordDialog"
-                >取消</el-button
-              >
-              <el-button
-                type="primary"
-                class="newpassword-confirm-btn"
-                @click="handleUpdatePassword"
-                >确定</el-button
-              >
-            </template>
-          </ElDialog>
-          <ElDialog
-            v-model="changedDialogOpen"
-            title="联系方式"
-            width="35%"
-            @close="closechange"
+          <el-button
+            v-else
+            type="default"
+            @click="getCode('resetPassword')"
+            text
+            disabled
+            class="getCode-btn"
+            >{{ countdown }}s</el-button
           >
-            <el-form
-              style="width: 100%"
-              size="large"
-              :model="changeForm"
-              :rules="changerules"
-              ref="changeRef"
-              :hide-required-asterisk="true"
-              label-width="auto"
-              class="password-form"
-            >
-              <el-form-item prop="account" v-if="type === 'phone'">
-                <el-input
-                  v-model="changeForm.account"
-                  placeholder="请输入新的手机号"
-                  class="password-input"
-                />
-              </el-form-item>
-              <el-form-item prop="account" v-else>
-                <el-input
-                  v-model="changeForm.account"
-                  placeholder="请输入新的邮箱"
-                  class="password-input"
-                />
-              </el-form-item>
+        </el-form-item>
+      </el-form>
 
-              <el-form-item prop="password">
-                <el-input
-                  v-model="changeForm.password"
-                  type="password"
-                  placeholder="请输入密码"
-                  show-password
-                  class="password-input"
-                />
-              </el-form-item>
+      <template #footer>
+        <el-button class="newpassword-cancel-btn" @click="closePasswordDialog"
+          >取消</el-button
+        >
+        <el-button
+          type="primary"
+          class="newpassword-confirm-btn"
+          @click="handleUpdatePassword"
+          >确定</el-button
+        >
+      </template>
+    </el-dialog>
+    <el-dialog
+      v-model="changedDialogOpen"
+      title="联系方式"
+      width="35%"
+      @close="closechange"
+    >
+      <el-form
+        style="width: 100%"
+        size="large"
+        :model="changeForm"
+        :rules="changerules"
+        ref="changeRef"
+        :hide-required-asterisk="true"
+        label-width="auto"
+        class="password-form"
+      >
+        <el-form-item prop="account" v-if="type === 'phone'">
+          <el-input
+            v-model="changeForm.account"
+            placeholder="请输入新的手机号"
+            class="password-input"
+          />
+        </el-form-item>
+        <el-form-item prop="account" v-else>
+          <el-input
+            v-model="changeForm.account"
+            placeholder="请输入新的邮箱"
+            class="password-input"
+          />
+        </el-form-item>
 
-              <el-form-item prop="code" class="parent">
-                <el-input
-                  v-model="changeForm.code"
-                  type="text"
-                  placeholder="请输入验证码"
-                  class="password-input"
-                />
-                <el-button
-                  v-if="show"
-                  type="primary"
-                  @click="getCode('changeaccount')"
-                  text
-                  class="getCode-btn"
-                  >获取验证码</el-button
-                >
-                <el-button
-                  v-else
-                  type="default"
-                  @click="getCode('changeaccount')"
-                  text
-                  disabled
-                  class="getCode-btn"
-                  >{{ countdown }}s</el-button
-                >
-              </el-form-item>
-            </el-form>
+        <el-form-item prop="password">
+          <el-input
+            v-model="changeForm.password"
+            type="password"
+            placeholder="请输入密码"
+            show-password
+            class="password-input"
+          />
+        </el-form-item>
 
-            <template #footer>
-              <el-button class="newpassword-cancel-btn" @click="closechange"
-                >取消</el-button
-              >
-              <el-button
-                type="primary"
-                class="newpassword-confirm-btn"
-                @click="changecontact"
-                >确定</el-button
-              >
-            </template>
-          </ElDialog>
+        <el-form-item prop="code" class="parent">
+          <el-input
+            v-model="changeForm.code"
+            type="text"
+            placeholder="请输入验证码"
+            class="password-input"
+          />
+          <el-button
+            v-if="show"
+            type="primary"
+            @click="getCode('changeaccount')"
+            text
+            class="getCode-btn"
+            >获取验证码</el-button
+          >
+          <el-button
+            v-else
+            type="default"
+            @click="getCode('changeaccount')"
+            text
+            disabled
+            class="getCode-btn"
+            >{{ countdown }}s</el-button
+          >
+        </el-form-item>
+      </el-form>
 
-          <div class="security-item">
-            <span class="label">邮箱绑定：</span>
-            <span class="useremail">{{ userInfo.email }}</span>
-            <span class="status" @click="openchange('email')">{{
-              userInfo.email ? '已绑定(点击可换绑)' : '未绑定(点击进行绑定)'
-            }}</span>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
+      <template #footer>
+        <el-button class="newpassword-cancel-btn" @click="closechange"
+          >取消</el-button
+        >
+        <el-button
+          type="primary"
+          class="newpassword-confirm-btn"
+          @click="changecontact"
+          >确定</el-button
+        >
+      </template>
+    </el-dialog>
+  </el-card>
 </template>
 
-<script setup lang="ts">
+<script lang="ts" setup>
 import { Edit, Upload } from '@element-plus/icons-vue'
 import {
   ElDialog,
@@ -285,7 +363,6 @@ import {
   ElIcon,
   ElMessageBox
 } from 'element-plus'
-import type { UploadProps } from 'element-plus'
 import { ref, computed, onMounted, onUnmounted } from 'vue'
 import defaultAvatar from '@/assets/images/personal.png' // 默认头像
 import { useUserStore } from '@/stores/modules/user'
@@ -301,12 +378,12 @@ import { ChangeAvatar, getHome } from '@/api/user'
 import { storeToRefs } from 'pinia'
 import { useLayoutStore } from '@/stores'
 const LayoutStore = useLayoutStore()
+type UploadProps = (typeof ElUpload)['props']
 
 // 初始化用户仓库：
 const userStore = useUserStore()
 const router = useRouter()
 const { userInfo } = storeToRefs(userStore)
-
 onMounted(() => {
   fetchHomeData()
   LayoutStore.isCollapse = false
@@ -461,7 +538,7 @@ const avatarDialogOpen = ref(false)
 const avatarFileList = ref<UploadProps['fileList']>([])
 const showUploadComponent = ref(false)
 
-const handleFileChange: UploadProps['onChange'] = uploadFile => {
+const handleFileChange: UploadProps['onChange'] = (uploadFile: any) => {
   avatarFileList.value = [uploadFile]
 
   const file = uploadFile.raw
@@ -712,247 +789,174 @@ const handleSwitchAccount = async () => {
 </script>
 
 <style lang="scss">
-.personal-info-container {
-  width: 100%;
-  height: 100%;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  flex-direction: row;
-}
-
-// 通用区域样式:
-.section {
-  height: 100%;
-  width: 50%;
-  font-size: 25px;
-  font-weight: 600;
-  color: #4e4e4e;
-  background-color: #fff;
-  border-radius: 20px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-  padding: 40px;
+.personal-center {
   position: relative;
-  min-height: 513px;
-  margin: 0px 50px;
+  border-radius: 20px;
+
+  .personal-info-container {
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+
+  .section-card {
+    border-radius: var(--el-border-radius-base);
+    transition: all 0.3s ease;
+  }
+
+  .section-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.12);
+  }
+
+  .card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
 
   .section-title {
-    font-size: 24px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    position: absolute;
-    left: 5%;
-    top: 5%;
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--el-text-color-primary);
   }
 
-  // 基本信息:
   .basic-info {
     display: flex;
+    flex-direction: column;
     align-items: center;
-    justify-content: center;
-    flex-direction: column;
-    gap: 50px;
-    padding: 10px;
-
-    .avatar-wrapper {
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      flex-direction: column;
-      align-items: center; // 修改头像 "按钮" y 轴居中
-      gap: 10px; // 头像与按钮之间的间距
-      margin-top: 30px;
-
-      .avatar {
-        width: 70px;
-        height: 70px;
-        border-radius: 50%;
-        overflow: hidden;
-        border: 1px solid #ddd;
-
-        .avatar-img {
-          width: 100%;
-          height: 100%;
-          object-fit: cover;
-        }
-      }
-
-      .edit-avatar-btn {
-        font-size: 16px;
-        background-color: transparent;
-        border: none;
-        cursor: pointer;
-
-        &:hover {
-          color: #409eff;
-        }
-      }
-    }
-
-    .avatar-upload-container {
-      display: flex;
-      justify-content: center;
-      padding: 20px 0;
-    }
-
-    .upload-btn {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      width: 100px;
-      height: 100px;
-      border: 1px dashed #999;
-      border-radius: 50%;
-      transition: border-color 0.3s;
-
-      &:hover {
-        border-color: #409eff;
-      }
-    }
-
-    .username-wrapper {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      flex-direction: column;
-      gap: 20px;
-      font-size: 20px;
-
-      .username-container {
-        .label {
-          color: #666;
-          margin: 10px;
-        }
-
-        .username {
-          color: #333;
-          font-weight: 500;
-        }
-      }
-
-      .edit-btn {
-        font-size: 16px;
-        background-color: transparent;
-        border: none;
-        cursor: pointer;
-        align-items: center;
-        display: flex;
-        gap: 5px;
-
-        &:hover {
-          color: #409eff;
-        }
-      }
-    }
-
-    // 切换账号按钮：
-    .switch-account-btn {
-      padding: 8px 20px;
-      border-radius: 8px;
-      border: none;
-      background-color: #409eff;
-      color: #fff;
-      font-size: 16px;
-      cursor: pointer;
-      transition: all 0.3s;
-
-      &:hover {
-        background-color: #5cb3ff;
-      }
-    }
+    padding: 49px 0;
   }
 
-  // 账号安全：
-  .security-info {
+  .avatar-wrapper {
     display: flex;
-    align-items: start;
-    justify-content: center;
     flex-direction: column;
-    gap: 70px;
-    margin-top: 60px;
-    padding: 20px;
-
-    .security-item {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-
-      .label {
-        font-size: 18px;
-        color: #666;
-      }
-
-      .status {
-        cursor: pointer;
-        font-size: 16px;
-        padding: 2px 8px;
-        color: #5a6edf;
-        font-weight: 500;
-      }
-
-      .edit-btn {
-        padding: 2px 8px;
-        font-size: 16px;
-        border: none;
-        background-color: transparent;
-        cursor: pointer;
-        color: #3687d8;
-        display: flex;
-        align-items: center;
-        gap: 5px;
-
-        &:hover {
-          color: #409eff;
-        }
-      }
-
-      .userphone,
-      .useremail {
-        font-size: 16px;
-        color: #333;
-        font-weight: 500;
-        padding: 2px 8px;
-      }
-    }
+    align-items: center;
+    gap: 2px;
+    margin-bottom: 50px;
   }
-}
 
-// 修改密码弹窗：
-.password-form {
-  display: flex;
-  flex-direction: column;
-  gap: 15px;
+  .avatar-upload-container {
+    display: flex;
+    justify-content: center;
+    padding: 20px 0;
+  }
 
-  .password-input {
+  .username-wrapper {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-bottom: 50px;
+  }
+
+  .security-info {
     width: 100%;
   }
 
-  .show-pwd-toggle-container {
-    text-align: right;
-    font-size: 12px;
+  .security-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+  }
 
-    .show-pwd-toggle {
-      color: #409eff;
-      cursor: pointer;
+  .content-text {
+    font-size: 14px;
+    color: var(--el-text-color-secondary);
+    max-width: 60%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .text-green-500 {
+    color: var(--el-color-success) !important;
+  }
+
+  .mt-2 {
+    margin-top: 8px;
+  }
+
+  .mt-4 {
+    margin-top: 16px;
+  }
+
+  .password-form {
+    margin-top: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+
+    .password-input {
+      width: 100%;
+      margin-bottom: 16px;
     }
   }
-}
 
-.parent {
-  position: relative;
-  padding: 10px 0px;
-  display: flex;
-  justify-content: center;
+  .el-form-item__content {
+    position: relative;
+  }
+
   .getCode-btn {
     position: absolute;
-    right: 0;
-    cursor: pointer;
+    right: 0px;
+    top: -2px;
+    padding: 0 10px;
+    border-radius: var(--el-border-radius-base);
   }
-}
 
-.newpassword-confirm-btn {
-  margin-left: 20px;
+  .parent {
+    position: relative;
+    padding: 10px 0px;
+    display: flex;
+    justify-content: center;
+  }
+
+  /* 保留必要的Dialog样式，其余使用Element-plus默认样式 */
+  .el-dialog__title {
+    font-weight: 600;
+  }
+
+  /* 按钮组样式 */
+  .newpassword-cancel-btn,
+  .newpassword-confirm-btn {
+    min-width: 80px;
+  }
+
+  .newpassword-confirm-btn {
+    margin-left: 20px;
+    border-radius: var(--el-border-radius-base);
+  }
+
+  /* 温馨提示卡片样式 */
+  .tips-content {
+    padding: 0;
+  }
+
+  .tips-text {
+    font-size: 16px;
+    color: var(--el-text-primary-color);
+    margin-bottom: 15px;
+    font-weight: 500;
+  }
+
+  .tips-list {
+    padding-left: 0;
+    margin-bottom: 15px;
+    font-size: 15px;
+  }
+
+  .tips-list li {
+    list-style: none;
+    padding: 5px 0;
+    color: var(--el-text-regular-color);
+    line-height: 1;
+  }
+
+  .tips-wish {
+    color: var(--el-color-primary);
+    font-weight: 500;
+    margin-top: 5px;
+  }
 }
 </style>

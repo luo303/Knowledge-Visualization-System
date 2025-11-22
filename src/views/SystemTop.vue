@@ -5,36 +5,32 @@
         <h1><span class="square"></span>知识可视化系统</h1>
       </div>
       <div class="box2">
-        <nav>
-          <div class="icon-container">
-            <router-link active-class="active" to="/layout/hanedit"
-              ><div class="avatar">
-                <img
-                  src="@/assets/images/notification.png"
-                  class="notification-img"
-                  alt="通知"
-                />
-                <span
-                  class="notification-badge"
-                  v-if="hasNewAiMessage"
-                ></span></div
-            ></router-link>
-            <router-link active-class="active" to="/layout/personalcenter">
-              <div class="avatar">
-                <img
-                  :src="getAvatarUrl(userInfo.avatar)"
-                  class="avatar-img"
-                  alt="个人"
-                />
-              </div>
-            </router-link>
-          </div>
-        </nav>
-        <nav>
-          <div class="logout" active-class="active" @click="handleToLogin">
-            <el-button type="primary" class="logout-text">退出登录</el-button>
-          </div>
-        </nav>
+        <div class="icon-container">
+          <el-button
+            class="notification-btn"
+            type="text"
+            @click="handleToMessage"
+            circle
+            size="large"
+          >
+            <el-badge :is-dot="LayoutStore.newChatId !== ''" :offset="[-2, 6]">
+              <el-avatar>
+                <el-icon><Bell /></el-icon>
+              </el-avatar>
+            </el-badge>
+          </el-button>
+
+          <router-link to="/layout/personalcenter">
+            <el-button type="text" size="large" circle>
+              <el-avatar :src="getAvatarUrl(userInfo.avatar)">
+                <el-icon><User /></el-icon>
+              </el-avatar>
+            </el-button>
+          </router-link>
+        </div>
+        <el-button type="primary" size="large" @click="handleToLogin"
+          >退出登录</el-button
+        >
       </div>
     </div>
   </div>
@@ -45,14 +41,14 @@ import { ElMessageBox } from 'element-plus'
 import { useRouter } from 'vue-router'
 import { useUserStore } from '@/stores/modules/user'
 import { useLayoutStore } from '@/stores'
-import { ref } from 'vue'
 import { storeToRefs } from 'pinia'
 import defaultAvatar from '@/assets/images/personal.png' // 默认头像
+import { Bell, User } from '@element-plus/icons-vue'
+import { nextTick } from 'vue'
 const LayoutStore = useLayoutStore()
 const userStore = useUserStore()
 const { userInfo } = storeToRefs(userStore)
 const router = useRouter()
-const hasNewAiMessage = ref(false)
 // 处理本地静态资源路径：
 const getAvatarUrl = (avatarUrl: string | undefined) => {
   if (!avatarUrl) return defaultAvatar
@@ -76,6 +72,18 @@ const handleToLogin = () => {
     router.push('/login')
   })
 }
+//新消息跳转对话框
+const handleToMessage = async () => {
+  if (router.currentRoute.value.path !== '/layout/handedit') {
+    router.push('/layout/handedit')
+  }
+  if (LayoutStore.newChatId) {
+    LayoutStore.currentChatId = LayoutStore.newChatId
+    await nextTick()
+    LayoutStore.isChatting = true
+    LayoutStore.newChatId = ''
+  }
+}
 </script>
 
 <style lang="scss" scoped>
@@ -84,151 +92,59 @@ const handleToLogin = () => {
   align-items: center;
   justify-content: space-between;
   height: 115px;
-  color: rgb(115, 114, 114);
-}
-
-.title {
-  font-size: 28px;
+  color: var(--el-text-color-regular);
 }
 
 .square {
   display: inline-block;
-  width: 30px; /* 正方形大小 */
+  width: 30px;
   height: 30px;
-  background: #608bd2;
-  border-radius: 30%;
-  margin-right: 8px; /* 与文字的间距 */
+  background: var(--el-color-primary);
+  border-radius: 10px;
+  margin: 0 52px 0 25px;
 }
 
 .box1 {
   display: flex;
   align-items: center;
 }
+
 h1 {
-  margin-left: 10px;
   display: flex;
   align-items: center;
-  font:
-    normal 28px Cookie,
-    Arial,
-    Helvetica,
-    sans-serif;
+  justify-content: center;
+  font-size: 30px;
+  letter-spacing: 2px;
   padding: 0px 20px;
 }
 
 .box2 {
   display: flex;
-  margin-right: 2%;
+  align-items: center;
+  gap: 70%;
+  margin-right: 13.5%;
 }
 
-// 图标容器
 .icon-container {
   display: flex;
-  justify-content: center;
   align-items: center;
-  gap: 20px;
-}
+  gap: 70%;
 
-.notification-badge {
-  position: absolute;
-  top: -2px;
-  right: -4px;
+  :deep(.el-avatar) {
+    background-color: var(--el-color-primary);
 
-  width: 12px;
-  height: 12px;
-  border-radius: 50%;
-
-  background-color: #ff4d4f;
-
-  box-shadow: 2px 2px 2px rgba(0, 0, 0, 0.2);
-}
-
-nav {
-  display: flex;
-  align-items: center;
-  margin: 0px 50px;
-  font:
-    16px Arial,
-    Helvetica,
-    sans-serif;
-}
-nav a {
-  padding: 0 15px;
-  width: 32px;
-  text-decoration: none;
-  color: #ffffff;
-  font-size: 16px;
-  font-weight: normal;
-  opacity: 0.9;
-}
-
-nav a:hover {
-  opacity: 1;
-}
-
-.active {
-  color: #608bd2;
-  pointer-events: none;
-  opacity: 1;
-}
-
-.contents {
-  display: flex;
-  justify-content: center;
-}
-.content {
-  display: flex;
-  width: 1400px;
-  height: 1400px;
-  /*background-color: #f0f2f3;*/
-}
-.logout {
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: background-color 0.2s;
-}
-
-.logout-text {
-  height: 45px;
-  font-size: 20px;
-  border-radius: 10px;
-}
-
-.logout-text:hover {
-  box-shadow: 0 2px 1px rgb(175, 173, 173);
-  transform: translateY(-2px);
-}
-.avatar {
-  cursor: pointer;
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  overflow: hidden;
-  border: 1px solid rgb(134, 133, 133);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: background-color 0.2s;
-  position: relative;
-
-  &:hover {
-    background-color: #fff;
-    box-shadow: 0 2px 1px rgb(115, 114, 114);
-    transform: translateY(-2px);
+    .el-icon {
+      color: white;
+      font-size: 23px;
+    }
   }
-
-  .notification-img {
-    width: 70%;
-    height: 70%;
-    object-fit: cover;
+  :deep(.el-button--text) {
+    transition: all var(--el-transition-duration-fast);
   }
+}
 
-  .avatar-img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-  }
+.notification-btn :deep(.el-badge__content.is-dot) {
+  top: 1px;
+  right: 4px;
 }
 </style>
