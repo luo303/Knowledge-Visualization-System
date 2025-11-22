@@ -455,6 +455,7 @@ const sendMsg = async () => {
         mapid === LayoutStore.data.mapId
       ) {
         newChatId.value = id
+        ElMessage.success('有新的消息')
       }
       scrollToBottom()
     } else if ((res as any).Code === 5001) {
@@ -604,7 +605,7 @@ onBeforeUnmount(() => {
 <style lang="scss" scoped>
 .talk {
   height: 90%;
-  border-radius: 24px;
+  border-radius: 20px;
   box-shadow: 0 10px 24px rgba(31, 38, 135, 0.12);
   background-color: #ffffff;
   backdrop-filter: saturate(120%);
@@ -614,7 +615,7 @@ onBeforeUnmount(() => {
     height: 100%;
     margin: 0 auto;
     box-sizing: border-box;
-    border-radius: 24px;
+    border-radius: 20px;
     box-shadow: 0 6px 20px rgba(31, 38, 135, 0.08);
     background-color: #ffffff;
   }
@@ -640,7 +641,7 @@ onBeforeUnmount(() => {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    border-radius: 24px 24px 0 0;
+    border-radius: 20px 20px 0 0;
     border-bottom: 1px solid #eef2f6;
     background: linear-gradient(180deg, #ffffff, #fafbff);
     .icon {

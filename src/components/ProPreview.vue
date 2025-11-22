@@ -3,7 +3,7 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, ref } from 'vue'
+import { onMounted, ref, onUnmounted } from 'vue'
 import MindMap from 'simple-mind-map'
 import type { MindMapOptions } from '@/utils/type'
 const baseMap = {
@@ -35,9 +35,17 @@ onMounted(() => {
   mindMap.setThemeConfig({
     lineStyle: 'curve'
   })
-  setTimeout(() => {
+  // 监听容器尺寸变化，自动调整画布
+  const resizeObserver = new ResizeObserver(() => {
     mindMap.resize()
-  }, 260)
+    mindMap.view.fit()
+  })
+  resizeObserver.observe(mind.value)
+
+  // 组件卸载时停止监听
+  onUnmounted(() => {
+    resizeObserver.disconnect()
+  })
 })
 </script>
 

@@ -453,9 +453,17 @@ onMounted(async () => {
     maxZoomRatio: 150, //最大缩放倍数
     minZoomRatio: 20 //最小缩放倍数
   } as any)
-  setTimeout(() => {
+  // 监听容器尺寸变化，自动调整画布
+  const resizeObserver = new ResizeObserver(() => {
     mindMap.resize()
-  }, 260)
+    mindMap.view.fit()
+  })
+  const container = document.getElementById('mindMapContainer')
+  if (container) resizeObserver.observe(container)
+  // 组件卸载时断开监听
+  onBeforeUnmount(() => {
+    resizeObserver.disconnect()
+  })
   //删除Shift + Backspace快捷键
   mindMap.keyCommand.removeShortcut('Shift+Backspace')
   //监听搜索节点
