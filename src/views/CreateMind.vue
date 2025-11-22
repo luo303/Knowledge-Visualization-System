@@ -315,7 +315,7 @@ const viewMindmap = async () => {
     console.groupEnd()
 
     // 验证创建结果
-    if (!createResp || createResp.Code !== 200 || !createResp.Data?.mapId) {
+    if (!createResp || createResp.Code !== 200 || !createResp.Data.mapId) {
       throw new Error('正式导图创建失败')
     }
     const newMapId = createResp.Data.mapId
@@ -324,7 +324,7 @@ const viewMindmap = async () => {
     const userStore = useUserStore()
     const formalMapData = {
       ...draftMapData,
-      batchId, // 保留批次ID（可选）
+      batchId: batchId || '', // 保留批次ID（可选）
       mapId: newMapId, // 存储正式ID
       userId: userStore.userInfo?.user_id || ''
     }
@@ -332,7 +332,10 @@ const viewMindmap = async () => {
 
     // 步骤4：跳转至编辑页（携带新生成的 mapId）
     ElMessage.success('导图生成成功，即将跳转编辑页')
-    router.push({ name: 'generate-pro', query: { mapId: newMapId } })
+    router.push({
+      name: 'generate-pro',
+      query: { mapId: newMapId, batchId: batchId || '' }
+    })
   } catch (error) {
     const errorMsg = (error as Error).message || '查看导图失败'
     ElMessage.error(errorMsg)
