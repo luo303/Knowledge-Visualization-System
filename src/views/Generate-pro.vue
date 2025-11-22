@@ -1,31 +1,45 @@
 <template>
   <div class="createmind-container">
-    <div class="createmind-title">请点击底部按钮选择想要生成的导图</div>
-    <div class="generatemap-container">
-      <div class="singlemindmap-container" v-for="map in maps" :key="map.mapId">
-        <div class="map-info">
-          <h3 class="map-name">{{ map.root.data.text }}</h3>
-          <div class="map-meta">
-            <span class="map-time">{{ map.createTime }}</span>
-          </div>
-        </div>
-        <div class="map-picture">
-          <PreviewPage :Map="map" class="preview-img" />
-        </div>
-        <el-button
-          type="primary"
-          @click="handleCardClick(map)"
-          style="
-            width: 95%;
-            height: 10%;
-            margin: 10px 0px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-          "
+    <!-- 1. 显示 loading 状态 -->
+    <div v-if="loading" class="loading">正在加载导图...</div>
+
+    <!-- 2. 显示错误信息 -->
+    <div v-else-if="errorMsg" class="error">{{ errorMsg }}</div>
+
+    <!-- 3. 有数据但为空数组 -->
+    <div v-else-if="maps.length === 0" class="empty">未查询到任何导图数据</div>
+    <div v-else>
+      <div class="createmind-title">请点击底部按钮选择想要生成的导图</div>
+      <div class="generatemap-container">
+        <div
+          class="singlemindmap-container"
+          v-for="map in maps"
+          :key="map.mapId"
         >
-          <span>查看导图</span>
-        </el-button>
+          <div class="map-info">
+            <h3 class="map-name">{{ map.root.data.text }}</h3>
+            <div class="map-meta">
+              <span class="map-time">{{ map.createTime }}</span>
+            </div>
+          </div>
+          <div class="map-picture">
+            <PreviewPage :Map="map" class="preview-img" />
+          </div>
+          <el-button
+            type="primary"
+            @click="handleCardClick(map)"
+            style="
+              width: 95%;
+              height: 10%;
+              margin: 10px 0px;
+              display: flex;
+              justify-content: center;
+              align-items: center;
+            "
+          >
+            <span>查看导图</span>
+          </el-button>
+        </div>
       </div>
     </div>
   </div>
@@ -33,69 +47,76 @@
 
 <script lang="ts" setup>
 import PreviewPage from '@/components/PreviewPage.vue'
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
+import { ElMessage } from 'element-plus'
 import type { MindMapOptions } from '@/utils/type'
-import { useRouter } from 'vue-router'
+import { useRouter, useRoute } from 'vue-router'
+import { getBatchById } from '@/api/user/index'
+import JSON5 from 'json5'
 
 const router = useRouter()
+const route = useRoute()
+const maps = ref<MindMapOptions[]>([])
+const loading = ref<boolean>(true)
+const errorMsg = ref<string>('')
+const batchId = ref<string>('')
 
-const maps = ref<MindMapOptions[]>([
-  {
-    mapId: 'map-1001',
-    root: {
-      data: { text: '项目规划' },
-      children: [
-        { data: { text: '需求分析' } },
-        { data: { text: '技术选型' } },
-        { data: { text: '开发计划' } }
-      ]
-    },
-    title: '项目规划',
-    userId: '12313245646',
-    desc: '这是一个项目规划',
-    layout: 'mindMap',
-    createTime: '2022-01-01 :00:00'
-  },
-  {
-    mapId: 'map-1002',
-    root: {
-      data: { text: '问题排查' },
-      children: [
-        { data: { text: '前端问题' } },
-        { data: { text: '后端问题' } },
-        { data: { text: '网络问题' } }
-      ]
-    },
-    title: '问题排查',
-    userId: '12313245646',
-    desc: '这是一个问题排查',
-    layout: 'fishBone',
-    createTime: '2022-01-02 12:00:00'
-  },
-  {
-    mapId: 'map-1003',
-    root: {
-      data: { text: '团队成员' },
-      children: [
-        { data: { text: '产品经理' } },
-        { data: { text: 'UI设计师' } },
-        { data: { text: '前端开发' } },
-        { data: { text: '后端开发' } }
-      ]
-    },
-    title: '团队成员',
-    userId: '12313245646',
-    desc: '这是一个团队成员',
-    layout: 'orgChart',
-    createTime: '2022-01-03 12:00:00'
+onMounted(async () => {
+  try {
+    const queryBatchId = route.query.batchId as string
+    if (!queryBatchId) {
+      throw new Error('未获取到导图批次 ID ,请重新上传文件！')
+    }
+    batchId.value = queryBatchId
+    console.log('generate-pro 页面获取到的 batchId:', batchId.value)
+    // 调用获取id批次的接口
+    loading.value = true
+    const batchResponse = await getBatchById(batchId.value)
+    console.log('getBatchById 接口完整响应:', batchResponse) // 关键：确认接口返回结构
+    const batchData = batchResponse as any
+    if (!batchData || !batchData.results || batchData.results.length === 0) {
+      throw new Error('接口返回数据格式错误,results 数组缺失或为空')
+    }
+    console.log('接口返回的 results 数组:', batchData.results)
+    // 解析每个结果的 map_json,转换成MindMapOption形式
+    const realMaps = batchData.results.map((item: any, index: number) => {
+      const mapJson = JSON5.parse(item.map_json)
+
+      return {
+        mapId: item.map_id || `map-${batchId.value}-${index}`, // 优先用接口返回的 mapId，无则生成临时ID
+        root: mapJson.root || { data: { text: '未命名导图' }, children: [] }, // 导图节点结构
+        title: mapJson.title || '未命名导图',
+        userId: item.user_id || '',
+        desc: mapJson.desc || '无描述',
+        layout: mapJson.layout || 'mindMap',
+        createTime: item.create_time || new Date().toLocaleString() // 接口返回的创建时间
+      } as MindMapOptions
+    })
+
+    console.log('解析后的 realMaps 数组:', realMaps)
+    if (realMaps.length === 0) {
+      throw new Error('解析后未生成任何导图数据')
+    }
+    maps.value = realMaps
+    console.log('maps 数组已更新:', maps.value)
+
+    // 更新 maps 数据
+    maps.value = realMaps
+  } catch (error) {
+    errorMsg.value = (error as Error).message || '获取导图数据失败，请重试'
+    console.error('获取导图数据失败:', error)
+  } finally {
+    loading.value = false
   }
-])
+})
 
 // 卡片点击事件
 const handleCardClick = (map: any) => {
   const currentMapId = map.mapId
   if (currentMapId && currentMapId !== 'xxx') {
     router.push({ name: 'handedit', query: { mapId: currentMapId } })
+  } else {
+    ElMessage.warning('导图 ID 无效，无法跳转！')
   }
 }
 </script>
@@ -130,17 +151,15 @@ const handleCardClick = (map: any) => {
     .singlemindmap-container {
       height: 100%;
       width: 100%;
+      display: flex;
       flex-direction: column;
       background-color: white;
       border-radius: 20px;
       border: 1px solid #ebebeb;
       cursor: pointer;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      gap: 5px;
       box-shadow: 7px 14px 12px rgba(0, 0, 0, 0.15);
       transition: all 0.2s;
+
       &:hover {
         transform: translateY(-7px);
         box-shadow: 10px 17px 12px rgba(0, 0, 0, 0.15);
@@ -157,7 +176,6 @@ const handleCardClick = (map: any) => {
           font-weight: bold;
           display: flex;
           white-space: nowrap;
-          margin-right: 120px;
         }
 
         .map-meta {
@@ -178,13 +196,12 @@ const handleCardClick = (map: any) => {
         background-color: #f8f8f9;
         flex-direction: column;
         position: relative;
+        margin: 0 auto;
 
         .preview-img {
           width: 100%;
         }
       }
-
-      /* 使用Element Plus按钮组件的内置样式 */
     }
   }
 }

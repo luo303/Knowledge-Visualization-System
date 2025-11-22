@@ -169,6 +169,7 @@ import {
   Edit,
   Download
 } from '@element-plus/icons-vue'
+import JSON5 from 'json5'
 
 const uploadedFileName = ref('') // 存储上传的文件名
 const LayoutStore = useLayoutStore()
@@ -233,10 +234,6 @@ const handleFileUpload = async (uploadFile: any) => {
     const strategy = '1'
     const Resp = await generateMultipleMindMaps(file, text, count, strategy)
     const generateResp = Resp as any
-    if (generateResp.Code === 200 && generateResp.Data.success) {
-      const batchId = generateResp.Data.batch_id
-      LayoutStore.data = { ...LayoutStore.data, batchId } // 存储 batchId 到全局状态
-    }
     console.log('生成导图接口调用完成，收到响应：', generateResp)
     console.groupEnd()
 
@@ -250,6 +247,11 @@ const handleFileUpload = async (uploadFile: any) => {
       console.error('"生成多个导图" 接口业务逻辑失败:', errorMsg)
       throw new Error(errorMsg)
     }
+
+    const batchId = generateResp.batch_id
+    console.log('获取到导图的批次ID:', batchId)
+
+    LayoutStore.data = { ...LayoutStore.data, batchId } // 存储 batchId 到全局状态
 
     // 网络请求完成后，清楚进度条计时器，并将进度条直接拉满：
     clearInterval(progressInterval)
@@ -271,12 +273,14 @@ const handleFileUpload = async (uploadFile: any) => {
 // 查看导图（跳转编辑页）
 const viewMindmap = async () => {
   const { mapId, batchId } = LayoutStore.data || {}
-  if (mapId && mapId !== 'xxx') {
-    router.push({ name: 'generate-pro', query: { mapId } }) // 携带 mapId
-  }
+
   if (!batchId) {
-    ElMessage.warning('未找到导图批次ID，无法生成正式导图')
+    ElMessage.warning('未找到导图批次ID, 无法生成正式导图')
     return
+  }
+
+  if (mapId && mapId !== 'xxx') {
+    router.push({ name: 'generate-pro', query: { batchId, mapId } }) // 携带 mapId
   }
   try {
     // 步骤1：调用“根据id获取批次”接口，获取导图草稿数据
@@ -286,11 +290,15 @@ const viewMindmap = async () => {
     const batchData = batchResp as any
     console.log('批次数据响应：', batchData)
     console.groupEnd()
-
     // 验证草稿数据（确保有核心字段）
-    const draftMapData = batchData?.Data?.mindmaps?.[0]
-    if (!draftMapData || !draftMapData.root) {
+    const firstResult = batchData?.results?.[0]
+    if (!firstResult || !firstResult.map_json) {
       throw new Error('导图草稿数据获取失败或数据不完整')
+    }
+
+    const draftMapData = JSON5.parse(firstResult.map_json)
+    if (!draftMapData.root) {
+      throw new Error('导图节点结构缺失')
     }
 
     // 步骤2：调用“创建导图”接口，生成正式 mapId
