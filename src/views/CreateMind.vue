@@ -194,7 +194,20 @@ const beforeUpload = (file: File) => {
 }
 
 const handleFileUpload = async (uploadFile: any) => {
+  console.log('===== handleFileUpload 开始执行 =====')
+
+  if (!uploadFile || !uploadFile.raw) {
+    console.error('上传文件无效:', uploadFile)
+    ElMessage.error('上传文件无效，请重新选择')
+    return
+  }
+
   const file = uploadFile.raw
+  console.log('上传的文件信息:', {
+    name: file.name,
+    size: file.size,
+    type: file.type
+  })
 
   // 检查在beforeUpload中已经完成
 
@@ -242,16 +255,50 @@ const handleFileUpload = async (uploadFile: any) => {
       JSON.stringify(generateResp, null, 2)
     )
 
-    if (!generateResp || !generateResp.success || !generateResp.batch_id) {
-      const errorMsg = generateResp?.Message || '生成导图草稿失败!'
-      console.error('"生成多个导图" 接口业务逻辑失败:', errorMsg)
+    // 增强的错误处理和数据提取逻辑
+    let batchId = null
+
+    // 检查多种可能的响应结构
+    if (generateResp && generateResp.Data) {
+      // 检查标准结构
+      if (generateResp.Data.success && generateResp.Data.batch_id) {
+        batchId = generateResp.Data.batch_id
+        console.log('从标准结构获取到batch_id:', batchId)
+      }
+      // 检查可能的替代结构
+      else if (generateResp.Data.batch_id) {
+        batchId = generateResp.Data.batch_id
+        console.log('从替代结构获取到batch_id(忽略success标志):', batchId)
+      }
+      // 检查其他可能的字段名
+      else if (generateResp.Data.batchId) {
+        batchId = generateResp.Data.batchId
+        console.log('从batchId字段获取到批次ID:', batchId)
+      }
+    }
+
+    // 如果仍然没有获取到batchId，抛出错误
+    if (!batchId) {
+      const errorMsg =
+        generateResp?.Message || '未能获取到batch_id，请检查接口响应!'
+      console.error('"生成多个导图" 接口未返回有效的batch_id:', errorMsg)
+      console.error('响应数据结构:', Object.keys(generateResp || {}))
+      if (generateResp?.Data) {
+        console.error('Data字段结构:', Object.keys(generateResp.Data))
+      }
       throw new Error(errorMsg)
     }
 
-    const batchId = generateResp.batch_id
-    console.log('获取到导图的批次ID:', batchId)
+    console.log('成功获取到导图的批次ID:', batchId)
 
-    LayoutStore.data = { ...LayoutStore.data, batchId } // 存储 batchId 到全局状态
+    // 创建包含batchId的完整对象，确保正确的类型结构
+    const updatedData = {
+      ...LayoutStore.data,
+      batchId: batchId
+    }
+
+    LayoutStore.data = updatedData
+    console.log('已将batchId保存到LayoutStore:', LayoutStore.data.batchId)
 
     // 网络请求完成后，清楚进度条计时器，并将进度条直接拉满：
     clearInterval(progressInterval)
@@ -263,19 +310,44 @@ const handleFileUpload = async (uploadFile: any) => {
     clearInterval(progressInterval)
     progress.value = 100
     await new Promise(resolve => setTimeout(resolve, 1000))
-    console.error('文件处理失败:', error)
-    console.error('错误堆栈:', (error as Error).stack)
-    console.error('文件处理失败:', error)
+
+    // 详细的错误日志和处理
+    console.error('===== 文件处理失败 =====')
+    console.error('错误对象:', error)
+    if (error instanceof Error) {
+      console.error('错误消息:', error.message)
+      console.error('错误堆栈:', error.stack)
+    }
+
+    // 尝试从LayoutStore获取当前状态，以便调试
+    console.error('LayoutStore当前状态:', {
+      hasData: !!LayoutStore.data,
+      batchId: LayoutStore.data?.batchId,
+      mapId: LayoutStore.data?.mapId
+    })
+
+    // 显示用户友好的错误消息
+    ElMessage.error(
+      '文件处理失败: ' + (error instanceof Error ? error.message : '未知错误')
+    )
     status.value = 'error'
+  } finally {
+    console.log('===== handleFileUpload 执行结束 =====')
   }
 }
 
 // 查看导图（跳转编辑页）
 const viewMindmap = async () => {
-  const { mapId, batchId } = LayoutStore.data || {}
+  // 直接从LayoutStore.data获取batchId，避免解构可能导致的问题
+  const batchId = LayoutStore.data?.batchId
+  const mapId = LayoutStore.data?.mapId
+
+  console.log('viewMindmap - 从LayoutStore获取的batchId:', batchId)
+  console.log('viewMindmap - 从LayoutStore获取的mapId:', mapId)
 
   if (!batchId) {
     ElMessage.warning('未找到导图批次ID, 无法生成正式导图')
+    console.error('LayoutStore中缺少有效的batchId:', LayoutStore.data)
     return
   }
 
@@ -283,15 +355,21 @@ const viewMindmap = async () => {
     router.push({ name: 'generate-pro', query: { batchId, mapId } }) // 携带 mapId
   }
   try {
+    console.log('===== viewMindmap 开始执行 =====')
     // 步骤1：调用“根据id获取批次”接口，获取导图草稿数据
     ElMessage.info('正在获取导图数据...')
     console.group('=== 调用`根据id获取批次`接口 ===')
+    console.log('调用getBatchById的参数:', { batchId })
     const batchResp = await getBatchById(batchId)
     const batchData = batchResp as any
     console.log('批次数据响应：', batchData)
+    console.log('批次数据响应结构:', Object.keys(batchData || {}))
+    if (batchData?.Data) {
+      console.log('Data字段结构:', Object.keys(batchData.Data))
+    }
     console.groupEnd()
     // 验证草稿数据（确保有核心字段）
-    const firstResult = batchData?.results?.[0]
+    const firstResult = batchData?.Data?.results?.[0]
     if (!firstResult || !firstResult.map_json) {
       throw new Error('导图草稿数据获取失败或数据不完整')
     }
@@ -322,13 +400,17 @@ const viewMindmap = async () => {
 
     // 步骤3：更新全局状态（存储正式 mapId 和完整导图数据）
     const userStore = useUserStore()
+    // 确保batchId被正确保留，不是可选的
     const formalMapData = {
       ...draftMapData,
-      batchId: batchId || '', // 保留批次ID（可选）
+      batchId: batchId, // 必须保留批次ID
       mapId: newMapId, // 存储正式ID
       userId: userStore.userInfo?.user_id || ''
     }
+
+    console.log('准备保存到LayoutStore的完整数据:', formalMapData)
     LayoutStore.data = formalMapData // 更新全局状态
+    console.log('LayoutStore更新后的数据:', LayoutStore.data)
 
     // 步骤4：跳转至编辑页（携带新生成的 mapId）
     ElMessage.success('导图生成成功，即将跳转编辑页')
@@ -337,9 +419,26 @@ const viewMindmap = async () => {
       query: { mapId: newMapId, batchId: batchId || '' }
     })
   } catch (error) {
-    const errorMsg = (error as Error).message || '查看导图失败'
-    ElMessage.error(errorMsg)
-    console.error('查看导图流程失败：', error)
+    // 详细的错误日志和处理
+    console.error('===== 查看导图流程失败 =====')
+    console.error('错误对象:', error)
+    if (error instanceof Error) {
+      console.error('错误消息:', error.message)
+      console.error('错误堆栈:', error.stack)
+    }
+
+    // 记录当前的batchId和LayoutStore状态
+    console.error('失败时的batchId:', batchId)
+    console.error('LayoutStore当前状态:', {
+      hasData: !!LayoutStore.data,
+      batchId: LayoutStore.data?.batchId,
+      mapId: LayoutStore.data?.mapId
+    })
+
+    const errorMsg = error instanceof Error ? error.message : '未知错误'
+    ElMessage.error('查看导图失败: ' + errorMsg)
+  } finally {
+    console.log('===== viewMindmap 执行结束 =====')
   }
 }
 
