@@ -55,6 +55,7 @@ import type { MindMapOptions, MindMapNode } from '@/utils/type'
 import { useRouter, useRoute } from 'vue-router'
 import { getBatchById, markMindMapValue, getMap } from '@/api/user/index'
 import JSON5 from 'json5'
+import { useLayoutStore } from '@/stores'
 
 const router = useRouter()
 const route = useRoute()
@@ -240,8 +241,16 @@ const handleCardClick = async (map: MindMapOptions) => {
       // 标记成功后，查询导图信息
       try {
         console.log('准备调用getMap接口,参数:', { mapId })
-        await getMap(mapId)
-        console.log('导图查询成功')
+        const mapResponse = await getMap(mapId)
+        console.log('导图查询成功，返回数据:', mapResponse)
+
+        // 将获取到的导图数据保存到LayoutStore中
+        const responseData = mapResponse as any
+        if (responseData && responseData.Data) {
+          const LayoutStore = useLayoutStore()
+          LayoutStore.data = responseData.Data
+          console.log('已将导图数据保存到LayoutStore')
+        }
       } catch (error) {
         console.error('导图查询失败：', error)
         ElMessage.warning('导图查询失败，但仍可进入编辑页面')
@@ -253,11 +262,47 @@ const handleCardClick = async (map: MindMapOptions) => {
       console.error('标记失败：', error)
       // 标记失败时提供选项，让用户可以选择是否继续编辑
       ElMessage.error('标记失败，直接进入编辑页面')
+
+      // 查询导图信息并保存到LayoutStore
+      try {
+        console.log('准备调用getMap接口,参数:', { mapId })
+        const mapResponse = await getMap(mapId)
+        console.log('导图查询成功，返回数据:', mapResponse)
+
+        // 将获取到的导图数据保存到LayoutStore中
+        const responseData = mapResponse as any
+        if (responseData && responseData.Data) {
+          const LayoutStore = useLayoutStore()
+          LayoutStore.data = responseData.Data
+          console.log('已将导图数据保存到LayoutStore')
+        }
+      } catch (error) {
+        console.error('导图查询失败：', error)
+      }
+
       router.push({ name: 'handedit', query: { mapId: mapId } })
     }
   } else {
     // 没有resultId时，提供提示但仍然允许进入编辑页面
-    ElMessage.warning('缺少 result ID，跳过标记步骤')
+    ElMessage.warning('缺少 result ID, 跳过标记步骤')
+
+    // 查询导图信息并保存到LayoutStore
+    try {
+      console.log('准备调用getMap接口,参数:', { mapId })
+      const mapResponse = await getMap(mapId)
+      console.log('导图查询成功，返回数据:', mapResponse)
+
+      // 将获取到的导图数据保存到LayoutStore中
+      const responseData = mapResponse as any
+      if (responseData && responseData.Data) {
+        const LayoutStore = useLayoutStore()
+        LayoutStore.data = responseData.Data
+        console.log('已将导图数据保存到LayoutStore')
+      }
+    } catch (error) {
+      console.error('导图查询失败：', error)
+    }
+
     router.push({ name: 'handedit', query: { mapId: mapId } })
   }
 }
