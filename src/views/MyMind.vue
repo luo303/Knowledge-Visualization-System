@@ -687,7 +687,7 @@ watch(
   width: 100%;
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-  gap: 1.5rem;
+  gap: 1rem;
   margin: 0 auto;
   max-width: 1400px;
 }
@@ -699,8 +699,6 @@ watch(
   position: relative;
   display: flex;
   flex-direction: column;
-  min-height: 200px; /* 增加最小高度 */
-  max-height: 350px; /* 适当增加最大高度 */
   border-radius: 20px;
   overflow: hidden;
   transition:
@@ -724,7 +722,7 @@ watch(
 // 导图缩略图
 .map-thumbnail {
   position: relative;
-  height: 75%;
+  max-height: 130px;
   border-radius: 20px;
   overflow: hidden;
   pointer-events: none;
@@ -735,8 +733,7 @@ watch(
 
 // 导图信息
 .map-info {
-  padding: 15px 0px;
-  height: 30%;
+  padding: 2px;
 }
 
 .map-name {
