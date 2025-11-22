@@ -24,15 +24,7 @@
             align-items: center;
           "
         >
-          <span>{{
-            map.layout === 'mindMap'
-              ? '思维导图'
-              : map.layout === 'fishBone'
-                ? '鱼骨图'
-                : map.layout === 'orgChart'
-                  ? '组织结构图'
-                  : '未知类型'
-          }}</span>
+          <span>查看导图</span>
         </el-button>
       </div>
     </div>

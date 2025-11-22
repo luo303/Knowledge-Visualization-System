@@ -153,9 +153,12 @@ import AiTalk from './AiTalk.vue'
 import { useLayoutStore } from '@/stores/modules/layout'
 import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
-import { generateMindMap, createMindMap } from '@/api/user/index'
+import {
+  generateMultipleMindMaps,
+  createMindMap,
+  getBatchById
+} from '@/api/user/index'
 import type { CreateMindMapParams } from '@/utils/type'
-import JSON5 from 'json5'
 import { useUserStore } from '@/stores'
 import {
   Close,
@@ -225,94 +228,107 @@ const handleFileUpload = async (uploadFile: any) => {
     console.log('文件名:', file.name)
     console.log('文件大小:', file.size)
     console.log('开始调用生成导图接口...')
-    const Resp = await generateMindMap(file)
+    const text = 'default_text'
+    const count = '3'
+    const strategy = '1'
+    const Resp = await generateMultipleMindMaps(file, text, count, strategy)
     const generateResp = Resp as any
+    if (generateResp.Code === 200 && generateResp.Data.success) {
+      const batchId = generateResp.Data.batch_id
+      LayoutStore.data = { ...LayoutStore.data, batchId } // 存储 batchId 到全局状态
+    }
     console.log('生成导图接口调用完成，收到响应：', generateResp)
     console.groupEnd()
 
-    if (
-      !generateResp ||
-      generateResp.Code !== 200 ||
-      !generateResp.Data.success ||
-      !generateResp.Data.map_json
-    ) {
-      const errorMsg = generateResp?.Message || '生成导图(草稿)失败!'
-      console.error('"生成导图" 接口业务逻辑失败:', errorMsg)
+    console.log(
+      '"生成多个导图" 接口返回的完整响应:',
+      JSON.stringify(generateResp, null, 2)
+    )
+
+    if (!generateResp || !generateResp.success || !generateResp.batch_id) {
+      const errorMsg = generateResp?.Message || '生成导图草稿失败!'
+      console.error('"生成多个导图" 接口业务逻辑失败:', errorMsg)
       throw new Error(errorMsg)
     }
-
-    // 将草稿的map_json解析为对象：
-    const mapJsonString = generateResp.Data.map_json
-    console.log('原始map_json字符串:', mapJsonString)
-    console.log('字符串长度:', mapJsonString.length)
-    console.log('末尾50个字符:', mapJsonString.slice(-50))
-    let draftMapData
-    try {
-      draftMapData = JSON5.parse(mapJsonString)
-    } catch (parseError) {
-      console.error('生成导图 JSON 解析失败:', parseError)
-      throw new Error('生成导图 JSON 解析失败，请检查文件内容！')
-    }
-    // 构造创建导图的请求参数：
-    const createParams: CreateMindMapParams = {
-      title: draftMapData.title || '未命名导图',
-      desc: draftMapData.desc || '无描述',
-      layout: draftMapData.layout || 'tree',
-      root: draftMapData.root
-    }
-
-    // 调用创建导图接口：
-    console.group('===调用`创建导图`接口===')
-    console.log('请求参数：', createParams)
-    console.log('开始调用创建导图接口...')
-    status.value = 'saving'
-    const cr = await createMindMap(createParams)
-    const createResp = cr as any
-    console.log('"创建导图" 接口调用完成，收到响应：', createResp)
-    console.groupEnd()
-    if (!createResp || createResp.Code !== 200 || !createResp.Data?.mapId) {
-      const errorMsg = createResp?.Message || '创建正式导图失败！'
-      console.error('"创建导图" 接口业务逻辑失败:', errorMsg)
-      throw new Error(errorMsg)
-    }
-
-    const userStore = useUserStore()
-    // 用正式数据更新全局状态：
-    const formalMapData = {
-      ...draftMapData,
-      mapId: createResp.Data.mapId,
-      userId: userStore.userInfo?.user_id || ''
-    }
-    LayoutStore.data = formalMapData
 
     // 网络请求完成后，清楚进度条计时器，并将进度条直接拉满：
     clearInterval(progressInterval)
     progress.value = 100
     await new Promise(resolve => setTimeout(resolve, 1000))
     status.value = 'success'
-    console.log('导图创建流程全部成功！最终数据:', formalMapData)
     ElMessage.success('导图创建成功！')
   } catch (error) {
     clearInterval(progressInterval)
     progress.value = 100
     await new Promise(resolve => setTimeout(resolve, 1000))
-    if ((error as Error).message.includes('JSON')) {
-      ElMessage.error('文件解析失败，文件内容不符合 JSON 格式！')
-    } else {
-      ElMessage.error((error as Error).message || '文件处理失败，请重试！')
-    }
+    console.error('文件处理失败:', error)
+    console.error('错误堆栈:', (error as Error).stack)
     console.error('文件处理失败:', error)
     status.value = 'error'
   }
 }
 
 // 查看导图（跳转编辑页）
-const viewMindmap = () => {
-  const mapId = LayoutStore.data?.mapId
+const viewMindmap = async () => {
+  const { mapId, batchId } = LayoutStore.data || {}
   if (mapId && mapId !== 'xxx') {
     router.push({ name: 'generate-pro', query: { mapId } }) // 携带 mapId
-  } else {
-    ElMessage.warning('导图数据未找到或未生成正式ID，无法跳转')
+  }
+  if (!batchId) {
+    ElMessage.warning('未找到导图批次ID，无法生成正式导图')
+    return
+  }
+  try {
+    // 步骤1：调用“根据id获取批次”接口，获取导图草稿数据
+    ElMessage.info('正在获取导图数据...')
+    console.group('=== 调用`根据id获取批次`接口 ===')
+    const batchResp = await getBatchById(batchId)
+    const batchData = batchResp as any
+    console.log('批次数据响应：', batchData)
+    console.groupEnd()
+
+    // 验证草稿数据（确保有核心字段）
+    const draftMapData = batchData?.Data?.mindmaps?.[0]
+    if (!draftMapData || !draftMapData.root) {
+      throw new Error('导图草稿数据获取失败或数据不完整')
+    }
+
+    // 步骤2：调用“创建导图”接口，生成正式 mapId
+    console.group('=== 调用`创建导图`接口 ===')
+    const createParams: CreateMindMapParams = {
+      title: draftMapData.title || '未命名导图',
+      desc: draftMapData.desc || '无描述',
+      layout: draftMapData.layout || 'tree',
+      root: draftMapData.root // 草稿数据中的核心节点结构
+    }
+    const cre = await createMindMap(createParams)
+    const createResp = cre as any
+    console.log('创建导图响应：', createResp)
+    console.groupEnd()
+
+    // 验证创建结果
+    if (!createResp || createResp.Code !== 200 || !createResp.Data?.mapId) {
+      throw new Error('正式导图创建失败')
+    }
+    const newMapId = createResp.Data.mapId
+
+    // 步骤3：更新全局状态（存储正式 mapId 和完整导图数据）
+    const userStore = useUserStore()
+    const formalMapData = {
+      ...draftMapData,
+      batchId, // 保留批次ID（可选）
+      mapId: newMapId, // 存储正式ID
+      userId: userStore.userInfo?.user_id || ''
+    }
+    LayoutStore.data = formalMapData // 更新全局状态
+
+    // 步骤4：跳转至编辑页（携带新生成的 mapId）
+    ElMessage.success('导图生成成功，即将跳转编辑页')
+    router.push({ name: 'generate-pro', query: { mapId: newMapId } })
+  } catch (error) {
+    const errorMsg = (error as Error).message || '查看导图失败'
+    ElMessage.error(errorMsg)
+    console.error('查看导图流程失败：', error)
   }
 }
 
