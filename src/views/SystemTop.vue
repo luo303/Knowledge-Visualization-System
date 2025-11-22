@@ -5,32 +5,32 @@
         <h1><span class="square"></span>知识可视化系统</h1>
       </div>
       <div class="box2">
-        <nav>
-          <div class="icon-container">
-            <div class="notification" @click="handleToMessage">
-              <el-badge
-                :is-dot="LayoutStore.newChatId !== ''"
-                :offset="[-8, 10]"
-              >
-                <el-avatar
-                  ><el-icon><Bell /></el-icon
-                ></el-avatar>
-              </el-badge>
-            </div>
-
-            <router-link active-class="active" to="/layout/personalcenter"
-              ><div>
-                <el-avatar :src="getAvatarUrl(userInfo.avatar)"
-                  ><el-icon><User /></el-icon
-                ></el-avatar></div
-            ></router-link>
-          </div>
-        </nav>
-        <nav>
-          <el-button type="primary" size="large" @click="handleToLogin"
-            >退出登录</el-button
+        <div class="icon-container">
+          <el-button
+            class="notification-btn"
+            type="text"
+            @click="handleToMessage"
+            circle
+            size="large"
           >
-        </nav>
+            <el-badge :is-dot="LayoutStore.newChatId !== ''" :offset="[-2, 6]">
+              <el-avatar>
+                <el-icon><Bell /></el-icon>
+              </el-avatar>
+            </el-badge>
+          </el-button>
+
+          <router-link to="/layout/personalcenter">
+            <el-button type="text" size="large" circle>
+              <el-avatar :src="getAvatarUrl(userInfo.avatar)">
+                <el-icon><User /></el-icon>
+              </el-avatar>
+            </el-button>
+          </router-link>
+        </div>
+        <el-button type="primary" size="large" @click="handleToLogin"
+          >退出登录</el-button
+        >
       </div>
     </div>
   </div>
@@ -92,14 +92,14 @@ const handleToMessage = async () => {
   align-items: center;
   justify-content: space-between;
   height: 115px;
-  color: rgb(115, 114, 114);
+  color: var(--el-text-color-regular);
 }
 
 .square {
   display: inline-block;
   width: 30px;
   height: 30px;
-  background: #409eff;
+  background: var(--el-color-primary);
   border-radius: 10px;
   margin: 0 52px 0 25px;
 }
@@ -120,70 +120,31 @@ h1 {
 
 .box2 {
   display: flex;
-  margin-right: 1.2%;
+  align-items: center;
+  gap: 70%;
+  margin-right: 13.5%;
 }
 
 .icon-container {
   display: flex;
-  justify-content: center;
   align-items: center;
-  gap: 20px;
-}
+  gap: 70%;
 
-.el-badge {
-  cursor: pointer;
-}
-
-/* 保持当前路由链接不可点击，但允许内部通知按钮交互 */
-.active .notification {
-  pointer-events: auto;
-}
-
-/* 明确设置通知容器的交互指针样式 */
-.notification,
-.notification :deep(.el-avatar),
-.notification :deep(.el-badge) {
-  cursor: pointer;
-}
-
-nav {
-  display: flex;
-  align-items: center;
-  margin: 0px 50px;
-  font:
-    16px Arial,
-    Helvetica,
-    sans-serif;
-}
-
-nav a {
-  padding: 0 15px;
-  width: 32px;
-  text-decoration: none;
-  color: #ffffff;
-  font-size: 16px;
-  font-weight: normal;
-  opacity: 0.9;
-}
-
-nav a:hover {
-  opacity: 1;
-}
-
-.active {
-  color: #608bd2;
-  pointer-events: none;
-  opacity: 1;
-}
-
-.icon-container {
   :deep(.el-avatar) {
-    background-color: #409eff;
+    background-color: var(--el-color-primary);
 
     .el-icon {
       color: white;
-      font-size: 25px;
+      font-size: 23px;
     }
   }
+  :deep(.el-button--text) {
+    transition: all var(--el-transition-duration-fast);
+  }
+}
+
+.notification-btn :deep(.el-badge__content.is-dot) {
+  top: 1px;
+  right: 4px;
 }
 </style>
