@@ -790,6 +790,7 @@ const handleSwitchAccount = async () => {
 .personal-center {
   position: relative;
   border-radius: 20px;
+  height: 94%;
 
   .personal-info-container {
     max-width: 1200px;
