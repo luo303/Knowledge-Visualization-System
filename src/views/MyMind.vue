@@ -341,6 +341,14 @@ const handleCardClick = async (map: any, e: MouseEvent) => {
   // 确保点击el-checkbox时不会触发卡片点击事件
   if (!target.closest('.el-checkbox') && !target.closest('.map-actions')) {
     try {
+      // 显示确认弹窗，询问用户是否要跳转到手动编辑区
+      await ElMessageBox.confirm('确定要跳转到手动编辑区吗？', '提示', {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning'
+      })
+
+      // 用户确认后，获取导图数据并跳转
       const res = await getMap(map.mapId)
       const response = res as any
       const currentMapId = map.mapId
@@ -357,6 +365,11 @@ const handleCardClick = async (map: any, e: MouseEvent) => {
         ElMessage.warning('导图数据未找到或未生成正式ID，无法跳转')
       }
     } catch (error) {
+      // 判断是否是用户取消操作
+      if (error === 'cancel') {
+        // 用户取消了跳转，不做任何操作
+        return
+      }
       console.error('加载导图卡片数据失败：', error)
       const errorMsg = error instanceof Error ? error.message : '未知错误'
       ElMessage.error(`加载导图卡片数据失败：${errorMsg}`)
@@ -367,12 +380,8 @@ const handleCardClick = async (map: any, e: MouseEvent) => {
 // 勾选框处理事件：
 // 新建导图：
 const handleCreateNew = () => {
-  const mapId = LayoutStore.data?.mapId
-  if (mapId && mapId !== 'xxx') {
-    router.push({ name: 'handedit', query: { mapId } }) // 携带 mapId
-  } else {
-    ElMessage.warning('导图数据未找到或未生成正式ID，无法跳转')
-  }
+  // 跳转到导图生成区（CreateMind页面）
+  router.push({ name: 'createmind' })
 }
 
 // 根据布局类型layout获取对应中文名称：
