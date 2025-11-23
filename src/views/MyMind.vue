@@ -508,35 +508,58 @@ const handleBatchExport = async () => {
 }
 // 批量删除确认逻辑：
 const handleBatchDeleteConfirm = () => {
-  // 第一个确认弹窗：检查是否有正在编辑的导图
-  ElMessageBox.confirm(
-    '是否有正在编辑的导图？删除将清空编辑数据。',
-    '确认删除',
-    {
+  // 获取当前正在编辑的导图ID
+  const editingMapId = LayoutStore.data?.mapId
+  // 获取用户选中的导图ID列表
+  const selectedMapIds = mindmaps.value
+    .filter(map => map.selected)
+    .map(map => map.mapId)
+
+  // 判断是否选中了正在编辑的导图
+  const hasEditingMapSelected =
+    editingMapId &&
+    editingMapId !== 'xxx' &&
+    selectedMapIds.includes(editingMapId)
+
+  // 如果选中了正在编辑的导图，则显示第一个确认弹窗
+  if (hasEditingMapSelected) {
+    ElMessageBox.confirm('该导图正在编辑，删除将清空编辑数据。', '确认删除', {
       confirmButtonText: '确定',
       cancelButtonText: '取消',
       type: 'warning'
-    }
-  )
-    .then(() => {
-      // 第二个确认弹窗：确认批量删除
-      return ElMessageBox.confirm(
-        '是否删除所选导图？删除后不可恢复。',
-        '确认删除',
-        {
-          confirmButtonText: '确定',
-          cancelButtonText: '取消',
-          type: 'warning'
-        }
-      )
     })
-    .then(() => {
-      // 用户确认删除，调用clearMap函数清空Layout仓库中的数据
-      LayoutStore.clearMap()
-      // 执行批量删除操作
-      handleBatchDelete()
+      .then(() => {
+        // 第二个确认弹窗：确认批量删除
+        return ElMessageBox.confirm(
+          '是否删除所选导图？删除后不可恢复。',
+          '确认删除',
+          {
+            confirmButtonText: '确定',
+            cancelButtonText: '取消',
+            type: 'warning'
+          }
+        )
+      })
+      .then(() => {
+        // 用户确认删除，调用clearMap函数清空Layout仓库中的数据
+        LayoutStore.clearMap()
+        // 执行批量删除操作
+        handleBatchDelete()
+      })
+      .catch(() => {})
+  } else {
+    // 如果没有选中正在编辑的导图，直接显示第二个确认弹窗
+    ElMessageBox.confirm('是否删除所选导图？删除后不可恢复。', '确认删除', {
+      confirmButtonText: '确定',
+      cancelButtonText: '取消',
+      type: 'warning'
     })
-    .catch(() => {})
+      .then(() => {
+        // 执行批量删除操作
+        handleBatchDelete()
+      })
+      .catch(() => {})
+  }
 }
 
 // 批量删除逻辑：
