@@ -174,14 +174,7 @@ export const useLayoutStore = defineStore(
   },
   {
     persist: {
-      key: 'Layout',
-      paths: [
-        'isCollapse',
-        'data.mapId',
-        'chatlist',
-        'currentChatId',
-        'isChatting'
-      ]
-    } as any
+      key: 'Layout'
+    }
   }
 )
