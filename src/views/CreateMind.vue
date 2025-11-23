@@ -696,9 +696,6 @@ onUnmounted(() => {
 }
 .AiTalk {
   width: 25%;
-  min-width: 300px;
-  height: 90%;
-  margin: 1% 0;
 }
 
 /* 响应式布局 - 主容器调整 */
@@ -710,13 +707,6 @@ onUnmounted(() => {
   .createmind {
     width: 100%;
     min-height: 500px;
-  }
-
-  .AiTalk {
-    width: 95%;
-    margin: 1% auto;
-    height: auto;
-    min-height: 400px;
   }
 }
 
@@ -736,11 +726,6 @@ onUnmounted(() => {
     margin: 1% auto;
     width: 97%;
   }
-
-  .AiTalk {
-    width: 97%;
-  }
-
   .createmind-title {
     font-size: 16px !important;
   }
