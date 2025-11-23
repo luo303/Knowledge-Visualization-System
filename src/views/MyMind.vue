@@ -130,10 +130,59 @@
   <div class="batch-action-bar" v-show="selectedCount > 0">
     <span class="selected-count">已选择{{ selectedCount }}个导图</span>
     <div class="batch-buttons">
-      <el-button type="primary" size="large" @click="handleBatchExport"
+      <el-button type="primary" size="large" @click="ToExport"
         >批量导出</el-button
       >
-      <el-button type="primary" size="large" @click="handleBatchDeleteConfirm"
+      <el-dialog v-model="dialogFormVisible" title="导出" width="500">
+        <el-form :model="form" :rules="rules" ref="formRef">
+          <el-form-item
+            prop="name"
+            label="导出文件名"
+            :label-width="formLabelWidth"
+          >
+            <el-input v-model="form.name" autocomplete="off" />
+          </el-form-item>
+          <el-form-item
+            prop="type"
+            label="导出文件类型"
+            :label-width="formLabelWidth"
+          >
+            <el-select v-model="form.type" placeholder="选择格式">
+              <el-option label="png格式" value="png" />
+              <el-option label="pdf格式" value="pdf" />
+              <el-option label="xmind格式" value="xmind" />
+            </el-select>
+          </el-form-item>
+        </el-form>
+        <template #footer>
+          <div class="dialog-footer">
+            <el-button @click="cancel">取消</el-button>
+            <el-button type="primary" @click="Export">确认</el-button>
+          </div>
+        </template>
+      </el-dialog>
+      <el-dialog v-model="dialogDeleteVisible" title="批量删除" width="500">
+        <div>
+          <el-alert
+            :title="
+              hasEditingMap
+                ? '警告：您选中了正在编辑的导图，删除将清空编辑数据！'
+                : '确认删除所选导图？'
+            "
+            type="warning"
+            :closable="false"
+          />
+        </div>
+        <template #footer>
+          <div>
+            <el-button @click="cancelDelete">取消</el-button>
+            <el-button type="primary" @click="confirmDelete"
+              >确认删除</el-button
+            >
+          </div>
+        </template>
+      </el-dialog>
+      <el-button type="primary" size="large" @click="ToDelete"
         >批量删除</el-button
       >
     </div>
@@ -150,6 +199,10 @@ import { exports } from '@/utils/export.ts'
 import { getMindMapList } from '@/api/user/index'
 import { useLayoutStore } from '@/stores/modules/layout'
 import { getMap, delMap } from '@/api/user/index'
+
+// 批量删除相关响应式数据
+const dialogDeleteVisible = ref(false)
+const hasEditingMap = ref<any>(false)
 import { Search, Folder } from '@element-plus/icons-vue'
 
 // 搜索相关状态
@@ -157,6 +210,17 @@ const searchQuery = ref('')
 const mindmaps = ref<MindMapOptions[]>([])
 const LayoutStore = useLayoutStore()
 const router = useRouter()
+const dialogFormVisible = ref(false)
+const form = ref({
+  name: '',
+  type: ''
+})
+const formRef = ref()
+const formLabelWidth = ref('140px')
+const rules = ref({
+  name: [{ required: true, message: '导出名不能为空', trigger: 'blur' }],
+  type: [{ required: true, message: '请选择导出类型', trigger: 'blur' }]
+})
 
 // 搜索关键词的响应式变量
 const searchKeyword = ref('')
@@ -420,84 +484,19 @@ const selectedCount = computed(() => {
   return mindmaps.value.filter(map => map.selected).length
 })
 
-// 移除了状态反馈相关变量，避免[object Object]显示问题
-
-// 批量导出时的文件格式选择：
-const exportFormat = [
-  { label: 'PNG 图片', value: 'png' },
-  { label: 'PDF 文档', value: 'pdf' },
-  { label: 'XMind 文件', value: 'xmind' }
-]
-
-// 批量导出逻辑：
-const handleBatchExport = async () => {
-  const selectedMaps = mindmaps.value.filter(map => map.selected)
-
-  if (selectedMaps.length === 0) {
-    ElMessage.error('请先选择要导出的思维导图')
-    return
-  }
-
-  try {
-    let selectedFormat = ''
-
-    await ElMessageBox.confirm(
-      `
-      <div style="margin-bottom: 16px;">请选择导出的格式</div>
-      <div style="display: flex; align-items: center; gap: 12px; flex-wrap;">
-      ${exportFormat
-        .map(
-          format => `
-        <label style="display: flex; align-items: center; gap: 4px; cursor: pointer;">
-        <input type="radio" name="format" value="${format.value}"/>
-        ${format.label}</label>`
-        )
-        .join('')}</div>`,
-      '批量导出',
-      {
-        confirmButtonText: '确定',
-        cancelButtonText: '取消',
-        dangerouslyUseHTMLString: true,
-        // 点击确认按钮时获取选中格式：
-        beforeClose: (action, instance, done) => {
-          if (action === 'confirm') {
-            const radio = document.querySelector(
-              'input[name="format"]:checked'
-            ) as HTMLInputElement
-            if (radio) {
-              selectedFormat = radio.value
-              done()
-            } else {
-              ElMessage.warning('请选择导出格式！')
-            }
-          } else {
-            done()
-          }
-        }
-      }
-    )
-
-    // 执行导出：
-    ElMessage.info('正在导出 ...')
-    await exports(selectedMaps, selectedFormat)
-    ElMessage.success(`${selectedMaps.length}个导图导出成功！`)
-  } catch (error) {
-    if ((error as Error).message !== 'cancel') {
-      console.error('批量导出失败：', error)
-      // 增强错误信息处理，确保始终返回字符串
-      let errorMsg = '未知错误'
-      if (error instanceof Error) {
-        errorMsg = error.message
-      } else if (typeof error === 'string') {
-        errorMsg = error
-      }
-      // 使用String()确保转换为字符串类型
-      ElMessage.error(`导出失败： ${String(errorMsg)}`)
-    }
-  }
+//导出按钮
+const ToExport = () => {
+  form.value.name = LayoutStore.data.title
+  dialogFormVisible.value = true
 }
-// 批量删除确认逻辑：
-const handleBatchDeleteConfirm = () => {
+//取消按钮
+const cancel = () => {
+  formRef.value.resetFields()
+  dialogFormVisible.value = false
+}
+
+// 打开删除对话框
+const ToDelete = () => {
   // 获取当前正在编辑的导图ID
   const editingMapId = LayoutStore.data?.mapId
   // 获取用户选中的导图ID列表
@@ -506,51 +505,86 @@ const handleBatchDeleteConfirm = () => {
     .map(map => map.mapId)
 
   // 判断是否选中了正在编辑的导图
-  const hasEditingMapSelected =
+  hasEditingMap.value =
     editingMapId &&
     editingMapId !== 'xxx' &&
     selectedMapIds.includes(editingMapId)
 
-  // 如果选中了正在编辑的导图，则显示第一个确认弹窗
-  if (hasEditingMapSelected) {
-    ElMessageBox.confirm('该导图正在编辑，删除将清空编辑数据。', '确认删除', {
-      confirmButtonText: '确定',
-      cancelButtonText: '取消',
-      type: 'warning'
-    })
-      .then(() => {
-        // 第二个确认弹窗：确认批量删除
-        return ElMessageBox.confirm(
-          '是否删除所选导图？删除后不可恢复。',
-          '确认删除',
-          {
-            confirmButtonText: '确定',
-            cancelButtonText: '取消',
-            type: 'warning'
-          }
-        )
-      })
-      .then(() => {
-        // 用户确认删除，调用clearMap函数清空Layout仓库中的数据
-        LayoutStore.clearMap()
-        // 执行批量删除操作
-        handleBatchDelete()
-      })
-      .catch(() => {})
-  } else {
-    // 如果没有选中正在编辑的导图，直接显示第二个确认弹窗
-    ElMessageBox.confirm('是否删除所选导图？删除后不可恢复。', '确认删除', {
-      confirmButtonText: '确定',
-      cancelButtonText: '取消',
-      type: 'warning'
-    })
-      .then(() => {
-        // 执行批量删除操作
-        handleBatchDelete()
-      })
-      .catch(() => {})
+  dialogDeleteVisible.value = true
+}
+
+// 取消删除
+const cancelDelete = () => {
+  dialogDeleteVisible.value = false
+}
+
+// 确认删除
+const confirmDelete = async () => {
+  try {
+    // 获取用户选中的导图ID列表
+    const selectedMaps = mindmaps.value.filter(map => map.selected)
+    const selectedMapIds = selectedMaps.map(map => map.mapId)
+
+    if (selectedMapIds.length === 0) {
+      ElMessage.warning('请选择要删除的思维导图')
+      return
+    }
+
+    // 如果选中了正在编辑的导图，先清空Layout仓库
+    if (hasEditingMap.value) {
+      LayoutStore.clearMap()
+    }
+
+    // 执行批量删除操作
+    await handleBatchDelete()
+    dialogDeleteVisible.value = false
+  } catch (error) {
+    console.error('批量删除失败：', error)
+    let errorMsg = '未知错误'
+    if (error instanceof Error) {
+      errorMsg = error.message
+    } else if (typeof error === 'string') {
+      errorMsg = error
+    }
+    ElMessage.error(`删除失败：${String(errorMsg)}`)
   }
 }
+// 批量导出
+const Export = async () => {
+  try {
+    // 校验表单数据
+    await formRef.value.validate()
+
+    // 获取选中的思维导图
+    const selectedMaps = mindmaps.value.filter(map => map.selected)
+
+    if (selectedMaps.length === 0) {
+      ElMessage.warning('请选择要导出的思维导图')
+      return
+    }
+
+    ElMessage.info('正在导出 ...')
+
+    // 调用导出工具
+    await exports(selectedMaps, form.value.type)
+
+    ElMessage.success(`${selectedMaps.length}个导图导出成功！`)
+
+    dialogFormVisible.value = false
+    formRef.value.resetFields()
+  } catch (error) {
+    console.error('批量导出失败：', error)
+    let errorMsg = '未知错误'
+    if (error instanceof Error) {
+      errorMsg = error.message
+    } else if (typeof error === 'string') {
+      errorMsg = error
+    }
+    ElMessage.error(`导出失败：${String(errorMsg)}`)
+  }
+}
+
+// 批量删除确认逻辑已移除，使用新的对话框实现
 
 // 批量删除逻辑：
 const handleBatchDelete = async () => {
