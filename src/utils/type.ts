@@ -5,8 +5,8 @@ export interface MindMapNode {
   data: {
     text: string // 节点文本内容
     uid?: string
-    expand?: string
-    isActive?: string
+    expand?: boolean
+    isActive?: boolean
   }
   children?: MindMapNode[] // 子节点列表，递归引用自身
   smmVersion?: string

@@ -214,6 +214,7 @@ import { useLayoutStore } from '@/stores'
 import { useSettingStore } from '@/stores/modules/setting'
 import { storeToRefs } from 'pinia'
 import type { ChatList, Message } from '@/stores/modules/type'
+import JSON5 from 'json5'
 import {
   NewChat,
   GetChat,
@@ -438,9 +439,16 @@ const sendMsg = async () => {
     )
 
     if ((res as any).Code === 200) {
+      // 若后端返回新的导图数据，则更新本地缓存与当前数据
       if ((res as any).Data.new_map_json) {
-        LayoutStore.aidata = JSON.parse((res as any).Data.new_map_json)
-        LayoutStore.data = JSON.parse((res as any).Data.new_map_json)
+        try {
+          const newMap = JSON5.parse((res as any).Data.new_map_json)
+          LayoutStore.aidata = newMap
+          LayoutStore.data = newMap
+        } catch (e) {
+          console.error('解析 new_map_json 失败:', e)
+          ElMessage.error('导图数据解析异常')
+        }
       }
       if (currentChatId.value === id) {
         //判断当前是否在发送消息的那个会话，防止用户发完消息去到别的会话
@@ -582,15 +590,6 @@ const complete = (e: any) => {
 }
 watch(
   () => LayoutStore.data.mapId,
-  async newId => {
-    if (newId) {
-      await nextTick()
-      backToList()
-    }
-  }
-)
-watch(
-  () => LayoutStore.data,
   async newId => {
     if (newId) {
       await nextTick()
