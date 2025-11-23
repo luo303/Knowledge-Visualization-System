@@ -138,16 +138,6 @@
       >
     </div>
   </div>
-
-  <!-- 操作状态反馈浮层 - 使用Element Plus Message组件替代 -->
-  <el-notification
-    :show-close="false"
-    :type="statusType || 'info'"
-    :title="''"
-    :message="statusMessage"
-    :duration="2000"
-    v-if="showStatusToast"
-  />
 </template>
 
 <script lang="ts" setup>
@@ -323,7 +313,8 @@ const fetchMyMindMaps = async () => {
       mindmaps.value = mapWithSelected
       totalCount.value = response.Data.total
     } else {
-      ElMessage.error(`获取思维导图失败：${response.Message || '未知错误'}`)
+      const errorMsg = response.Message || '未知错误'
+      ElMessage.error(`获取思维导图失败：${errorMsg}`)
     }
   } catch (error) {
     console.error('获取导图数据失败', error)
@@ -367,7 +358,8 @@ const handleCardClick = async (map: any, e: MouseEvent) => {
       }
     } catch (error) {
       console.error('加载导图卡片数据失败：', error)
-      ElMessage.error('加载导图卡片数据失败，请稍后再试...')
+      const errorMsg = error instanceof Error ? error.message : '未知错误'
+      ElMessage.error(`加载导图卡片数据失败：${errorMsg}`)
     }
   }
 }
@@ -419,10 +411,7 @@ const selectedCount = computed(() => {
   return mindmaps.value.filter(map => map.selected).length
 })
 
-// 状态返回变量：
-const showStatusToast = ref(false) // 弹窗
-const statusMessage = ref('')
-const statusType = ref('')
+// 移除了状态反馈相关变量，避免[object Object]显示问题
 
 // 批量导出时的文件格式选择：
 const exportFormat = [
@@ -436,10 +425,7 @@ const handleBatchExport = async () => {
   const selectedMaps = mindmaps.value.filter(map => map.selected)
 
   if (selectedMaps.length === 0) {
-    statusMessage.value = '请先选择要导出的思维导图'
-    statusType.value = 'error'
-    showStatusToast.value = true
-    hideToast()
+    ElMessage.error('请先选择要导出的思维导图')
     return
   }
 
@@ -483,22 +469,22 @@ const handleBatchExport = async () => {
     )
 
     // 执行导出：
-    statusMessage.value = '正在导出 ...'
-    statusType.value = 'info'
-    showStatusToast.value = true
-
+    ElMessage.info('正在导出 ...')
     await exports(selectedMaps, selectedFormat)
-
-    statusMessage.value = `${selectedMaps.length}个导图导出成功！`
-    statusType.value = 'success'
+    ElMessage.success(`${selectedMaps.length}个导图导出成功！`)
   } catch (error) {
     if ((error as Error).message !== 'cancel') {
       console.error('批量导出失败：', error)
-      statusMessage.value = `导出失败： ${(error as Error).message}`
-      statusType.value = 'error'
+      // 增强错误信息处理，确保始终返回字符串
+      let errorMsg = '未知错误'
+      if (error instanceof Error) {
+        errorMsg = error.message
+      } else if (typeof error === 'string') {
+        errorMsg = error
+      }
+      // 使用String()确保转换为字符串类型
+      ElMessage.error(`导出失败： ${String(errorMsg)}`)
     }
-  } finally {
-    hideToast()
   }
 }
 // 批量删除确认逻辑：
@@ -563,9 +549,7 @@ const handleBatchDelete = async () => {
   const selectedMapIds = mindmaps.value
     .filter(map => map.selected)
     .map(map => map.mapId)
-  statusMessage.value = '正在删除...'
-  statusType.value = 'info'
-  showStatusToast.value = true
+  ElMessage.info('正在删除...')
   try {
     const res = await delMap(selectedMapIds)
     const response = res as any
@@ -573,29 +557,28 @@ const handleBatchDelete = async () => {
       mindmaps.value = mindmaps.value.filter(
         map => !selectedMapIds.includes(map.mapId)
       )
-      statusMessage.value = `已删除${countToDelete}个导图`
-      statusType.value = 'success'
+      ElMessage.success(`已删除${countToDelete}个导图`)
     } else {
-      ElMessage.error(response.Message || '删除失败，请稍后再试...')
-      statusMessage.value = response.Message || '删除失败111'
-      statusType.value = 'error'
+      // 确保错误信息始终是字符串格式
+      const errorMsg = String(response.Message || '删除失败，请稍后再试...')
+      ElMessage.error(errorMsg)
     }
   } catch (error) {
     console.error('删除导图卡片数据失败', error)
-    ElMessage.error('删除导图卡片数据失败，请稍后再试...')
-    statusMessage.value = '删除失败222'
-    statusType.value = 'error'
-  } finally {
-    hideToast()
+    // 增强错误信息处理，确保始终返回字符串
+    let errorMsg = '删除失败，请稍后再试...'
+    if (error instanceof Error) {
+      errorMsg = error.message
+    } else if (typeof error === 'string') {
+      errorMsg = error
+    }
+    // 使用String()确保转换为字符串类型
+    const displayErrorMsg = String(errorMsg)
+    ElMessage.error(`删除失败：${displayErrorMsg}`)
   }
 }
 
-// 隐藏状态显示：
-const hideToast = () => {
-  setTimeout(() => {
-    showStatusToast.value = false
-  }, 3000)
-}
+// 移除了状态反馈相关函数
 
 // 监听选中导图的数量变化：
 watch(
