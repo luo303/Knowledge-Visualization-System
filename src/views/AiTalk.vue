@@ -262,7 +262,7 @@ const getconlist = async () => {
       ElMessage.error(`${message}`)
     }
   } catch (error) {
-    console.log(error)
+    console.error(error)
   }
 }
 
@@ -356,7 +356,7 @@ const confirm = async () => {
         ElMessage.error(`${message}`)
       }
     } catch (error) {
-      console.log(error)
+      console.error(error)
     }
   } else {
     ElMessage.error('系统错误，当前没有导图')
@@ -386,7 +386,7 @@ const enterChat = async (id: string) => {
         ElMessage.error(`${message}`)
       }
     } catch (error) {
-      console.log(error)
+      console.error(error)
     } finally {
       needget.value = false
     }
@@ -480,7 +480,7 @@ const sendMsg = async () => {
     }
   } catch (error) {
     ElMessage.error('优化失败，AI有点宕机了')
-    console.log(error)
+    console.error(error)
   } finally {
     tempId.value = ''
     isloading.value = false
@@ -515,7 +515,7 @@ const createNewChat = async () => {
     dialogFormVisible.value = false
     formRef.value.resetFields()
     ElMessage.error('创建失败')
-    console.log(error)
+    console.error(error)
   }
 }
 
@@ -549,7 +549,7 @@ const deleteChat = async (id: string) => {
             ElMessage.error(`${message}`)
           }
         } catch (error) {
-          console.log(error)
+          console.error(error)
         }
       }
       ElMessage.success('删除成功')
@@ -558,7 +558,7 @@ const deleteChat = async (id: string) => {
       ElMessage.error(`${message}`)
     }
   } catch (error) {
-    console.log(error)
+    console.error(error)
   } finally {
     DelDialogVisible.value = false
   }
@@ -581,7 +581,7 @@ const complete = (e: any) => {
         ElMessage.error('补全失败')
       }
     } catch (error) {
-      console.log(error)
+      console.error(error)
     } finally {
       completeTimer = null
     }

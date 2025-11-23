@@ -42,35 +42,26 @@ export const exports = async (
       } as any)
 
       // 等待渲染完成（确保节点渲染完毕，使用更稳定的渲染检测）
-      await new Promise<void>(resolve => {
-        const checkRender = () => {
-          if (mindMap.renderer && mindMap.renderer.renderTree) {
-            resolve()
-          } else {
-            setTimeout(checkRender, 50)
-          }
+      mindMap.on('node_tree_render_end', async () => {
+        // 导出并自动下载
+        const fmt = String(format).toLowerCase().trim()
+        if (fmt === 'xmind') {
+          await mindMap.export(fmt, mindMapDatas[i]?.title)
+        } else if (fmt === 'png' || fmt === 'pdf') {
+          await mindMap.export(fmt, true, mindMapDatas[i]?.title)
+        } else {
+          ElMessage.error(`暂不支持${format}格式`)
         }
-        checkRender()
+
+        // 清理临时资源
+        mindMap.destroy()
+        document.body.removeChild(tempContainer)
+
+        // 避免浏览器拦截连续下载，添加间隔
+        if (i < mindMapDatas.length - 1) {
+          await new Promise(resolve => setTimeout(resolve, 1000))
+        }
       })
-
-      // 导出并自动下载
-      const fmt = String(format).toLowerCase().trim()
-      if (fmt === 'xmind') {
-        await mindMap.export(fmt, mindMapDatas[i]?.title)
-      } else if (fmt === 'png' || fmt === 'pdf') {
-        await mindMap.export(fmt, true, mindMapDatas[i]?.title)
-      } else {
-        ElMessage.error(`暂不支持${format}格式`)
-      }
-
-      // 清理临时资源
-      mindMap.destroy()
-      document.body.removeChild(tempContainer)
-
-      // 避免浏览器拦截连续下载，添加间隔
-      if (i < mindMapDatas.length - 1) {
-        await new Promise(resolve => setTimeout(resolve, 1000))
-      }
     }
   } catch (err) {
     console.error('导出失败：', err)
