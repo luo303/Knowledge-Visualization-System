@@ -268,7 +268,12 @@ const handleCardClick = async (map: MindMapOptions) => {
     }
   }
 
-  // 步骤5: 跳转到编辑页面
+  // 步骤5: 重置会话相关数据
+  LayoutStore.currentChatId = ''
+  LayoutStore.currentChat = { title: '', conversation_id: '', messages: [] }
+  LayoutStore.isChatting = false
+
+  // 步骤6: 跳转到编辑页面
   router.push({ name: 'handedit', query: { mapId: currentMapId } })
 }
 </script>
