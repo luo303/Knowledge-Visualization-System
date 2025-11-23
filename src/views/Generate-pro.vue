@@ -130,18 +130,14 @@ onMounted(async () => {
 
     // 开发调试模式：如果没有batchId，使用默认数据
     if (!queryBatchId) {
-      console.warn('未获取到batchId, 使用默认示例数据进行调试')
       // 创建2个默认导图用于调试
       maps.value = [createDefaultMindMap(0), createDefaultMindMap(1)]
-      console.log('使用默认示例数据:', maps.value)
     } else {
       batchId.value = queryBatchId
-      console.log('generate-pro 页面获取到的 batchId:', batchId.value)
 
       // 调用获取id批次的接口
       loading.value = true
       const batchResponse = await getBatchById(batchId.value)
-      console.log('getBatchById 接口完整响应:', batchResponse)
 
       const batchData = batchResponse as any
       // 防御性检查
@@ -152,14 +148,8 @@ onMounted(async () => {
         !Array.isArray(batchData.Data.results) ||
         batchData.Data.results.length === 0
       ) {
-        console.warn('接口返回数据不完整或为空，使用默认数据')
         maps.value = [createDefaultMindMap(0)]
       } else {
-        console.log(
-          '接口返回的 results 数组长度:',
-          batchData.Data.results.length
-        )
-
         // 解析每个结果的 map_json,转换成MindMapOption形式
         const realMaps = batchData.Data.results.map(
           (item: any, index: number) => {
@@ -169,21 +159,12 @@ onMounted(async () => {
               try {
                 mapJson = item.map_json ? JSON5.parse(item.map_json) : {}
               } catch (parseError) {
-                console.error('解析map_json失败, 使用默认值:', parseError)
+                console.error(`解析第${index}个结果的map_json失败:`, parseError)
                 mapJson = {}
               }
 
-              // 详细日志记录，特别是result_id相关信息
-              console.log(
-                `第 ${index} 个导图的原始数据 - result_id: ${item.result_id}, resultId: ${item.resultId}, 其他字段:`,
-                Object.keys(item)
-              )
-
               // 获取resultId，尝试多种可能的字段名
               const resultId = item.result_id || item.resultId || ''
-              if (!resultId) {
-                console.warn(`第 ${index} 个导图缺少resultId字段！`)
-              }
 
               // 验证并修复root节点结构
               const validatedRoot = validateAndFixNode(mapJson.root || {})
@@ -199,20 +180,17 @@ onMounted(async () => {
                 createTime: item.create_time || new Date().toLocaleString()
               } as MindMapOptions
             } catch (itemError) {
-              console.error(`处理第${index}个导图数据失败:`, itemError)
+              console.error(`解析第${index}个结果失败:`, itemError)
               return createDefaultMindMap(index)
             }
           }
         )
 
-        console.log('解析后的 realMaps 数组长度:', realMaps.length)
         maps.value = realMaps
-        console.log('maps 数组已更新:', maps.value)
       }
     }
   } catch (error) {
     errorMsg.value = (error as Error).message || '获取导图数据失败，请重试'
-    console.error('获取导图数据失败:', error)
     // 出错时使用默认数据，确保页面不空白
     maps.value = [createDefaultMindMap(0)]
   } finally {
@@ -222,24 +200,13 @@ onMounted(async () => {
 
 // 卡片点击事件
 const handleCardClick = async (map: MindMapOptions) => {
-  console.log('===== handleCardClick 函数开始执行 =====')
-
   // 输入参数验证
   if (!map) {
-    console.error('错误：传入的map参数为空')
     ElMessage.error('导图数据无效')
     return
   }
 
   const { resultId, mapId } = map
-  console.log('点击卡片，map信息：', {
-    resultId,
-    mapId,
-    hasResultId: !!resultId,
-    hasMapId: !!mapId && mapId !== 'xxx',
-    hasTitle: !!map.title,
-    hasRoot: !!map.root
-  })
 
   // 检查 mapId 是否有效（用于跳转）
   if (!mapId || mapId === 'xxx') {
@@ -256,7 +223,6 @@ const handleCardClick = async (map: MindMapOptions) => {
   if (resultId) {
     try {
       // 调用标记接口，传入 resultId 和 label (1表示正面评价)
-      console.log('准备调用markMindMapValue接口，参数:', { resultId, label: 1 })
       const markResponse = await markMindMapValue(resultId, 1)
       ElMessage.success('标记成功！')
 
@@ -268,9 +234,6 @@ const handleCardClick = async (map: MindMapOptions) => {
         markResponseData.Data.saved_map_id
       ) {
         currentMapId = markResponseData.Data.saved_map_id
-        console.log('从标记响应中获取到saved_map_id:', currentMapId)
-      } else {
-        console.log('标记响应中未找到saved_map_id，继续使用原始mapId:', mapId)
       }
     } catch (error) {
       console.error('标记失败：', error)
@@ -279,16 +242,12 @@ const handleCardClick = async (map: MindMapOptions) => {
     }
   } else {
     // 没有resultId时，提供提示但仍然允许进入编辑页面
-    console.log('没有resultId，跳过标记步骤')
     ElMessage.warning('缺少 result ID, 跳过标记步骤')
   }
 
   // 步骤2: 查询最新的导图信息（使用确定的currentMapId）
   try {
-    console.log('===== 获取最新导图数据 =====')
-    console.log('准备调用getMap接口,参数:', { mapId: currentMapId })
     const mapResponse = await getMap(currentMapId)
-    console.log('导图查询成功，返回数据:', mapResponse)
 
     const responseData = mapResponse as any
     if (responseData && responseData.Data) {
@@ -301,23 +260,14 @@ const handleCardClick = async (map: MindMapOptions) => {
           responseData.Data.mapId ||
           currentMapId
       }
-      console.log('获取到的最终导图数据:', {
-        saved_map_id: responseData.Data.saved_map_id,
-        final_mapId: finalMapData.mapId
-      })
     }
   } catch (error) {
-    console.error('===== 导图查询失败 =====')
-    console.error('错误对象:', error)
-    if (error instanceof Error) {
-      console.error('错误消息:', error.message)
-    }
+    console.error('导图查询失败：', error)
     ElMessage.warning('导图查询失败，使用本地数据')
   }
 
   // 步骤3: 如果接口查询失败或没有返回有效数据，使用本地map数据作为备选
   if (!finalMapData) {
-    console.log('使用本地map数据作为备选')
     finalMapData = {
       ...map,
       // 确保必要的字段存在
@@ -335,23 +285,11 @@ const handleCardClick = async (map: MindMapOptions) => {
   // 步骤4: 只保存一次最终确定的导图数据到LayoutStore
   try {
     LayoutStore.data = finalMapData
-    console.log('===== 已将最终导图数据保存到LayoutStore =====')
-    console.log('保存的数据摘要:', {
-      mapId: finalMapData.mapId,
-      saved_map_id: finalMapData.saved_map_id,
-      title: finalMapData.title,
-      hasRootNode: !!finalMapData.root
-    })
 
     // 更新当前使用的mapId
     currentMapId = finalMapData.mapId
   } catch (error) {
-    console.error('===== LayoutStore数据赋值失败 =====')
-    console.error('错误对象:', error)
-    if (error instanceof Error) {
-      console.error('错误消息:', error.message)
-      console.error('错误堆栈:', error.stack)
-    }
+    console.error('设置LayoutStore数据失败：', error)
     // 使用备用方法设置数据
     try {
       // 使用 Object.assign 作为备用赋值方式
@@ -359,17 +297,14 @@ const handleCardClick = async (map: MindMapOptions) => {
         mapId: finalMapData.mapId || '',
         title: finalMapData.title || '未命名导图'
       })
-      console.log('已使用备用方法设置关键数据')
     } catch (fallbackError) {
-      console.error('备用赋值方法也失败:', fallbackError)
+      console.error('备用赋值方式失败：', fallbackError)
+      // 静默失败，继续执行后续步骤
     }
   }
 
   // 步骤5: 跳转到编辑页面
-  console.log('即将跳转到编辑页面:', { mapId: currentMapId })
   router.push({ name: 'handedit', query: { mapId: currentMapId } })
-
-  console.log('===== handleCardClick 函数执行结束 =====')
 }
 </script>
 <style lang="scss" scoped>

@@ -310,12 +310,10 @@ onMounted(() => {
 // 获取数据：
 const fetchMyMindMaps = async () => {
   try {
-    console.log('开始请求导图数据')
     // 调用接口：
     const res = await getMindMapList()
     const response = res as any
     if (response.Code === 200 && response.Data) {
-      console.log('接口返回数据：', response.Data)
       const mapWithSelected = response.Data.list.map((map: MindMapOptions) => ({
         ...map,
         selected: false,
@@ -352,10 +350,8 @@ const handleCardClick = async (map: any, e: MouseEvent) => {
   // 确保点击el-checkbox时不会触发卡片点击事件
   if (!target.closest('.el-checkbox') && !target.closest('.map-actions')) {
     try {
-      console.log(`准备加载导图卡片数据：${map.mapId}`)
       const res = await getMap(map.mapId)
       const response = res as any
-      console.log('导图卡片数据加载成功:', response)
       const currentMapId = map.mapId
       if (currentMapId && currentMapId !== 'xxx') {
         LayoutStore.data = response.Data
@@ -370,7 +366,7 @@ const handleCardClick = async (map: any, e: MouseEvent) => {
         ElMessage.warning('导图数据未找到或未生成正式ID，无法跳转')
       }
     } catch (error) {
-      console.error('加载导图卡片数据失败', error)
+      console.error('加载导图卡片数据失败：', error)
       ElMessage.error('加载导图卡片数据失败，请稍后再试...')
     }
   }
@@ -382,7 +378,6 @@ const handleCreateNew = () => {
   const mapId = LayoutStore.data?.mapId
   if (mapId && mapId !== 'xxx') {
     router.push({ name: 'handedit', query: { mapId } }) // 携带 mapId
-    console.log('真实接口更新后的仓库数据：', LayoutStore.data)
   } else {
     ElMessage.warning('导图数据未找到或未生成正式ID，无法跳转')
   }
@@ -572,7 +567,6 @@ const handleBatchDelete = async () => {
   statusType.value = 'info'
   showStatusToast.value = true
   try {
-    console.log(`准备删除${countToDelete}导图卡片数据：`)
     const res = await delMap(selectedMapIds)
     const response = res as any
     if (response.Code === 200) {

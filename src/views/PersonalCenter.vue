@@ -655,8 +655,6 @@ const handleUpdateUsername = async () => {
     } else {
       ElMessage.error('更改失败')
     }
-  } catch (error) {
-    console.log(error)
   } finally {
     usernameDialogOpen.value = false
   }
