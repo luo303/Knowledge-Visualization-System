@@ -282,10 +282,36 @@ const handleFileUpload = async (uploadFile: any) => {
     progress.value = 100
     await new Promise(resolve => setTimeout(resolve, 1000))
 
+    let errorMsg = ''
+
+    // 处理特定错误类型
+    if (error instanceof Error) {
+      const errorStr = error.message || ''
+
+      // 处理401未授权错误
+      if (errorStr.includes('401') || errorStr.includes('未授权')) {
+        errorMsg = '认证已过期，请重新登录'
+        // 清除用户信息并跳转到登录页
+        setTimeout(() => {
+          const userStore = useUserStore()
+          userStore.clearUserInfo()
+          router.push('/login')
+        }, 2000)
+      }
+      // 处理UniPDF许可证错误
+      else if (errorStr.includes('unipdf license code required')) {
+        errorMsg = 'PDF处理需要特殊许可证，请使用TXT或DOCX格式文件'
+      }
+      // 其他错误
+      else {
+        errorMsg = errorStr
+      }
+    } else {
+      errorMsg = '未知错误'
+    }
+
     // 显示用户友好的错误消息
-    ElMessage.error(
-      '文件处理失败: ' + (error instanceof Error ? error.message : '未知错误')
-    )
+    ElMessage.error('文件处理失败: ' + errorMsg)
     status.value = 'error'
   }
 }

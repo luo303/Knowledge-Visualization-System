@@ -64,37 +64,7 @@ const loading = ref<boolean>(true)
 const errorMsg = ref<string>('')
 const batchId = ref<string>('')
 
-// 创建默认的MindMapOptions，用于调试和兜底
-const createDefaultMindMap = (index: number): MindMapOptions => {
-  const defaultMap: MindMapOptions = {
-    mapId: `default-map-${index}`,
-    userId: '',
-    title: `默认导图 ${index + 1}`,
-    desc: '这是一个默认导图',
-    layout: 'mindMap',
-    resultId: '',
-    root: {
-      data: {
-        text: '根节点示例'
-      },
-      children: [
-        {
-          data: { text: '子节点1' },
-          children: [
-            { data: { text: '孙节点1-1' } },
-            { data: { text: '孙节点1-2' } }
-          ]
-        },
-        {
-          data: { text: '子节点2' },
-          children: [{ data: { text: '孙节点2-1' } }]
-        }
-      ]
-    },
-    createTime: new Date().toLocaleString()
-  }
-  return defaultMap
-}
+// 删除了调试用的默认导图生成函数，避免存储无用的默认数据
 
 // 验证和修复MindMapNode结构
 const validateAndFixNode = (node: any): MindMapNode => {
@@ -128,11 +98,8 @@ onMounted(async () => {
   try {
     const queryBatchId = route.query.batchId as string
 
-    // 开发调试模式：如果没有batchId，使用默认数据
-    if (!queryBatchId) {
-      // 创建2个默认导图用于调试
-      maps.value = [createDefaultMindMap(0), createDefaultMindMap(1)]
-    } else {
+    // 只处理有效的batchId
+    if (queryBatchId) {
       batchId.value = queryBatchId
 
       // 调用获取id批次的接口
@@ -142,17 +109,15 @@ onMounted(async () => {
       const batchData = batchResponse as any
       // 防御性检查
       if (
-        !batchData ||
-        !batchData.Data ||
-        !batchData.Data.results ||
-        !Array.isArray(batchData.Data.results) ||
-        batchData.Data.results.length === 0
+        batchData &&
+        batchData.Data &&
+        batchData.Data.results &&
+        Array.isArray(batchData.Data.results) &&
+        batchData.Data.results.length > 0
       ) {
-        maps.value = [createDefaultMindMap(0)]
-      } else {
         // 解析每个结果的 map_json,转换成MindMapOption形式
-        const realMaps = batchData.Data.results.map(
-          (item: any, index: number) => {
+        const realMaps = batchData.Data.results
+          .map((item: any, index: number) => {
             try {
               // 防御性解析map_json
               let mapJson
@@ -181,18 +146,18 @@ onMounted(async () => {
               } as MindMapOptions
             } catch (itemError) {
               console.error(`解析第${index}个结果失败:`, itemError)
-              return createDefaultMindMap(index)
+              // 解析失败时返回null，后续会过滤掉
+              return null
             }
-          }
-        )
+          })
+          .filter((map: MindMapOptions | null) => map !== null) // 过滤掉无效的导图
 
         maps.value = realMaps
       }
     }
   } catch (error) {
     errorMsg.value = (error as Error).message || '获取导图数据失败，请重试'
-    // 出错时使用默认数据，确保页面不空白
-    maps.value = [createDefaultMindMap(0)]
+    // 出错时保持maps为空数组，让页面显示错误状态
   } finally {
     loading.value = false
   }
