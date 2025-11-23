@@ -18,16 +18,18 @@
                 type="primary"
                 style="
                   width: 100%;
-                  min-width: 723px;
-                  margin: 10px 20px;
+                  max-width: 723px;
+                  min-width: 770px;
+                  margin: 10px auto;
                   min-height: 60px;
                   display: flex;
                   justify-content: center;
                   align-items: center;
+                  box-sizing: border-box;
                 "
                 class="responsive-upload-btn"
               >
-                <span style="font-size: 1.5rem; letter-spacing: 1rem"
+                <span style="font-size: 1.5rem; letter-spacing: 0.5rem"
                   >上传文件</span
                 >
               </el-button>
@@ -380,14 +382,13 @@ onUnmounted(() => {
   flex: 1;
   height: 100%;
   display: flex;
+  gap: 10px;
   .createmind {
     flex: 1;
-    height: 90%;
+    max-height: 90%;
     border-radius: 20px;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
     background-color: white;
-    margin-right: 2%;
-    margin-left: 2%;
     padding: 20px;
     display: flex;
     flex-direction: column;
@@ -412,13 +413,13 @@ onUnmounted(() => {
       justify-content: center;
       align-items: center;
       flex-direction: column;
-      gap: 10px;
+      gap: 2px;
       width: 100%;
       .upload-desc {
         font-size: 14px;
         color: #999;
-        position: absolute;
-        top: 26%;
+        position: relative;
+        margin-top: -7px;
         z-index: 2;
       }
     }
@@ -512,30 +513,40 @@ onUnmounted(() => {
     }
 
     .features-container {
-      flex: display;
+      display: flex;
       justify-content: center;
-      align-items: center;
+      align-items: flex-start;
       padding: 15px;
-      margin-left: 3%;
-      margin-top: 20px;
-      width: 80%;
+      margin: 2px auto 0;
+      width: 100%;
+      max-width: 100%;
       box-sizing: border-box;
+      overflow: hidden;
     }
 
     .features-grid {
       display: grid;
-      grid-template-columns: repeat(2, 1fr);
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
       gap: 25px;
       width: 100%;
+      max-width: 100%;
+      height: 100%;
+      justify-items: center;
+      box-sizing: border-box;
     }
 
     .feature-card {
       transition: all 0.3s ease;
       border-radius: var(--el-border-radius-base);
-      max-height: 140px;
-      min-width: 350px;
+      max-height: 160px;
+      min-width: 280px;
+      width: 100%;
+      max-width: 380px;
       display: flex;
       flex-direction: column;
+      margin: 0 auto;
+      overflow: hidden;
+      box-sizing: border-box;
     }
 
     .feature-card:hover {
@@ -575,31 +586,137 @@ onUnmounted(() => {
     /* 响应式设计 */
     @media (max-width: 1024px) {
       .features-grid {
-        grid-template-columns: 1fr;
+        gap: 20px;
+        max-width: 100%;
+      }
+
+      .feature-card {
+        max-width: 100%;
+        min-width: 260px;
       }
     }
 
     @media (max-width: 768px) {
       .features-container {
-        padding: 15px;
+        padding: 10px;
         margin-top: 15px;
       }
 
+      .features-grid {
+        gap: 15px;
+        grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+        max-width: 100%;
+      }
+
       .feature-card {
-        min-height: 160px;
+        min-height: 140px;
+        max-width: 100%;
+        min-width: 240px;
+        max-height: 160px;
       }
 
       .card-header {
-        font-size: 15px;
+        font-size: 14px;
+        gap: 6px;
+      }
+
+      .card-header .el-icon {
+        font-size: 18px;
+        width: 28px;
+        height: 28px;
       }
 
       .card-desc {
+        font-size: 12px;
+        margin: -5px 0 0 0;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .features-container {
+        padding: 8px;
+      }
+
+      .features-grid {
+        grid-template-columns: 1fr;
+        gap: 12px;
+        max-width: 100%;
+      }
+
+      .feature-card {
+        min-width: 220px;
+        max-width: 100%;
+        min-height: 130px;
+        max-height: 150px;
+      }
+
+      .card-header {
         font-size: 13px;
+        gap: 5px;
+      }
+
+      .card-header .el-icon {
+        font-size: 16px;
+        width: 24px;
+        height: 24px;
+      }
+
+      .card-desc {
+        font-size: 11px;
+        line-height: 1.4;
       }
     }
   }
 }
 .AiTalk {
   width: 25%;
+  min-width: 300px;
+  height: 90%;
+  margin: 1% 0;
+}
+
+/* 响应式布局 - 主容器调整 */
+@media (max-width: 1024px) {
+  .content {
+    flex-direction: column;
+  }
+
+  .createmind {
+    width: 100%;
+    min-height: 500px;
+  }
+
+  .AiTalk {
+    width: 95%;
+    margin: 1% auto;
+    height: auto;
+    min-height: 400px;
+  }
+}
+
+@media (max-width: 768px) {
+  .createmind {
+    padding: 15px;
+  }
+
+  .createmind-title {
+    font-size: 18px !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .createmind {
+    padding: 10px;
+    margin: 1% auto;
+    width: 97%;
+  }
+
+  .AiTalk {
+    width: 97%;
+  }
+
+  .createmind-title {
+    font-size: 16px !important;
+  }
 }
 </style>
