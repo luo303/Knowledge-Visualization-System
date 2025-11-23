@@ -323,7 +323,9 @@ const viewMindmap = async () => {
   }
 
   if (mapId && mapId !== 'xxx') {
+    console.log('已有有效的mapId，直接跳转到编辑页')
     router.push({ name: 'generate-pro', query: { batchId, mapId } }) // 携带 mapId
+    return // 添加return防止继续执行后续代码
   }
   try {
     console.log('===== viewMindmap 开始执行 =====')
