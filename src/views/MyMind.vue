@@ -130,7 +130,11 @@
   <div class="batch-action-bar" v-show="selectedCount > 0">
     <span class="selected-count">已选择{{ selectedCount }}个导图</span>
     <div class="batch-buttons">
-      <el-button type="primary" size="large" @click="ToExport"
+      <el-button
+        type="primary"
+        size="large"
+        @click="ToExport"
+        class="export-btn"
         >批量导出</el-button
       >
       <el-dialog v-model="dialogFormVisible" title="导出" width="500">
@@ -901,10 +905,14 @@ watch(
   justify-content: space-between;
   align-items: center;
   padding: 12px 20px;
-  gap: 20px;
+  gap: 30px;
   z-index: 10;
   border-top: 1px solid var(--el-border-color-light);
   border-radius: 4px 4px 0 0;
+}
+
+.export-btn {
+  margin: 0px 10px;
 }
 
 .selected-count {
