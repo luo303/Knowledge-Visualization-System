@@ -468,9 +468,10 @@ const sendMsg = async () => {
     } else if ((res as any).Code === 5001) {
       ElMessage.warning(`${(res as any).Message}`)
     } else {
-      ElMessage.error('发送失败，AI有点宕机了')
+      ElMessage.error('优化失败，AI有点宕机了')
     }
   } catch (error) {
+    ElMessage.error('优化失败，AI有点宕机了')
     console.log(error)
   } finally {
     tempId.value = ''
