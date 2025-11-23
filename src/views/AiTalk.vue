@@ -223,6 +223,7 @@ import {
   GetMapChatList,
   TabComplete
 } from '@/api/user'
+
 const LayoutStore = useLayoutStore()
 const SettingStore = useSettingStore()
 // 所有对话数据（指定类型为Chat数组）
@@ -583,7 +584,17 @@ watch(
   () => LayoutStore.data.mapId,
   async newId => {
     if (newId) {
-      getconlist()
+      await nextTick()
+      backToList()
+    }
+  }
+)
+watch(
+  () => LayoutStore.data,
+  async newId => {
+    if (newId) {
+      await nextTick()
+      backToList()
     }
   }
 )
