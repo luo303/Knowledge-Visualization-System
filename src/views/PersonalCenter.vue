@@ -1,7 +1,7 @@
 <template>
   <el-card class="personal-center">
     <el-row :gutter="24" class="personal-info-container">
-      <el-col :xs="24" :sm="12" :md="12" :lg="12" :xl="12">
+      <el-col :xs="24" :sm="24" :md="8" :lg="8" :xl="8">
         <el-card class="section-card" shadow="hover">
           <template #header>
             <div class="card-header">
@@ -106,7 +106,7 @@
       </el-dialog>
 
       <!-- 账号安全 -->
-      <el-col :xs="24" :sm="12" :md="12" :lg="12" :xl="12">
+      <el-col :xs="24" :sm="24" :md="16" :lg="16" :xl="16">
         <el-card class="section-card" shadow="hover">
           <template #header>
             <div class="card-header">
@@ -170,27 +170,39 @@
         </el-card>
 
         <!-- 用户提示卡片 -->
-        <el-card
-          class="section-card mt-4"
-          shadow="hover"
-          style="min-height: 260px"
-        >
+        <el-card class="section-card mt-4" shadow="hover">
           <template #header>
             <div class="card-header">
               <span class="section-title">温馨提示</span>
             </div>
           </template>
           <div class="tips-content">
-            <p class="tips-text">
-              亲爱的用户，感谢您使用我们的知识可视化系统！
-            </p>
-            <ul class="tips-list">
-              <li>• 请定期更新您的密码，确保账号安全</li>
-              <li>• 建议绑定手机号和邮箱，方便账号找回</li>
-              <li>• 上传清晰的头像可以提升您的个人形象</li>
-              <li>• 如有任何问题，请联系我们的客服团队</li>
-            </ul>
-            <p class="tips-wish">祝您使用愉快！</p>
+            <div style="display: flex; flex-direction: column; height: 100%">
+              <p class="tips-text">
+                亲爱的用户，感谢您使用我们的知识可视化系统！
+              </p>
+              <div style="display: flex; gap: 40px; flex: 1">
+                style=" display: flex; gap: 40px; flex: 1; overflow-x: auto;
+                overflow-y: auto; max-height: 100%; " >
+                <ul class="tips-list">
+                  <li>
+                    •
+                    请定期更新您的密码，建议每3个月更换一次，确保账号安全且不易被破解
+                  </li>
+                  <li>
+                    •
+                    建议同时绑定手机号和邮箱，设置不同的验证方式，以便在账号异常时能够快速找回
+                  </li>
+                  <li>
+                    • 上传清晰的个人头像可以在团队协作中提升您的个人形象和专业度
+                  </li>
+                  <li>
+                    •
+                    如有任何使用问题或功能建议，请随时联系我们的客服团队，我们将竭诚为您服务
+                  </li>
+                </ul>
+              </div>
+            </div>
           </div>
         </el-card>
       </el-col>
@@ -790,7 +802,7 @@ const handleSwitchAccount = async () => {
 .personal-center {
   position: relative;
   border-radius: 20px;
-  height: 94%;
+  height: 90%;
 
   .personal-info-container {
     max-width: 1200px;
@@ -823,7 +835,7 @@ const handleSwitchAccount = async () => {
     display: flex;
     flex-direction: column;
     align-items: center;
-    padding: 49px 0;
+    padding: 60px 0;
   }
 
   .avatar-wrapper {
@@ -831,7 +843,7 @@ const handleSwitchAccount = async () => {
     flex-direction: column;
     align-items: center;
     gap: 2px;
-    margin-bottom: 50px;
+    margin-bottom: 30px;
   }
 
   .avatar-upload-container {
@@ -845,7 +857,7 @@ const handleSwitchAccount = async () => {
     display: flex;
     flex-direction: column;
     align-items: center;
-    margin-bottom: 50px;
+    margin-bottom: 30px;
   }
 
   .security-info {
@@ -955,7 +967,13 @@ const handleSwitchAccount = async () => {
   .tips-wish {
     color: var(--el-color-primary);
     font-weight: 500;
-    margin-top: 5px;
+  }
+
+  .tips-additional-content {
+    font-size: 14px;
+    color: var(--el-text-regular-color);
+    margin-bottom: 8px;
+    line-height: 1.5;
   }
 }
 </style>
