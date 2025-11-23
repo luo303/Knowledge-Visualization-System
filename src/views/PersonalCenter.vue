@@ -182,8 +182,6 @@
                 亲爱的用户，感谢您使用我们的知识可视化系统！
               </p>
               <div style="display: flex; gap: 40px; flex: 1">
-                style=" display: flex; gap: 40px; flex: 1; overflow-x: auto;
-                overflow-y: auto; max-height: 100%; " >
                 <ul class="tips-list">
                   <li>
                     •
