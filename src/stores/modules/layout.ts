@@ -74,7 +74,8 @@ export const useLayoutStore = defineStore(
     const needget = ref(false)
     //是否正在与AI对话
     const isChatting = ref(false)
-
+    //是否AI正在思考中
+    const isloading = ref(false)
     //后端保存导图数据
     const saveMap = async () => {
       if (data.value.mapId) {
@@ -142,6 +143,7 @@ export const useLayoutStore = defineStore(
       currentChatId.value = ''
       currentChat.value = { title: '', conversation_id: '', messages: [] }
       needget.value = false
+      isloading.value = false
     }
     watch(
       () => currentChatId.value,
@@ -157,6 +159,15 @@ export const useLayoutStore = defineStore(
         }
       }
     )
+    // 监听mapId变化，重置相关聊天状态
+    // watch(
+    //   () => data.value.mapId,
+    //   () => {
+    //     currentChatId.value = ''
+    //     currentChat.value = { title: '', conversation_id: '', messages: [] }
+    //     newChatId.value = ''
+    //   }
+    // )
     return {
       isCollapse,
       data,
@@ -167,6 +178,7 @@ export const useLayoutStore = defineStore(
       currentChatId,
       newChatId,
       needget,
+      isloading,
       isChatting,
       clearMap,
       saveMap
