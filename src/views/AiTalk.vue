@@ -210,6 +210,7 @@ import { EditPen, Plus } from '@element-plus/icons-vue'
 import { useLayoutStore } from '@/stores'
 import { storeToRefs } from 'pinia'
 import type { ChatList, Message } from '@/stores/modules/type'
+import JSON5 from 'json5'
 import {
   NewChat,
   GetChat,
@@ -219,6 +220,7 @@ import {
   GetMapChatList,
   TabComplete
 } from '@/api/user'
+
 const LayoutStore = useLayoutStore()
 // 所有对话数据（指定类型为Chat数组）
 const {
@@ -256,7 +258,7 @@ const getconlist = async () => {
       ElMessage.error(`${message}`)
     }
   } catch (error) {
-    console.log(error)
+    console.error(error)
   }
 }
 
@@ -350,7 +352,7 @@ const confirm = async () => {
         ElMessage.error(`${message}`)
       }
     } catch (error) {
-      console.log(error)
+      console.error(error)
     }
   } else {
     ElMessage.error('系统错误，当前没有导图')
@@ -380,7 +382,7 @@ const enterChat = async (id: string) => {
         ElMessage.error(`${message}`)
       }
     } catch (error) {
-      console.log(error)
+      console.error(error)
     } finally {
       needget.value = false
     }
@@ -431,9 +433,15 @@ const sendMsg = async () => {
       LayoutStore.data
     )
     if ((res as any).Code === 200) {
+      // 若后端返回新的导图数据，则更新本地缓存与当前数据
       if ((res as any).Data.new_map_json) {
-        LayoutStore.aidata = JSON.parse((res as any).Data.new_map_json)
-        LayoutStore.data = JSON.parse((res as any).Data.new_map_json)
+        try {
+          LayoutStore.aidata = JSON5.parse((res as any).Data.new_map_json)
+          LayoutStore.data = JSON5.parse((res as any).Data.new_map_json)
+        } catch (e) {
+          console.error('解析 new_map_json 失败:', e)
+          ElMessage.error('导图数据解析异常')
+        }
       }
       if (currentChatId.value === id) {
         //判断当前是否在发送消息的那个会话，防止用户发完消息去到别的会话
@@ -461,10 +469,11 @@ const sendMsg = async () => {
     } else if ((res as any).Code === 5001) {
       ElMessage.warning(`${(res as any).Message}`)
     } else {
-      ElMessage.error('发送失败，AI有点宕机了')
+      ElMessage.error('优化失败，AI有点宕机了')
     }
   } catch (error) {
-    console.log(error)
+    ElMessage.error('优化失败，AI有点宕机了')
+    console.error(error)
   } finally {
     isloading.value = false
   }
@@ -498,7 +507,7 @@ const createNewChat = async () => {
     dialogFormVisible.value = false
     formRef.value.resetFields()
     ElMessage.error('创建失败')
-    console.log(error)
+    console.error(error)
   }
 }
 
@@ -532,7 +541,7 @@ const deleteChat = async (id: string) => {
             ElMessage.error(`${message}`)
           }
         } catch (error) {
-          console.log(error)
+          console.error(error)
         }
       }
       ElMessage.success('删除成功')
@@ -541,7 +550,7 @@ const deleteChat = async (id: string) => {
       ElMessage.error(`${message}`)
     }
   } catch (error) {
-    console.log(error)
+    console.error(error)
   } finally {
     DelDialogVisible.value = false
   }
@@ -564,7 +573,7 @@ const complete = (e: any) => {
         ElMessage.error('补全失败')
       }
     } catch (error) {
-      console.log(error)
+      console.error(error)
     } finally {
       completeTimer = null
     }
@@ -574,7 +583,8 @@ watch(
   () => LayoutStore.data.mapId,
   async newId => {
     if (newId) {
-      getconlist()
+      await nextTick()
+      backToList()
     }
   }
 )

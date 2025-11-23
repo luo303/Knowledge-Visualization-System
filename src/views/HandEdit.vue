@@ -468,7 +468,6 @@ onMounted(async () => {
   mindMap.keyCommand.removeShortcut('Shift+Backspace')
   //监听搜索节点
   mindMap.on('search_info_change', (data: any) => {
-    console.log(data)
     if (data.total === 0) {
       ElMessage.warning('未找到包含该内容的节点')
     } else {
@@ -566,7 +565,7 @@ const save = async () => {
       ElMessage.error(`${(res as any).Message}` || '保存失败')
     }
   } catch (error) {
-    console.log(error)
+    console.error(error)
   }
   // status.value = '已保存'
   // ElMessage.success('保存成功')
@@ -709,6 +708,7 @@ const pasteNode = () => {
   show.value = false
   ElMessage.success('粘贴成功')
 }
+const plainClone = (obj: any) => JSON.parse(JSON.stringify(obj))
 //组件销毁前更新思维导图
 onBeforeUnmount(async () => {
   LayoutStore.saveMap()
@@ -717,7 +717,8 @@ watch(
   () => LayoutStore.aidata,
   newData => {
     if (mindMap) {
-      mindMap.updateData(newData.root)
+      const safeRoot = plainClone(newData.root)
+      mindMap.updateData(safeRoot)
       // 2. 单独设置布局（如果库有 setLayout 方法）
       mindMap.setLayout(newData.layout || 'logicalStructure')
       mindMap.resize()

@@ -1,7 +1,7 @@
 <template>
   <el-card class="personal-center">
     <el-row :gutter="24" class="personal-info-container">
-      <el-col :xs="24" :sm="12" :md="12" :lg="12" :xl="12">
+      <el-col :xs="24" :sm="24" :md="8" :lg="8" :xl="8">
         <el-card class="section-card" shadow="hover">
           <template #header>
             <div class="card-header">
@@ -33,7 +33,7 @@
 
             <!-- 用户名 -->
             <div class="username-wrapper">
-              <el-descriptions border :column="{ xs: 1, sm: 2 }">
+              <el-descriptions border :xs="1" :sm="2">
                 <el-descriptions-item label="用户名">{{
                   userInfo.user_name
                 }}</el-descriptions-item>
@@ -106,7 +106,7 @@
       </el-dialog>
 
       <!-- 账号安全 -->
-      <el-col :xs="24" :sm="12" :md="12" :lg="12" :xl="12">
+      <el-col :xs="24" :sm="24" :md="16" :lg="16" :xl="16">
         <el-card class="section-card" shadow="hover">
           <template #header>
             <div class="card-header">
@@ -170,27 +170,37 @@
         </el-card>
 
         <!-- 用户提示卡片 -->
-        <el-card
-          class="section-card mt-4"
-          shadow="hover"
-          style="min-height: 260px"
-        >
+        <el-card class="section-card mt-4" shadow="hover">
           <template #header>
             <div class="card-header">
               <span class="section-title">温馨提示</span>
             </div>
           </template>
           <div class="tips-content">
-            <p class="tips-text">
-              亲爱的用户，感谢您使用我们的知识可视化系统！
-            </p>
-            <ul class="tips-list">
-              <li>• 请定期更新您的密码，确保账号安全</li>
-              <li>• 建议绑定手机号和邮箱，方便账号找回</li>
-              <li>• 上传清晰的头像可以提升您的个人形象</li>
-              <li>• 如有任何问题，请联系我们的客服团队</li>
-            </ul>
-            <p class="tips-wish">祝您使用愉快！</p>
+            <div style="display: flex; flex-direction: column; height: 100%">
+              <p class="tips-text">
+                亲爱的用户，感谢您使用我们的知识可视化系统！
+              </p>
+              <div style="display: flex; gap: 40px; flex: 1">
+                <ul class="tips-list">
+                  <li>
+                    •
+                    请定期更新您的密码，建议每3个月更换一次，确保账号安全且不易被破解
+                  </li>
+                  <li>
+                    •
+                    建议同时绑定手机号和邮箱，设置不同的验证方式，以便在账号异常时能够快速找回
+                  </li>
+                  <li>
+                    • 上传清晰的个人头像可以在团队协作中提升您的个人形象和专业度
+                  </li>
+                  <li>
+                    •
+                    如有任何使用问题或功能建议，请随时联系我们的客服团队，我们将竭诚为您服务
+                  </li>
+                </ul>
+              </div>
+            </div>
           </div>
         </el-card>
       </el-col>
@@ -350,19 +360,32 @@
         >
       </template>
     </el-dialog>
+
+    <!-- 切换账号对话框 -->
+    <el-dialog
+      v-model="switchAccountDialogVisible"
+      title="确认切换"
+      width="400px"
+      center
+    >
+      <div>
+        <p style="text-align: center; margin: 0">您确认要切换账号吗？</p>
+      </div>
+      <template #footer>
+        <div class="dialog-footer">
+          <el-button @click="cancelSwitchAccount">取消</el-button>
+          <el-button type="primary" @click="confirmSwitchAccount"
+            >确定</el-button
+          >
+        </div>
+      </template>
+    </el-dialog>
   </el-card>
 </template>
 
 <script lang="ts" setup>
 import { Edit, Upload } from '@element-plus/icons-vue'
-import {
-  ElDialog,
-  ElUpload,
-  ElButton,
-  ElMessage,
-  ElIcon,
-  ElMessageBox
-} from 'element-plus'
+import { ElDialog, ElUpload, ElButton, ElMessage, ElIcon } from 'element-plus'
 import { ref, computed, onMounted, onUnmounted } from 'vue'
 import defaultAvatar from '@/assets/images/personal.png' // 默认头像
 import { useUserStore } from '@/stores/modules/user'
@@ -655,8 +678,6 @@ const handleUpdateUsername = async () => {
     } else {
       ElMessage.error('更改失败')
     }
-  } catch (error) {
-    console.log(error)
   } finally {
     usernameDialogOpen.value = false
   }
@@ -768,30 +789,38 @@ const changecontact = async () => {
     changedDialogOpen.value = false
   }
 }
-// 切换账号：
-const handleSwitchAccount = async () => {
-  try {
-    await ElMessageBox.confirm('您确认要切换账号吗？', '确认切换', {
-      confirmButtonText: '确定',
-      cancelButtonText: '取消',
-      type: 'warning'
-    })
+// 切换账号对话框状态
+const switchAccountDialogVisible = ref(false)
 
+// 打开切换账号对话框
+const handleSwitchAccount = () => {
+  switchAccountDialogVisible.value = true
+}
+
+// 确认切换账号
+const confirmSwitchAccount = async () => {
+  try {
     userStore.clearUserInfo()
     LayoutStore.clearMap() //清除导图和对话数据
     ElMessage.success('已退出登录！')
     router.push('/login')
   } catch (error) {
-    ElMessage.info('已取消切换账号')
-    console.error('取消切换账号：', error)
+    console.error('切换账号失败：', error)
+  } finally {
+    switchAccountDialogVisible.value = false
   }
 }
-</script>
 
+// 取消切换账号
+const cancelSwitchAccount = () => {
+  switchAccountDialogVisible.value = false
+}
+</script>
 <style lang="scss">
 .personal-center {
   position: relative;
   border-radius: 20px;
+  height: 90%;
 
   .personal-info-container {
     max-width: 1200px;
@@ -824,7 +853,7 @@ const handleSwitchAccount = async () => {
     display: flex;
     flex-direction: column;
     align-items: center;
-    padding: 49px 0;
+    padding: 60px 0;
   }
 
   .avatar-wrapper {
@@ -832,7 +861,7 @@ const handleSwitchAccount = async () => {
     flex-direction: column;
     align-items: center;
     gap: 2px;
-    margin-bottom: 50px;
+    margin-bottom: 30px;
   }
 
   .avatar-upload-container {
@@ -846,7 +875,7 @@ const handleSwitchAccount = async () => {
     display: flex;
     flex-direction: column;
     align-items: center;
-    margin-bottom: 50px;
+    margin-bottom: 30px;
   }
 
   .security-info {
@@ -956,7 +985,13 @@ const handleSwitchAccount = async () => {
   .tips-wish {
     color: var(--el-color-primary);
     font-weight: 500;
-    margin-top: 5px;
+  }
+
+  .tips-additional-content {
+    font-size: 14px;
+    color: var(--el-text-regular-color);
+    margin-bottom: 8px;
+    line-height: 1.5;
   }
 }
 </style>

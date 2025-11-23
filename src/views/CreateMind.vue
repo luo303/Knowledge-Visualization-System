@@ -18,16 +18,18 @@
                 type="primary"
                 style="
                   width: 100%;
-                  min-width: 723px;
-                  margin: 10px 20px;
+                  max-width: 723px;
+                  min-width: 770px;
+                  margin: 10px auto;
                   min-height: 60px;
                   display: flex;
                   justify-content: center;
                   align-items: center;
+                  box-sizing: border-box;
                 "
                 class="responsive-upload-btn"
               >
-                <span style="font-size: 1.5rem; letter-spacing: 1rem"
+                <span style="font-size: 1.5rem; letter-spacing: 0.5rem"
                   >上传文件</span
                 >
               </el-button>
@@ -258,9 +260,6 @@ const handleFileUpload = async (uploadFile: any) => {
     if (!batchId) {
       const errorMsg =
         generateResp?.Message || '未能获取到batch_id，请检查接口响应!'
-      if (generateResp?.Data) {
-        console.error('Data字段结构:', Object.keys(generateResp.Data))
-      }
       throw new Error(errorMsg)
     }
 
@@ -283,27 +282,37 @@ const handleFileUpload = async (uploadFile: any) => {
     progress.value = 100
     await new Promise(resolve => setTimeout(resolve, 1000))
 
-    // 详细的错误日志和处理
-    console.error('错误对象:', error)
+    let errorMsg = ''
+
+    // 处理特定错误类型
     if (error instanceof Error) {
-      console.error('错误消息:', error.message)
-      console.error('错误堆栈:', error.stack)
+      const errorStr = error.message || ''
+
+      // 处理401未授权错误
+      if (errorStr.includes('401') || errorStr.includes('未授权')) {
+        errorMsg = '认证已过期，请重新登录'
+        // 清除用户信息并跳转到登录页
+        setTimeout(() => {
+          const userStore = useUserStore()
+          userStore.clearUserInfo()
+          router.push('/login')
+        }, 2000)
+      }
+      // 处理UniPDF许可证错误
+      else if (errorStr.includes('unipdf license code required')) {
+        errorMsg = 'PDF处理需要特殊许可证，请使用TXT或DOCX格式文件'
+      }
+      // 其他错误
+      else {
+        errorMsg = errorStr
+      }
+    } else {
+      errorMsg = '未知错误'
     }
 
-    // 尝试从LayoutStore获取当前状态，以便调试
-    console.error('LayoutStore当前状态:', {
-      hasData: !!LayoutStore.data,
-      batchId: LayoutStore.data?.batchId,
-      mapId: LayoutStore.data?.mapId
-    })
-
     // 显示用户友好的错误消息
-    ElMessage.error(
-      '文件处理失败: ' + (error instanceof Error ? error.message : '未知错误')
-    )
+    ElMessage.error('文件处理失败: ' + errorMsg)
     status.value = 'error'
-  } finally {
-    console.log('===== handleFileUpload 执行结束 =====')
   }
 }
 
@@ -313,32 +322,20 @@ const viewMindmap = async () => {
   const batchId = LayoutStore.data?.batchId
   const mapId = LayoutStore.data?.mapId
 
-  console.log('viewMindmap - 从LayoutStore获取的batchId:', batchId)
-  console.log('viewMindmap - 从LayoutStore获取的mapId:', mapId)
-
   if (!batchId) {
     ElMessage.warning('未找到导图批次ID, 无法生成正式导图')
-    console.error('LayoutStore中缺少有效的batchId:', LayoutStore.data)
     return
   }
 
   if (mapId && mapId !== 'xxx') {
     router.push({ name: 'generate-pro', query: { batchId, mapId } }) // 携带 mapId
+    return // 添加return防止继续执行后续代码
   }
   try {
-    console.log('===== viewMindmap 开始执行 =====')
-    // 步骤1：调用“根据id获取批次”接口，获取导图草稿数据
+    // 步骤1：调用"根据id获取批次"接口，获取导图草稿数据
     ElMessage.info('正在获取导图数据...')
-    console.group('=== 调用`根据id获取批次`接口 ===')
-    console.log('调用getBatchById的参数:', { batchId })
     const batchResp = await getBatchById(batchId)
     const batchData = batchResp as any
-    console.log('批次数据响应：', batchData)
-    console.log('批次数据响应结构:', Object.keys(batchData || {}))
-    if (batchData?.Data) {
-      console.log('Data字段结构:', Object.keys(batchData.Data))
-    }
-    console.groupEnd()
     // 验证草稿数据（确保有核心字段）
     const firstResult = batchData?.Data?.results?.[0]
     if (!firstResult || !firstResult.map_json) {
@@ -350,8 +347,7 @@ const viewMindmap = async () => {
       throw new Error('导图节点结构缺失')
     }
 
-    // 步骤2：调用“创建导图”接口，生成正式 mapId
-    console.group('=== 调用`创建导图`接口 ===')
+    // 步骤2：调用"创建导图"接口，生成正式 mapId
     const createParams: CreateMindMapParams = {
       title: draftMapData.title || '未命名导图',
       desc: draftMapData.desc || '无描述',
@@ -360,8 +356,6 @@ const viewMindmap = async () => {
     }
     const cre = await createMindMap(createParams)
     const createResp = cre as any
-    console.log('创建导图响应：', createResp)
-    console.groupEnd()
 
     // 验证创建结果
     if (!createResp || createResp.Code !== 200 || !createResp.Data.mapId) {
@@ -379,9 +373,7 @@ const viewMindmap = async () => {
       userId: userStore.userInfo?.user_id || ''
     }
 
-    console.log('准备保存到LayoutStore的完整数据:', formalMapData)
     LayoutStore.data = formalMapData // 更新全局状态
-    console.log('LayoutStore更新后的数据:', LayoutStore.data)
 
     // 步骤4：跳转至编辑页（携带新生成的 mapId）
     ElMessage.success('导图生成成功，即将跳转编辑页')
@@ -390,26 +382,8 @@ const viewMindmap = async () => {
       query: { mapId: newMapId, batchId: batchId || '' }
     })
   } catch (error) {
-    // 详细的错误日志和处理
-    console.error('===== 查看导图流程失败 =====')
-    console.error('错误对象:', error)
-    if (error instanceof Error) {
-      console.error('错误消息:', error.message)
-      console.error('错误堆栈:', error.stack)
-    }
-
-    // 记录当前的batchId和LayoutStore状态
-    console.error('失败时的batchId:', batchId)
-    console.error('LayoutStore当前状态:', {
-      hasData: !!LayoutStore.data,
-      batchId: LayoutStore.data?.batchId,
-      mapId: LayoutStore.data?.mapId
-    })
-
     const errorMsg = error instanceof Error ? error.message : '未知错误'
     ElMessage.error('查看导图失败: ' + errorMsg)
-  } finally {
-    console.log('===== viewMindmap 执行结束 =====')
   }
 }
 
@@ -434,14 +408,13 @@ onUnmounted(() => {
   flex: 1;
   height: 100%;
   display: flex;
+  gap: 10px;
   .createmind {
     flex: 1;
-    height: 90%;
+    max-height: 90%;
     border-radius: 20px;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
     background-color: white;
-    margin-right: 2%;
-    margin-left: 2%;
     padding: 20px;
     display: flex;
     flex-direction: column;
@@ -466,13 +439,13 @@ onUnmounted(() => {
       justify-content: center;
       align-items: center;
       flex-direction: column;
-      gap: 10px;
+      gap: 2px;
       width: 100%;
       .upload-desc {
         font-size: 14px;
         color: #999;
-        position: absolute;
-        top: 26%;
+        position: relative;
+        margin-top: -7px;
         z-index: 2;
       }
     }
@@ -566,30 +539,40 @@ onUnmounted(() => {
     }
 
     .features-container {
-      flex: display;
+      display: flex;
       justify-content: center;
-      align-items: center;
+      align-items: flex-start;
       padding: 15px;
-      margin-left: 3%;
-      margin-top: 20px;
-      width: 80%;
+      margin: 2px auto 0;
+      width: 100%;
+      max-width: 100%;
       box-sizing: border-box;
+      overflow: hidden;
     }
 
     .features-grid {
       display: grid;
-      grid-template-columns: repeat(2, 1fr);
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
       gap: 25px;
       width: 100%;
+      max-width: 100%;
+      height: 100%;
+      justify-items: center;
+      box-sizing: border-box;
     }
 
     .feature-card {
       transition: all 0.3s ease;
       border-radius: var(--el-border-radius-base);
-      max-height: 140px;
-      min-width: 350px;
+      max-height: 160px;
+      min-width: 280px;
+      width: 100%;
+      max-width: 380px;
       display: flex;
       flex-direction: column;
+      margin: 0 auto;
+      overflow: hidden;
+      box-sizing: border-box;
     }
 
     .feature-card:hover {
@@ -629,31 +612,122 @@ onUnmounted(() => {
     /* 响应式设计 */
     @media (max-width: 1024px) {
       .features-grid {
-        grid-template-columns: 1fr;
+        gap: 20px;
+        max-width: 100%;
+      }
+
+      .feature-card {
+        max-width: 100%;
+        min-width: 260px;
       }
     }
 
     @media (max-width: 768px) {
       .features-container {
-        padding: 15px;
+        padding: 10px;
         margin-top: 15px;
       }
 
+      .features-grid {
+        gap: 15px;
+        grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+        max-width: 100%;
+      }
+
       .feature-card {
-        min-height: 160px;
+        min-height: 140px;
+        max-width: 100%;
+        min-width: 240px;
+        max-height: 160px;
       }
 
       .card-header {
-        font-size: 15px;
+        font-size: 14px;
+        gap: 6px;
+      }
+
+      .card-header .el-icon {
+        font-size: 18px;
+        width: 28px;
+        height: 28px;
       }
 
       .card-desc {
+        font-size: 12px;
+        margin: -5px 0 0 0;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .features-container {
+        padding: 8px;
+      }
+
+      .features-grid {
+        grid-template-columns: 1fr;
+        gap: 12px;
+        max-width: 100%;
+      }
+
+      .feature-card {
+        min-width: 220px;
+        max-width: 100%;
+        min-height: 130px;
+        max-height: 150px;
+      }
+
+      .card-header {
         font-size: 13px;
+        gap: 5px;
+      }
+
+      .card-header .el-icon {
+        font-size: 16px;
+        width: 24px;
+        height: 24px;
+      }
+
+      .card-desc {
+        font-size: 11px;
+        line-height: 1.4;
       }
     }
   }
 }
 .AiTalk {
   width: 25%;
+}
+
+/* 响应式布局 - 主容器调整 */
+@media (max-width: 1024px) {
+  .content {
+    flex-direction: column;
+  }
+
+  .createmind {
+    width: 100%;
+    min-height: 500px;
+  }
+}
+
+@media (max-width: 768px) {
+  .createmind {
+    padding: 15px;
+  }
+
+  .createmind-title {
+    font-size: 18px !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .createmind {
+    padding: 10px;
+    margin: 1% auto;
+    width: 97%;
+  }
+  .createmind-title {
+    font-size: 16px !important;
+  }
 }
 </style>

@@ -33,11 +33,26 @@
         >
       </div>
     </div>
+    <!-- 退出登录对话框 -->
+    <el-dialog
+      v-model="logoutDialogVisible"
+      title="确认退出"
+      width="30%"
+      center
+    >
+      <span style="display: block; text-align: center">是否要退出登录？</span>
+      <template #footer>
+        <div class="dialog-footer">
+          <el-button @click="cancelLogout">取消</el-button>
+          <el-button type="primary" @click="confirmLogout">确定</el-button>
+        </div>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
 <script lang="ts" setup>
-import { ElMessageBox } from 'element-plus'
+import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useUserStore } from '@/stores/modules/user'
 import { useLayoutStore } from '@/stores'
@@ -60,17 +75,26 @@ const getAvatarUrl = (avatarUrl: string | undefined) => {
   return avatarUrl
 }
 
+// 退出登录对话框状态
+const logoutDialogVisible = ref(false)
+
+// 打开退出登录对话框
 const handleToLogin = () => {
-  ElMessageBox.confirm('是否要退出登录？', '确认退出', {
-    confirmButtonText: '确定',
-    cancelButtonText: '取消',
-    type: 'warning'
-  }).then(async () => {
-    await LayoutStore.saveMap() //先向后端保存数据
-    userStore.clearUserInfo()
-    LayoutStore.clearMap() //清除导图和对话数据
-    router.push('/login')
-  })
+  logoutDialogVisible.value = true
+}
+
+// 确认退出登录
+const confirmLogout = async () => {
+  await LayoutStore.saveMap() //先向后端保存数据
+  userStore.clearUserInfo()
+  LayoutStore.clearMap() //清除导图和对话数据
+  router.push('/login')
+  logoutDialogVisible.value = false
+}
+
+// 取消退出登录
+const cancelLogout = () => {
+  logoutDialogVisible.value = false
 }
 //新消息跳转对话框
 const handleToMessage = async () => {
@@ -79,6 +103,8 @@ const handleToMessage = async () => {
   }
   if (LayoutStore.newChatId) {
     LayoutStore.currentChatId = LayoutStore.newChatId
+    await nextTick()
+    LayoutStore.isChatting = false
     await nextTick()
     LayoutStore.isChatting = true
     LayoutStore.newChatId = ''
