@@ -468,7 +468,6 @@ onMounted(async () => {
   mindMap.keyCommand.removeShortcut('Shift+Backspace')
   //监听搜索节点
   mindMap.on('search_info_change', (data: any) => {
-    console.log(data)
     if (data.total === 0) {
       ElMessage.warning('未找到包含该内容的节点')
     } else {
@@ -566,7 +565,7 @@ const save = async () => {
       ElMessage.error(`${(res as any).Message}` || '保存失败')
     }
   } catch (error) {
-    console.log(error)
+    console.error(error)
   }
   // status.value = '已保存'
   // ElMessage.success('保存成功')

@@ -179,7 +179,7 @@ const getcode = async () => {
       ElMessage.error((res as any).Message || '获取验证码失败')
     }
   } catch (error) {
-    console.log(error)
+    console.error(error)
     ElMessage.error('发送请求失败')
   }
 }
@@ -202,7 +202,7 @@ const confirm = async () => {
       ElMessage.error((res as any).Message || '重置失败')
     }
   } catch (error) {
-    console.log(error)
+    console.error(error)
     ElMessage.error('发送请求失败')
   }
 }
