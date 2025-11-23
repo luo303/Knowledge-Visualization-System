@@ -81,6 +81,7 @@ const handleToMessage = async () => {
     LayoutStore.currentChatId = LayoutStore.newChatId
     await nextTick()
     LayoutStore.isChatting = false
+    await nextTick()
     LayoutStore.isChatting = true
     LayoutStore.newChatId = ''
   }
