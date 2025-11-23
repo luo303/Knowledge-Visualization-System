@@ -524,34 +524,20 @@ const cancelDelete = () => {
 
 // 确认删除
 const confirmDelete = async () => {
-  try {
-    // 获取用户选中的导图ID列表
-    const selectedMaps = mindmaps.value.filter(map => map.selected)
-    const selectedMapIds = selectedMaps.map(map => map.mapId)
-
-    if (selectedMapIds.length === 0) {
-      ElMessage.warning('请选择要删除的思维导图')
-      return
-    }
-
-    // 如果选中了正在编辑的导图，先清空Layout仓库
-    if (hasEditingMap.value) {
-      LayoutStore.clearMap()
-    }
-
-    // 执行批量删除操作
-    await handleBatchDelete()
-    dialogDeleteVisible.value = false
-  } catch (error) {
-    console.error('批量删除失败：', error)
-    let errorMsg = '未知错误'
-    if (error instanceof Error) {
-      errorMsg = error.message
-    } else if (typeof error === 'string') {
-      errorMsg = error
-    }
-    ElMessage.error(`删除失败：${String(errorMsg)}`)
+  // 检查是否有选中的导图
+  if (selectedCount.value === 0) {
+    ElMessage.warning('请选择要删除的思维导图')
+    return
   }
+
+  // 如果选中了正在编辑的导图，先清空Layout仓库
+  if (hasEditingMap.value) {
+    LayoutStore.clearMap()
+  }
+
+  // 执行批量删除操作
+  await handleBatchDelete()
+  dialogDeleteVisible.value = false
 }
 // 批量导出
 const Export = async () => {
@@ -566,8 +552,6 @@ const Export = async () => {
       ElMessage.warning('请选择要导出的思维导图')
       return
     }
-
-    ElMessage.info('正在导出 ...')
 
     // 调用导出工具
     await exports(selectedMaps, form.value.type)
@@ -596,36 +580,24 @@ const handleBatchDelete = async () => {
   const selectedMapIds = mindmaps.value
     .filter(map => map.selected)
     .map(map => map.mapId)
-  ElMessage.info('正在删除...')
   try {
     const res = await delMap(selectedMapIds)
     const response = res as any
+
     if (response.Code === 200) {
+      // 过滤掉已删除的导图
       mindmaps.value = mindmaps.value.filter(
         map => !selectedMapIds.includes(map.mapId)
       )
       ElMessage.success(`已删除${countToDelete}个导图`)
     } else {
-      // 确保错误信息始终是字符串格式
-      const errorMsg = String(response.Message || '删除失败，请稍后再试...')
-      ElMessage.error(errorMsg)
+      ElMessage.error(response.Message || '删除失败，请稍后再试...')
     }
   } catch (error) {
-    console.error('删除导图卡片数据失败', error)
-    // 增强错误信息处理，确保始终返回字符串
-    let errorMsg = '删除失败，请稍后再试...'
-    if (error instanceof Error) {
-      errorMsg = error.message
-    } else if (typeof error === 'string') {
-      errorMsg = error
-    }
-    // 使用String()确保转换为字符串类型
-    const displayErrorMsg = String(errorMsg)
-    ElMessage.error(`删除失败：${displayErrorMsg}`)
+    console.error('删除导图失败', error)
+    ElMessage.error('删除失败，请稍后再试...')
   }
 }
-
-// 移除了状态反馈相关函数
 
 // 监听选中导图的数量变化：
 watch(
