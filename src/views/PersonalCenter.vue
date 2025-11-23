@@ -33,7 +33,7 @@
 
             <!-- 用户名 -->
             <div class="username-wrapper">
-              <el-descriptions border :column="{ xs: 1, sm: 2 }">
+              <el-descriptions border :xs="1" :sm="2">
                 <el-descriptions-item label="用户名">{{
                   userInfo.user_name
                 }}</el-descriptions-item>
@@ -655,8 +655,6 @@ const handleUpdateUsername = async () => {
     } else {
       ElMessage.error('更改失败')
     }
-  } catch (error) {
-    console.log(error)
   } finally {
     usernameDialogOpen.value = false
   }
