@@ -442,9 +442,8 @@ const sendMsg = async () => {
       // 若后端返回新的导图数据，则更新本地缓存与当前数据
       if ((res as any).Data.new_map_json) {
         try {
-          const newMap = JSON5.parse((res as any).Data.new_map_json)
-          LayoutStore.aidata = newMap
-          LayoutStore.data = newMap
+          LayoutStore.aidata = JSON5.parse((res as any).Data.new_map_json)
+          LayoutStore.data = JSON5.parse((res as any).Data.new_map_json)
         } catch (e) {
           console.error('解析 new_map_json 失败:', e)
           ElMessage.error('导图数据解析异常')
