@@ -508,13 +508,32 @@ const handleBatchExport = async () => {
 }
 // 批量删除确认逻辑：
 const handleBatchDeleteConfirm = () => {
-  ElMessageBox.confirm('是否删除所选导图？删除后不可恢复。', '确认删除', {
-    confirmButtonText: '确定',
-    cancelButtonText: '取消',
-    type: 'warning'
-  })
-
+  // 第一个确认弹窗：检查是否有正在编辑的导图
+  ElMessageBox.confirm(
+    '是否有正在编辑的导图？删除将清空编辑数据。',
+    '确认删除',
+    {
+      confirmButtonText: '确定',
+      cancelButtonText: '取消',
+      type: 'warning'
+    }
+  )
     .then(() => {
+      // 第二个确认弹窗：确认批量删除
+      return ElMessageBox.confirm(
+        '是否删除所选导图？删除后不可恢复。',
+        '确认删除',
+        {
+          confirmButtonText: '确定',
+          cancelButtonText: '取消',
+          type: 'warning'
+        }
+      )
+    })
+    .then(() => {
+      // 用户确认删除，调用clearMap函数清空Layout仓库中的数据
+      LayoutStore.clearMap()
+      // 执行批量删除操作
       handleBatchDelete()
     })
     .catch(() => {})
