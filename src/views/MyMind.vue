@@ -191,6 +191,21 @@
       >
     </div>
   </div>
+
+  <!-- 跳转编辑区确认对话框 -->
+  <el-dialog v-model="editAreaDialogVisible" title="提示" width="400px" center>
+    <div>
+      <p style="text-align: center; margin: 0">确定要跳转到手动编辑区吗？</p>
+    </div>
+    <template #footer>
+      <div>
+        <el-button @click="cancelNavigateToEditArea">取消</el-button>
+        <el-button type="primary" @click="confirmNavigateToEditArea"
+          >确定</el-button
+        >
+      </div>
+    </template>
+  </el-dialog>
 </template>
 
 <script lang="ts" setup>
@@ -198,7 +213,7 @@ import { ref, onMounted, computed, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import ProPreview from '@/components/ProPreview.vue'
 import type { MindMapOptions } from '@/utils/type'
-import { ElMessageBox, ElMessage } from 'element-plus'
+import { ElMessage } from 'element-plus'
 import { exports } from '@/utils/export.ts'
 import { getMindMapList } from '@/api/user/index'
 import { useLayoutStore } from '@/stores/modules/layout'
@@ -403,46 +418,63 @@ const formatTime = (time: string | undefined) => {
   return `${hourMinute}/${monthDay}`
 }
 
+// 编辑区跳转对话框状态
+const editAreaDialogVisible = ref(false)
+let currentMapForNavigation: any = null
+
 // 卡片点击事件：
 const handleCardClick = async (map: any, e: MouseEvent) => {
   const target = e.target as HTMLElement
   // 确保点击el-checkbox时不会触发卡片点击事件
   if (!target.closest('.el-checkbox') && !target.closest('.map-actions')) {
     try {
-      // 显示确认弹窗，询问用户是否要跳转到手动编辑区
-      await ElMessageBox.confirm('确定要跳转到手动编辑区吗？', '提示', {
-        confirmButtonText: '确定',
-        cancelButtonText: '取消',
-        type: 'warning'
-      })
-
-      // 用户确认后，获取导图数据并跳转
-      const res = await getMap(map.mapId)
-      const response = res as any
-      const currentMapId = map.mapId
-      if (currentMapId && currentMapId !== 'xxx') {
-        LayoutStore.data = response.Data
-        LayoutStore.currentChatId = ''
-        LayoutStore.currentChat = {
-          title: '',
-          conversation_id: '',
-          messages: []
-        }
-        router.push({ name: 'handedit', query: { mapId: currentMapId } })
-      } else {
-        ElMessage.warning('导图数据未找到或未生成正式ID，无法跳转')
-      }
+      // 保存当前map信息并显示对话框
+      currentMapForNavigation = map
+      editAreaDialogVisible.value = true
     } catch (error) {
-      // 判断是否是用户取消操作
-      if (error === 'cancel') {
-        // 用户取消了跳转，不做任何操作
-        return
-      }
       console.error('加载导图卡片数据失败：', error)
       const errorMsg = error instanceof Error ? error.message : '未知错误'
       ElMessage.error(`加载导图卡片数据失败：${errorMsg}`)
     }
   }
+}
+
+// 确认跳转到编辑区
+const confirmNavigateToEditArea = async () => {
+  try {
+    if (!currentMapForNavigation) return
+
+    // 获取导图数据并跳转
+    const res = await getMap(currentMapForNavigation.mapId)
+    const response = res as any
+    const currentMapId = currentMapForNavigation.mapId
+    if (currentMapId && currentMapId !== 'xxx') {
+      LayoutStore.data = response.Data
+      LayoutStore.currentChatId = ''
+      LayoutStore.currentChat = {
+        title: '',
+        conversation_id: '',
+        messages: []
+      }
+      router.push({ name: 'handedit', query: { mapId: currentMapId } })
+    } else {
+      ElMessage.warning('导图数据未找到或未生成正式ID，无法跳转')
+    }
+  } catch (error) {
+    console.error('加载导图卡片数据失败：', error)
+    const errorMsg = error instanceof Error ? error.message : '未知错误'
+    ElMessage.error(`加载导图卡片数据失败：${errorMsg}`)
+  } finally {
+    editAreaDialogVisible.value = false
+    currentMapForNavigation = null
+  }
+}
+
+// 取消跳转到编辑区
+const cancelNavigateToEditArea = () => {
+  editAreaDialogVisible.value = false
+  currentMapForNavigation = null
+  console.log('用户取消跳转操作')
 }
 
 // 勾选框处理事件：

@@ -360,19 +360,32 @@
         >
       </template>
     </el-dialog>
+
+    <!-- 切换账号对话框 -->
+    <el-dialog
+      v-model="switchAccountDialogVisible"
+      title="确认切换"
+      width="400px"
+      center
+    >
+      <div>
+        <p style="text-align: center; margin: 0">您确认要切换账号吗？</p>
+      </div>
+      <template #footer>
+        <div class="dialog-footer">
+          <el-button @click="cancelSwitchAccount">取消</el-button>
+          <el-button type="primary" @click="confirmSwitchAccount"
+            >确定</el-button
+          >
+        </div>
+      </template>
+    </el-dialog>
   </el-card>
 </template>
 
 <script lang="ts" setup>
 import { Edit, Upload } from '@element-plus/icons-vue'
-import {
-  ElDialog,
-  ElUpload,
-  ElButton,
-  ElMessage,
-  ElIcon,
-  ElMessageBox
-} from 'element-plus'
+import { ElDialog, ElUpload, ElButton, ElMessage, ElIcon } from 'element-plus'
 import { ref, computed, onMounted, onUnmounted } from 'vue'
 import defaultAvatar from '@/assets/images/personal.png' // 默认头像
 import { useUserStore } from '@/stores/modules/user'
@@ -776,26 +789,33 @@ const changecontact = async () => {
     changedDialogOpen.value = false
   }
 }
-// 切换账号：
-const handleSwitchAccount = async () => {
-  try {
-    await ElMessageBox.confirm('您确认要切换账号吗？', '确认切换', {
-      confirmButtonText: '确定',
-      cancelButtonText: '取消',
-      type: 'warning'
-    })
+// 切换账号对话框状态
+const switchAccountDialogVisible = ref(false)
 
+// 打开切换账号对话框
+const handleSwitchAccount = () => {
+  switchAccountDialogVisible.value = true
+}
+
+// 确认切换账号
+const confirmSwitchAccount = async () => {
+  try {
     userStore.clearUserInfo()
     LayoutStore.clearMap() //清除导图和对话数据
     ElMessage.success('已退出登录！')
     router.push('/login')
   } catch (error) {
-    ElMessage.info('已取消切换账号')
-    console.error('取消切换账号：', error)
+    console.error('切换账号失败：', error)
+  } finally {
+    switchAccountDialogVisible.value = false
   }
 }
-</script>
 
+// 取消切换账号
+const cancelSwitchAccount = () => {
+  switchAccountDialogVisible.value = false
+}
+</script>
 <style lang="scss">
 .personal-center {
   position: relative;
