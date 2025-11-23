@@ -380,12 +380,8 @@ const handleCardClick = async (map: any, e: MouseEvent) => {
 // 勾选框处理事件：
 // 新建导图：
 const handleCreateNew = () => {
-  const mapId = LayoutStore.data?.mapId
-  if (mapId && mapId !== 'xxx') {
-    router.push({ name: 'handedit', query: { mapId } }) // 携带 mapId
-  } else {
-    ElMessage.warning('导图数据未找到或未生成正式ID，无法跳转')
-  }
+  // 跳转到导图生成区（CreateMind页面）
+  router.push({ name: 'createmind' })
 }
 
 // 根据布局类型layout获取对应中文名称：
