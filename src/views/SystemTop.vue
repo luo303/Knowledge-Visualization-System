@@ -22,7 +22,11 @@
 
           <router-link to="/layout/personalcenter">
             <el-button type="text" size="large" circle>
-              <el-avatar :src="getAvatarUrl(userInfo.avatar)">
+              <el-avatar
+                :src="
+                  userInfo.avatar ? getAvatarUrl(userInfo.avatar) : undefined
+                "
+              >
                 <el-icon><User /></el-icon>
               </el-avatar>
             </el-button>
@@ -155,18 +159,20 @@ h1 {
   display: flex;
   align-items: center;
   gap: 70%;
+}
 
-  :deep(.el-avatar) {
-    background-color: var(--el-color-primary);
+/* 针对带图标的头像设置样式 */
+.icon-container :deep(.el-avatar:not([src])) {
+  background-color: var(--el-color-primary);
+}
 
-    .el-icon {
-      color: white;
-      font-size: 23px;
-    }
-  }
-  :deep(.el-button--text) {
-    transition: all var(--el-transition-duration-fast);
-  }
+.icon-container :deep(.el-avatar .el-icon) {
+  color: white;
+  font-size: 23px;
+}
+
+.icon-container :deep(.el-button--text) {
+  transition: all var(--el-transition-duration-fast);
 }
 
 .notification-btn :deep(.el-badge__content.is-dot) {
