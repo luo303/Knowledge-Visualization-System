@@ -143,7 +143,7 @@
             v-model="inputContent"
             type="textarea"
             placeholder="输入部分文字后Tab键可AI智能补全你的想法"
-            @keyup.enter="sendMsg"
+            @keydown.enter.prevent="sendMsg"
             @keydown.tab="complete"
             :autosize="{ minRows: 2, maxRows: 4 }"
             show-word-limit
@@ -320,7 +320,7 @@ const open = (item: boolean) => {
     form.value.name = ''
     newtitle.value = item
   } else {
-    ElMessage.error('请先上传文件生成导图')
+    ElMessage.error('请先上传文件生成导图或选择您要编辑的导图')
   }
 }
 //取消修改标题

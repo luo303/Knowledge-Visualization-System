@@ -67,7 +67,9 @@ const router = createRouter({
 //添加路由前置守卫
 router.beforeEach((to, from, next) => {
   const userstore = useUserStore()
-  if (
+  if (to.path === '/login' && userstore.token) {
+    next('/layout/createmind')
+  } else if (
     !userstore.token &&
     to.path !== '/login' &&
     to.path !== '/register' &&

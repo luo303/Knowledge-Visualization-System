@@ -42,6 +42,8 @@ request.interceptors.response.use(
         type: 'error',
         message: msg
       })
+      const userstore = useUserStore()
+      userstore.clearUserInfo()
       router.push('/login')
       return Promise.reject(error)
     }
