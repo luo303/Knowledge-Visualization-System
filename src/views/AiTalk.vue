@@ -113,7 +113,10 @@
             </template>
             <template v-else></template>
           </div>
-          <div class="msg system_msg load" v-show="isloading">
+          <div
+            class="msg system_msg load"
+            v-show="isloading && currentChat.conversation_id === tempId"
+          >
             AI思考中
             <svg
               t="1763213934464"
@@ -208,6 +211,7 @@ import { ElMessage } from 'element-plus'
 import { ref, nextTick, onMounted, watch, onBeforeUnmount } from 'vue'
 import { EditPen, Plus } from '@element-plus/icons-vue'
 import { useLayoutStore } from '@/stores'
+import { useSettingStore } from '@/stores/modules/setting'
 import { storeToRefs } from 'pinia'
 import type { ChatList, Message } from '@/stores/modules/type'
 import JSON5 from 'json5'
@@ -222,6 +226,7 @@ import {
 } from '@/api/user'
 
 const LayoutStore = useLayoutStore()
+const SettingStore = useSettingStore()
 // 所有对话数据（指定类型为Chat数组）
 const {
   chat,
@@ -230,10 +235,9 @@ const {
   newChatId,
   chatlist,
   needget,
-  isloading,
   isChatting
 } = storeToRefs(LayoutStore)
-
+const { tempId, isloading } = storeToRefs(SettingStore)
 //对对话记录进行时间排序(ascending 是否升序（true：最早在前，false：最新在前）)
 const sortByUpdate = (
   conversations: ChatList[],
@@ -424,6 +428,7 @@ const sendMsg = async () => {
   })
   // 清空输入框
   inputContent.value = ''
+  tempId.value = currentChat.value.conversation_id
   scrollToBottom()
   try {
     isloading.value = true
@@ -432,6 +437,7 @@ const sendMsg = async () => {
       temp,
       LayoutStore.data
     )
+
     if ((res as any).Code === 200) {
       // 若后端返回新的导图数据，则更新本地缓存与当前数据
       if ((res as any).Data.new_map_json) {
@@ -465,6 +471,7 @@ const sendMsg = async () => {
         newChatId.value = id
         ElMessage.success('有新的消息')
       }
+      getconlist()
       scrollToBottom()
     } else if ((res as any).Code === 5001) {
       ElMessage.warning(`${(res as any).Message}`)
@@ -475,6 +482,7 @@ const sendMsg = async () => {
     ElMessage.error('优化失败，AI有点宕机了')
     console.error(error)
   } finally {
+    tempId.value = ''
     isloading.value = false
   }
 }
