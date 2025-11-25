@@ -415,9 +415,12 @@ onMounted(async () => {
   if (!LayoutStore.data.mapId) {
     backvisible.value = true
   }
+  const initRoot = JSON.parse(
+    JSON.stringify(LayoutStore.data.root || baseMap.root)
+  )
   mindMap = new MindMap({
     el: document.getElementById('mindMapContainer'),
-    data: LayoutStore.data.root || baseMap.root,
+    data: initRoot,
     layout: LayoutStore.data.layout || baseMap.layout,
     textAutoWrapWidth: 200,
     beforeShortcutRun: (key: any, activeNodes: any) => {
@@ -709,22 +712,33 @@ const pasteNode = () => {
   ElMessage.success('粘贴成功')
 }
 const plainClone = (obj: any) => JSON.parse(JSON.stringify(obj))
+let rafId = 0
+let pendingRoot: any = null
+const scheduleUpdate = (root: any) => {
+  pendingRoot = root
+  if (rafId) return
+  rafId = requestAnimationFrame(() => {
+    rafId = 0
+    const safe = plainClone(pendingRoot)
+    mindMap.updateData(safe)
+    mindMap.resize()
+  })
+}
 //组件销毁前更新思维导图
 onBeforeUnmount(async () => {
   LayoutStore.saveMap()
 })
 watch(
-  () => LayoutStore.aidata,
-  newData => {
-    if (mindMap) {
-      const safeRoot = plainClone(newData.root)
-      mindMap.updateData(safeRoot)
-      // 2. 单独设置布局（如果库有 setLayout 方法）
-      mindMap.setLayout(newData.layout || 'logicalStructure')
-      mindMap.resize()
-    }
-  },
-  { deep: true }
+  () => LayoutStore.aidata.root,
+  root => {
+    if (mindMap && root) scheduleUpdate(root)
+  }
+)
+watch(
+  () => LayoutStore.aidata.layout,
+  layout => {
+    if (mindMap) mindMap.setLayout(layout || 'logicalStructure')
+  }
 )
 </script>
 
