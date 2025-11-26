@@ -46,29 +46,11 @@
           <div class="third-party-login">
             <!-- 标题与分割线 -->
             <div class="login-title">
-              <div class="line"></div>
-              <span class="text">使用第三方登录</span>
-              <div class="line"></div>
+              <span class="text">
+                温馨提示：<br />请使用您的已注册的账号登录本系统，<br />如忘记密码可点击"忘记密码？"进行重置。<br />如需创建账号请点击"一键注册新账号"</span
+              >
             </div>
-
-            <!-- 第三方图标区域 -->
-            <div class="icons-container">
-              <!-- 微信登录图标 -->
-              <div class="icon-item">
-                <!-- @click="handleLogin('wechat')" -->
-                <img src="@/assets/wechat.png" class="icon" alt="微信登录" />
-              </div>
-
-              <!-- github登录图标 -->
-              <div class="icon-item">
-                <!-- @click="handleLogin('github')" -->
-                <img
-                  src="@/assets/github-fill.png"
-                  class="icon"
-                  alt="微信登录"
-                />
-              </div>
-            </div>
+            <div class="icons-container"></div>
           </div>
         </el-form>
       </div>
@@ -291,18 +273,12 @@ const resetPassword = () => {
   justify-content: center;
 }
 
-.line {
-  width: 80px;
-  height: 1px;
-  background-color: #e5e5e5; /* 分割线颜色 */
-  margin-top: 30px;
-}
-
 .text {
-  margin: 0 16px;
-  font-size: 14px;
+  margin: 0 5px;
+  font-size: 16px;
   color: #999; /* 文字颜色 */
   margin-top: 30px;
+  line-height: 20px;
 }
 
 /* 图标容器 */
@@ -311,28 +287,6 @@ const resetPassword = () => {
   justify-content: center;
   gap: 40px; /* 图标间距 */
   margin-top: 20px;
-}
-
-/* 图标样式 */
-.icon-item {
-  cursor: pointer;
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  background-color: #f5f5f5; /* 图标背景色 */
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: background-color 0.2s;
-}
-
-.icon-item:hover {
-  background-color: #ebebeb; /*  hover 背景色 */
-}
-
-.icon {
-  width: 35px;
-  height: 35px;
 }
 .footer {
   position: absolute;
