@@ -552,13 +552,31 @@ onUnmounted(() => {
 
     .features-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      grid-template-columns: repeat(2, minmax(280px, 1fr));
+      grid-template-rows: repeat(2, auto);
       gap: 25px;
       width: 100%;
-      max-width: 100%;
-      height: 100%;
+      max-width: 800px;
+      height: auto;
       justify-items: center;
       box-sizing: border-box;
+    }
+
+    /* 响应式布局 - 保持二行二列 */
+    @media (max-width: 768px) {
+      .features-grid {
+        grid-template-columns: repeat(2, minmax(200px, 1fr));
+        max-width: 90%;
+        gap: 15px;
+      }
+    }
+
+    @media (max-width: 576px) {
+      .features-grid {
+        grid-template-columns: repeat(2, minmax(150px, 1fr));
+        max-width: 95%;
+        gap: 10px;
+      }
     }
 
     .feature-card {
