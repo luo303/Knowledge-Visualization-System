@@ -38,9 +38,7 @@
           <p class="upload-desc" v-if="uploadedFileName">
             已上传: {{ uploadedFileName }}
           </p>
-          <p class="upload-desc" v-else>
-            支持 TXT、DOCX、PDF 格式文件 ( 最大32MB )
-          </p>
+          <p class="upload-desc" v-else>支持 DOCX、PDF 格式文件 ( 最大32MB )</p>
         </div>
 
         <div class="features-container">
