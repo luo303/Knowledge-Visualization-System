@@ -823,7 +823,7 @@ const cancelSwitchAccount = () => {
   height: 90%;
 
   .personal-info-container {
-    max-width: 1200px;
+    max-width: 1300px;
     margin: 0 auto;
   }
 
