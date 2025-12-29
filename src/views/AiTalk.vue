@@ -91,6 +91,9 @@
               p-id="14695"
             ></path>
           </svg>
+          <button @click="changeStream" class="stream-btn">
+            {{ isStream ? '关闭流式' : '开启流式' }}
+          </button>
           <span class="title"> {{ currentChat?.title }}</span>
         </div>
 
@@ -221,6 +224,7 @@ import {
   DelChat,
   UpdateTitle,
   SendMessage,
+  StreamMessage,
   GetMapChatList,
   TabComplete
 } from '@/api/user'
@@ -410,7 +414,16 @@ const backToList = (): void => {
   }
   getconlist()
 }
-
+//控制是否流式
+const isStream = ref(false)
+const changeStream = () => {
+  isStream.value = !isStream.value
+  if (isStream.value) {
+    ElMessage.success('已开启流式响应，当前版本流式输出无法修改导图（仅聊天）')
+  } else {
+    ElMessage.success('已关闭流式响应')
+  }
+}
 // 发送消息
 const sendMsg = async () => {
   if (!inputContent.value.trim()) return
@@ -432,51 +445,99 @@ const sendMsg = async () => {
   scrollToBottom()
   try {
     isloading.value = true
-    const res = await SendMessage(
-      currentChat.value.conversation_id,
-      temp,
-      LayoutStore.data
-    )
+    if (!isStream.value) {
+      const res = await SendMessage(
+        currentChat.value.conversation_id,
+        temp,
+        LayoutStore.data
+      )
 
-    if ((res as any).Code === 200) {
-      // 若后端返回新的导图数据，则更新本地缓存与当前数据
-      if ((res as any).Data.new_map_json) {
-        try {
-          LayoutStore.aidata = JSON5.parse((res as any).Data.new_map_json)
-          LayoutStore.data = JSON5.parse((res as any).Data.new_map_json)
-        } catch (e) {
-          console.error('解析 new_map_json 失败:', e)
-          ElMessage.error('导图数据解析异常')
+      if ((res as any).Code === 200) {
+        // 若后端返回新的导图数据，则更新本地缓存与当前数据
+        if ((res as any).Data.new_map_json) {
+          try {
+            LayoutStore.aidata = JSON5.parse((res as any).Data.new_map_json)
+            LayoutStore.data = JSON5.parse((res as any).Data.new_map_json)
+          } catch (e) {
+            console.error('解析 new_map_json 失败:', e)
+            ElMessage.error('导图数据解析异常')
+          }
         }
-      }
-      if (currentChatId.value === id) {
-        //判断当前是否在发送消息的那个会话，防止用户发完消息去到别的会话
-        currentChat.value.messages.push({
-          content: (res as any).Data.content,
-          role: 'assistant'
-        })
+        if (currentChatId.value === id) {
+          //判断当前是否在发送消息的那个会话，防止用户发完消息去到别的会话
+          currentChat.value.messages.push({
+            content: (res as any).Data.content,
+            role: 'assistant'
+          })
+        } else {
+          const index: number = chat.value.findIndex(
+            item => item.conversation_id === id
+          )
+          chat.value[index]?.messages.push({
+            content: (res as any).Data.content,
+            role: 'assistant'
+          })
+        }
+        if (
+          (!isChatting.value || currentChatId.value !== id) &&
+          mapid === LayoutStore.data.mapId
+        ) {
+          newChatId.value = id
+          ElMessage.success('有新的消息')
+        }
+        getconlist()
+        scrollToBottom()
+      } else if ((res as any).Code === 5001) {
+        ElMessage.warning(`${(res as any).Message}`)
       } else {
-        const index: number = chat.value.findIndex(
-          item => item.conversation_id === id
-        )
-        chat.value[index]?.messages.push({
-          content: (res as any).Data.content,
-          role: 'assistant'
-        })
+        ElMessage.error('优化失败，AI有点宕机了')
       }
-      if (
-        (!isChatting.value || currentChatId.value !== id) &&
-        mapid === LayoutStore.data.mapId
-      ) {
-        newChatId.value = id
-        ElMessage.success('有新的消息')
-      }
-      getconlist()
-      scrollToBottom()
-    } else if ((res as any).Code === 5001) {
-      ElMessage.warning(`${(res as any).Message}`)
     } else {
-      ElMessage.error('优化失败，AI有点宕机了')
+      const res = await StreamMessage(
+        currentChat.value.conversation_id,
+        temp,
+        LayoutStore.data
+      )
+      console.log(res)
+      isloading.value = false
+      if ((res as any).status === 200) {
+        const reader = res.body?.getReader()
+        if (!reader) {
+          ElMessage.error('流式响应读取失败')
+          return
+        }
+        const decoder = new TextDecoder()
+        const times = ref(1)
+        while (true) {
+          const { done, value } = await reader.read()
+          if (done) {
+            break
+          }
+          const chunk = decoder.decode(value)
+          const lines = chunk.split('\n').filter(line => line.trim() !== '')
+          for (const line of lines) {
+            const content = (line.match(/"(.*?)"/)?.[1] || '').replace(
+              /\\n/g,
+              '\n'
+            )
+            if (line && times.value === 1) {
+              currentChat.value.messages.push({
+                content: content,
+                role: 'assistant'
+              })
+              times.value++
+            } else if (line && times.value !== 1) {
+              currentChat.value.messages[
+                currentChat.value.messages.length - 1
+              ]!.content += content
+              times.value++
+            }
+            scrollToBottom()
+          }
+        }
+      } else {
+        ElMessage.error('优化失败，AI有点宕机了')
+      }
     }
   } catch (error) {
     ElMessage.error('优化失败，AI有点宕机了')
@@ -671,6 +732,21 @@ onBeforeUnmount(() => {
     .icon:hover {
       transform: translateY(-1px);
       opacity: 0.9;
+    }
+    .stream-btn {
+      padding: 4px 8px;
+      border-radius: 12px;
+      border: 1px solid #d1d5db;
+      background-color: #f9fafb;
+      color: #374151;
+      cursor: pointer;
+      transition:
+        background-color 0.2s,
+        color 0.2s;
+    }
+    .stream-btn:hover {
+      background-color: #e5e7eb;
+      color: #1f2937;
     }
   }
 

@@ -3,6 +3,7 @@ import request from '@/utils/request'
 import type { loginData, forgetpwd, code, changecontact } from './type'
 import type { MindMapOptions, CreateMindMapParams } from '@/utils/type'
 import type { registerData } from './type'
+import { useUserStore } from '@/stores'
 
 // 登录接口
 export const Login = (data: loginData) =>
@@ -59,6 +60,24 @@ export const SendMessage = (
     conversation_id,
     content,
     map_data: JSON.stringify(map_data)
+  })
+//流式输出输出接口
+export const StreamMessage = (
+  conversation_id: string,
+  content: string,
+  map_data: MindMapOptions
+) =>
+  fetch('http://111.228.15.67:8080/api/biz/v1/aichat/send_message_stream', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${useUserStore().token}`
+    },
+    body: JSON.stringify({
+      conversation_id,
+      content,
+      map_data: JSON.stringify(map_data)
+    })
   })
 //删除会话
 export const DelChat = (conversation_id: string) =>
