@@ -33,7 +33,7 @@ const createOrUpdateMindMap = () => {
   if (!mind.value) return
 
   // 确保有有效的根节点数据
-  const rootData = props.Map?.root || baseMap.root
+  const rootData = JSON.parse(JSON.stringify(props.Map?.root || baseMap.root))
   const layout = props.Map?.layout || 'mindMap'
 
   try {
