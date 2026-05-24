@@ -314,6 +314,22 @@ import AiTalk from './AiTalk.vue'
 import { onMounted, onBeforeUnmount, ref, shallowRef, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import MindMap from 'simple-mind-map'
+// @ts-expect-error 忽略 simple-mind-map 无类型声明的报错
+import ExportPlugin from 'simple-mind-map/src/plugins/Export.js'
+// @ts-expect-error 忽略 simple-mind-map 无类型声明的报错
+import ExportPDF from 'simple-mind-map/src/plugins/ExportPDF.js'
+// @ts-expect-error 忽略 simple-mind-map 无类型声明的报错
+import ExportXMind from 'simple-mind-map/src/plugins/ExportXMind.js'
+// @ts-expect-error 忽略 simple-mind-map 无类型声明的报错
+import Drag from 'simple-mind-map/src/plugins/Drag.js'
+// @ts-expect-error 忽略 simple-mind-map 无类型声明的报错
+import SearchPlugin from 'simple-mind-map/src/plugins/Search.js'
+
+MindMap.usePlugin(Drag)
+MindMap.usePlugin(ExportPlugin)
+MindMap.usePlugin(ExportPDF)
+MindMap.usePlugin(ExportXMind)
+MindMap.usePlugin(SearchPlugin)
 import {
   Close,
   RefreshLeft,

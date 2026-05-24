@@ -1,5 +1,4 @@
 import { createRouter, createWebHashHistory } from 'vue-router'
-import AuthPage from '@/views/auth/SystemLogin.vue'
 import { useUserStore } from '@/stores'
 import { ElMessage } from 'element-plus'
 const router = createRouter({
@@ -7,7 +6,7 @@ const router = createRouter({
   routes: [
     {
       path: '/auth',
-      component: AuthPage
+      component: () => import('@/views/auth/SystemLogin.vue')
     },
     {
       path: '/',
